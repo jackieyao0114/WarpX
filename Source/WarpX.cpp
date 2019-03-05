@@ -51,6 +51,9 @@ bool WarpX::use_filter        = false;
 bool WarpX::serialize_ics     = false;
 bool WarpX::refine_plasma     = false;
 
+bool WarpX::exchanged_guards_E = true;
+bool WarpX::exchanged_guards_B = true;
+
 int  WarpX::sort_int = -1;
 
 bool WarpX::do_boosted_frame_diagnostic = false;
@@ -665,10 +668,10 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
 
     if (do_dive_cleaning || plot_rho)
     {
-        rho_fp[lev].reset(new MultiFab(amrex::convert(ba,IntVect::TheUnitVector()),dm,2,ngRho));    
+        rho_fp[lev].reset(new MultiFab(amrex::convert(ba,IntVect::TheUnitVector()),dm,2,ngRho));
         rho_fp_owner_masks[lev] = std::move(rho_fp[lev]->OwnerMask(period));
     }
-    
+
     if (do_subcycling == 1 && lev == 0)
     {
         current_store[lev][0].reset( new MultiFab(amrex::convert(ba,jx_nodal_flag),dm,1,ngJ));

@@ -130,7 +130,7 @@ WarpX::EvolveEM (int numsteps)
         // We might need to move j because we are going to make a plotfile.
 
 	int num_moved = MoveWindow(move_j);
-        
+
         if (max_level == 0) {
             int num_redistribute_ghost = num_moved + 1;
             mypc->RedistributeLocal(num_redistribute_ghost);
@@ -271,17 +271,22 @@ WarpX::OneStep_nosub (Real cur_time)
     // (And update guard cells immediately afterwards)
 #ifdef WARPX_USE_PSATD
     PushPSATD(dt[0]);
+    WarpX::exchanged_guards_B = false;
+    WarpX::exchanged_guards_E = false;
     FillBoundaryE();
     FillBoundaryB();
 #else
     EvolveF(0.5*dt[0], DtType::FirstHalf);
     FillBoundaryF();
     EvolveB(0.5*dt[0]); // We now have B^{n+1/2}
+    WarpX::exchanged_guards_B = false;
     FillBoundaryB();
     EvolveE(dt[0]); // We now have E^{n+1}
+    WarpX::exchanged_guards_E = false;
     FillBoundaryE();
     EvolveF(0.5*dt[0], DtType::SecondHalf);
     EvolveB(0.5*dt[0]); // We now have B^{n+1}
+    WarpX::exchanged_guards_B = false;
     if (do_pml) {
         DampPML();
         FillBoundaryE();

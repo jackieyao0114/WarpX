@@ -211,19 +211,24 @@ WarpX::UpdateAuxilaryData ()
 void
 WarpX::FillBoundaryB ()
 {
+  if (WarpX::exchanged_guards_B == false){
     for (int lev = 0; lev <= finest_level; ++lev)
     {
         FillBoundaryB(lev);
     }
+    WarpX::exchanged_guards_B = true;
+  }
 }
 
 void
 WarpX::FillBoundaryE ()
 {
+  if (WarpX::exchanged_guards_E == false){
     for (int lev = 0; lev <= finest_level; ++lev)
     {
         FillBoundaryE(lev);
     }
+  WarpX::exchanged_guards_E = true;
 }
 
 void
