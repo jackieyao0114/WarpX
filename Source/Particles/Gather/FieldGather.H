@@ -88,12 +88,12 @@ void doGatherShapeN(const amrex::Real * const xp,
                 sz0, z-stagger_shift);
 
             // Set fields on particle to zero
-            Exp[ip] = 0;
-            Eyp[ip] = 0;
-            Ezp[ip] = 0;
-            Bxp[ip] = 0;
-            Byp[ip] = 0;
-            Bzp[ip] = 0;
+//            Exp[ip] = 0;
+//            Eyp[ip] = 0;
+//            Ezp[ip] = 0;
+//            Bxp[ip] = 0;
+//            Byp[ip] = 0;
+//            Bzp[ip] = 0;
             // Each field is gathered in a separate block of 
             // AMREX_SPACEDIM nested loops because the deposition
             // order can differ for each component of each field

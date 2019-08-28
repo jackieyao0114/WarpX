@@ -14,6 +14,7 @@
 #include <UpdatePosition.H>
 #include <UpdateMomentumBoris.H>
 #include <UpdateMomentumVay.H>
+#include <ExternalForce_PM.H>
 
 using namespace amrex;
 
@@ -870,6 +871,7 @@ PhysicalParticleContainer::FieldGather (int lev,
             auto& Bxp = attribs[PIdx::Bx];
             auto& Byp = attribs[PIdx::By];
             auto& Bzp = attribs[PIdx::Bz];
+            auto& wp  = attribs[PIdx::w];
 
             const long np = pti.numParticles();
 
@@ -892,15 +894,46 @@ PhysicalParticleContainer::FieldGather (int lev,
             // copy data from particle container to temp arrays
             //
             pti.GetPosition(m_xp[thread_num], m_yp[thread_num], m_zp[thread_num]);
+            
+            const Real xc = (Geom(0).ProbHi(0) - Geom(0).ProbLo(0))/2.0;
+            const Real yc = (Geom(0).ProbHi(1) - Geom(0).ProbLo(1))/2.0;
+            const Real zc = (Geom(0).ProbHi(2) - Geom(0).ProbLo(2))/2.0;
+            // Pointers to position, velocity, and particle field //
+            Real* const AMREX_RESTRICT xp_pm = m_xp[thread_num].dataPtr();
+            Real* const AMREX_RESTRICT yp_pm = m_yp[thread_num].dataPtr();
+            Real* const AMREX_RESTRICT zp_pm = m_zp[thread_num].dataPtr();
+            Real* const AMREX_RESTRICT ux_pm = attribs[PIdx::ux].dataPtr();
+            Real* const AMREX_RESTRICT uy_pm = attribs[PIdx::uy].dataPtr();
+            Real* const AMREX_RESTRICT uz_pm = attribs[PIdx::uz].dataPtr();
+            Real* const AMREX_RESTRICT Expp_pm = Exp.dataPtr();
+            Real* const AMREX_RESTRICT Eypp_pm = Eyp.dataPtr();
+            Real* const AMREX_RESTRICT Ezpp_pm = Ezp.dataPtr();
+            Real* const AMREX_RESTRICT Bxpp_pm = Bxp.dataPtr();
+            Real* const AMREX_RESTRICT Bypp_pm = Byp.dataPtr();
+            Real* const AMREX_RESTRICT Bzpp_pm = Bzp.dataPtr();
+            Real* const AMREX_RESTRICT wp_pm = wp.dataPtr();
+            const Real q_pm = this->charge;
+            const Real m_pm = this-> mass;
+            Real t = WarpX::GetInstance().gett_new(lev);
+            Real dt = 1.489511617e-8;
+            int istep = t/dt;
 
+            amrex::ParallelFor(pti.numParticles(),
+                 [=] AMREX_GPU_DEVICE (long i) {
+                 ApplyExternalForce(xp_pm[i],yp_pm[i],zp_pm[i],
+                               ux_pm[i],uy_pm[i],uz_pm[i],Expp_pm[i],Eypp_pm[i],
+                               Ezpp_pm[i],Bxpp_pm[i],Bypp_pm[i],Bzpp_pm[i],
+                               xc,yc,zc,q_pm,m_pm,dt,istep,wp_pm[i]);
+            });
             //
             // Field Gather
             //
             int e_is_nodal = Ex.is_nodal() and Ey.is_nodal() and Ez.is_nodal();
+        if (istep >= 0) {
             FieldGather(pti, Exp, Eyp, Ezp, Bxp, Byp, Bzp,
                         &exfab, &eyfab, &ezfab, &bxfab, &byfab, &bzfab, 
-                        Ex.nGrow(), e_is_nodal, 0, np, thread_num, lev, lev);
-
+                        Ex.nGrow(), e_is_nodal, 0, np, thread_num, lev, lev); 
+        }
             if (cost) {
                 const Box& tbx = pti.tilebox();
                 wt = (amrex::second() - wt) / tbx.d_numPts();
@@ -926,6 +959,7 @@ PhysicalParticleContainer::Evolve (int lev,
                                    const MultiFab* cBx, const MultiFab* cBy, const MultiFab* cBz,
                                    Real t, Real dt)
 {
+    amrex::Print() << " at evolve\n";
     BL_PROFILE("PPC::Evolve()");
     BL_PROFILE_VAR_NS("PPC::Evolve::Copy", blp_copy);
     BL_PROFILE_VAR_NS("PICSAR::FieldGather", blp_pxr_fg);
@@ -1056,6 +1090,83 @@ PhysicalParticleContainer::Evolve (int lev,
 
             m_giv[thread_num].resize(np);
 
+            BL_PROFILE_VAR_START(blp_copy);
+            pti.GetPosition(m_xp[thread_num], m_yp[thread_num], m_zp[thread_num]);
+            BL_PROFILE_VAR_STOP(blp_copy);
+            // For Pulsar //
+            // spin particles 
+            // find center of pulsar //
+            auto& particles = pti.GetArrayOfStructs();
+            const Real xc = (Geom(0).ProbHi(0) - Geom(0).ProbLo(0))/2.0;
+            const Real yc = (Geom(0).ProbHi(1) - Geom(0).ProbLo(1))/2.0;
+            const Real zc = (Geom(0).ProbHi(2) - Geom(0).ProbLo(2))/2.0;
+            // Pointers to position, velocity, and particle field //
+            Real* const AMREX_RESTRICT xp_pm = m_xp[thread_num].dataPtr();
+            Real* const AMREX_RESTRICT yp_pm = m_yp[thread_num].dataPtr();
+            Real* const AMREX_RESTRICT zp_pm = m_zp[thread_num].dataPtr();
+            Real* const AMREX_RESTRICT ux_pm = attribs[PIdx::ux].dataPtr();
+            Real* const AMREX_RESTRICT uy_pm = attribs[PIdx::uy].dataPtr();
+            Real* const AMREX_RESTRICT uz_pm = attribs[PIdx::uz].dataPtr();
+            Real* const AMREX_RESTRICT Expp_pm = Exp.dataPtr();
+            Real* const AMREX_RESTRICT Eypp_pm = Eyp.dataPtr();
+            Real* const AMREX_RESTRICT Ezpp_pm = Ezp.dataPtr();
+            Real* const AMREX_RESTRICT Bxpp_pm = Bxp.dataPtr();
+            Real* const AMREX_RESTRICT Bypp_pm = Byp.dataPtr();
+            Real* const AMREX_RESTRICT Bzpp_pm = Bzp.dataPtr();
+            Real* const AMREX_RESTRICT wp_pm = wp.dataPtr();
+            const Real q_pm = this->charge;
+            const Real m_pm = this-> mass;
+            Real t = WarpX::GetInstance().gett_new(lev);
+            int istep = t/dt;
+            amrex::ParallelFor(pti.numParticles(),
+                 [=] AMREX_GPU_DEVICE (long i) {
+                     auto& p = particles[i];
+                     if (p.id() == 11264000 || p.id() == 198451201){
+                        const amrex::Real r = std::sqrt( (xp_pm[i]-xc)*(xp_pm[i]-xc) + 
+                                                         (yp_pm[i]-yc)*(yp_pm[i]-yc) + 
+                                                         (zp_pm[i]-zc)*(zp_pm[i]-zc));
+                        const amrex::Real phi = std::atan2((yp_pm[i]-yc),(xp_pm[i]-xc));
+                        amrex::Real theta = 0.0;
+                        if (r>0) {
+                           theta = std::acos( (zp_pm[i]-zc)/r );
+                        }
+                        amrex::Real c_theta = std::cos(theta);
+                        amrex::Real s_theta = std::sin(theta);
+                        amrex::Real c_phi = std::cos(phi);
+                        amrex::Real s_phi = std::sin(phi);
+
+                        constexpr amrex::Real inv_c2 = 1./(PhysConst::c*PhysConst::c);
+
+                        // Compute inverse Lorentz factor
+                        const amrex::Real inv_gamma = 1./std::sqrt(1. + (ux_pm[i]*ux_pm[i] + uy_pm[i]*uy_pm[i] + uz_pm[i]*uz_pm[i])*inv_c2);
+                         amrex::Print() << "***** before ext force t = " << t << " istep " << istep <<"*** \n" ;
+                         amrex::Print() << " r " << r << " dt " << dt <<  "\n"; 
+                         amrex::Print() << " theta " << theta << " phi " << phi << "\n";
+                         amrex::Print() << " vel " << ux_pm[i]*inv_gamma << " " << uy_pm[i]*inv_gamma ; 
+                         amrex::Print() << " " << uz_pm[i]*inv_gamma << "\n";
+                         const amrex::Real omega_star = 11250;
+                         amrex::Print() << " speed " << std::sqrt(ux_pm[i]*ux_pm[i]*inv_gamma*inv_gamma + uy_pm[i]*uy_pm[i]*inv_gamma*inv_gamma ) << " romega " << r*s_theta*omega_star << "\n";;
+                     }
+                     
+                     ApplyExternalForce(xp_pm[i],yp_pm[i],zp_pm[i],
+                          ux_pm[i],uy_pm[i],uz_pm[i],Expp_pm[i],Eypp_pm[i],
+                          Ezpp_pm[i],Bxpp_pm[i],Bypp_pm[i],Bzpp_pm[i],
+                          xc,yc,zc,q_pm,m_pm,dt,istep,wp_pm[i]);
+                     if (p.id() == 11264000 || p.id() == 198451201){
+                        constexpr amrex::Real inv_c2 = 1./(PhysConst::c*PhysConst::c);
+
+                        // Compute inverse Lorentz factor
+                        const amrex::Real inv_gamma = 1./std::sqrt(1. + (ux_pm[i]*ux_pm[i] + uy_pm[i]*uy_pm[i] + uz_pm[i]*uz_pm[i])*inv_c2);
+                         amrex::Print() << " **** after ext force **** \n" ;
+                         amrex::Print() << " Efield " << Expp_pm[i] ;  
+                         amrex::Print() << " " << Eypp_pm[i] << " " << Ezpp_pm[i] << "\n";
+                         amrex::Print() << " Bfield " << Bxpp_pm[i] ;  
+                         amrex::Print() << " " << Bypp_pm[i] << " " << Bzpp_pm[i] << "\n";
+                         amrex::Print() << " q_pm " << q_pm << "\n";
+                     }
+            });
+
+
             long nfine_current = np;
             long nfine_gather = np;
             if (has_buffer && !do_not_push)
@@ -1173,10 +1284,11 @@ PhysicalParticleContainer::Evolve (int lev,
                 // Field Gather of Aux Data (i.e., the full solution)
                 //
                 BL_PROFILE_VAR_START(blp_pxr_fg);
+        if (istep >= 0) {
                 FieldGather(pti, Exp, Eyp, Ezp, Bxp, Byp, Bzp,
                             exfab, eyfab, ezfab, bxfab, byfab, bzfab, 
                             Ex.nGrow(), e_is_nodal, 0, np_gather, thread_num, lev, lev);
-
+        }
                 if (np_gather < np)
                 {
                     const IntVect& ref_ratio = WarpX::RefRatio(lev-1);
@@ -1244,12 +1356,14 @@ PhysicalParticleContainer::Evolve (int lev,
                     
                     // Field gather for particles in gather buffers
                     e_is_nodal = cEx->is_nodal() and cEy->is_nodal() and cEz->is_nodal();
-                    FieldGather(pti, Exp, Eyp, Ezp, Bxp, Byp, Bzp, 
-                                cexfab, ceyfab, cezfab,
-                                cbxfab, cbyfab, cbzfab,
-                                cEx->nGrow(), e_is_nodal, 
-                                nfine_gather, np-nfine_gather, 
-                                thread_num, lev, lev-1);
+        if (istep >= 0) {
+                        FieldGather(pti, Exp, Eyp, Ezp, Bxp, Byp, Bzp, 
+                                    cexfab, ceyfab, cezfab,
+                                    cbxfab, cbyfab, cbzfab,
+                                    cEx->nGrow(), e_is_nodal, 
+                                    nfine_gather, np-nfine_gather, 
+                                    thread_num, lev, lev-1);
+        }
                 }
 
                 BL_PROFILE_VAR_STOP(blp_pxr_fg);
@@ -1482,7 +1596,6 @@ PhysicalParticleContainer::PushPX(WarpXParIter& pti,
                                   Cuda::ManagedDeviceVector<Real>& giv,
                                   Real dt)
 {
-
     // This wraps the momentum and position advance so that inheritors can modify the call.
     auto& attribs = pti.GetAttribs();
     // Extract pointers to the different particle quantities
@@ -1500,6 +1613,7 @@ PhysicalParticleContainer::PushPX(WarpXParIter& pti,
     const Real* const AMREX_RESTRICT By = attribs[PIdx::By].dataPtr();
     const Real* const AMREX_RESTRICT Bz = attribs[PIdx::Bz].dataPtr();
 
+            const auto& particles = pti.GetArrayOfStructs();
     if (WarpX::do_boosted_frame_diagnostic && do_boosted_frame_diags)
     {
         copy_attribs(pti, x, y, z);
@@ -1511,10 +1625,53 @@ PhysicalParticleContainer::PushPX(WarpXParIter& pti,
     if (WarpX::particle_pusher_algo == ParticlePusherAlgo::Boris){
         amrex::ParallelFor( pti.numParticles(),
             [=] AMREX_GPU_DEVICE (long i) {
+                auto& p = particles[i];
+                if (p.id() == 11264000){
+                    //amrex::Print() << " pid " << p.id() << "\n";
+                    //amrex::Print() << " before mom boris\n";
+                    //amrex::Print() << " position " << x[i] << " "; 
+                    //amrex::Print() << y[i] << " " << z[i] << "\n";
+                    //    constexpr amrex::Real inv_c2 = 1./(PhysConst::c*PhysConst::c);
+
+                    //    // Compute inverse Lorentz factor
+                    //    const amrex::Real inv_gamma = 1./std::sqrt(1. + (ux[i]*ux[i] + uy[i]*uy[i] + uz[i]*uz[i])*inv_c2);
+                    //amrex::Print() << " vel " << ux[i]*inv_gamma << " " << uy[i]*inv_gamma ; 
+                    //amrex::Print() << " " << uz[i]*inv_gamma << "\n";
+                    amrex::Print() << " EF " << Ex[i]; 
+                    amrex::Print() << " " << Ey[i] << " " << Ez[i] << "\n";
+                    amrex::Print() << " Bfield " << Bx[i]; 
+                    amrex::Print() << " " << By[i] << " " << Bz[i] << "\n";
+                }
                 UpdateMomentumBoris( ux[i], uy[i], uz[i], gi[i],
                       Ex[i], Ey[i], Ez[i], Bx[i], By[i], Bz[i], q, m, dt);
+                if (p.id() == 11264000){
+                        constexpr amrex::Real inv_c2 = 1./(PhysConst::c*PhysConst::c);
+
+                        // Compute inverse Lorentz factor
+                        const amrex::Real inv_gamma = 1./std::sqrt(1. + (ux[i]*ux[i] + uy[i]*uy[i] + uz[i]*uz[i])*inv_c2);
+                    amrex::Print() << " *****after mom boris pushpx****\n";
+                    //amrex::Print() << " position " << x[i] << " "; 
+                    //amrex::Print() << y[i] << " " << z[i] << "\n";
+                    amrex::Print() << " vel " << ux[i]*inv_gamma << " " << uy[i]*inv_gamma ; 
+                    amrex::Print() << " " << uz[i]*inv_gamma << "\n";
+                    //amrex::Print() << " EF " << Ex[i]; 
+                    //amrex::Print() << " " << Ey[i] << " " << Ez[i] << "\n";
+                }
                 UpdatePosition( x[i], y[i], z[i],
                       ux[i], uy[i], uz[i], dt );
+                if (p.id() == 11264000){
+                    amrex::Print() << " ***** after update pos pushpx *****\n";
+                    amrex::Print() << " position " << x[i] << " "; 
+                    amrex::Print() << y[i] << " " << z[i] << "\n";
+                    //    constexpr amrex::Real inv_c2 = 1./(PhysConst::c*PhysConst::c);
+
+                    //    // Compute inverse Lorentz factor
+                    //    const amrex::Real inv_gamma = 1./std::sqrt(1. + (ux[i]*ux[i] + uy[i]*uy[i] + uz[i]*uz[i])*inv_c2);
+                    //amrex::Print() << " vel " << ux[i]*inv_gamma << " " << uy[i]*inv_gamma ; 
+                    //amrex::Print() << " " << uz[i]*inv_gamma << "\n";
+                    //amrex::Print() << " EF " << Ex[i]; 
+                    //amrex::Print() << " " << Ey[i] << " " << Ez[i] << "\n";
+                }
             }
         );
     } else if (WarpX::particle_pusher_algo == ParticlePusherAlgo::Vay) {
@@ -1536,6 +1693,7 @@ PhysicalParticleContainer::PushP (int lev, Real dt,
                                   const MultiFab& Ex, const MultiFab& Ey, const MultiFab& Ez,
                                   const MultiFab& Bx, const MultiFab& By, const MultiFab& Bz)
 {
+    amrex::Print() << " at PushP\n";
     BL_PROFILE("PhysicalParticleContainer::PushP");
 
     if (do_not_push) return;
@@ -1563,8 +1721,14 @@ PhysicalParticleContainer::PushP (int lev, Real dt,
             auto& Bxp = attribs[PIdx::Bx];
             auto& Byp = attribs[PIdx::By];
             auto& Bzp = attribs[PIdx::Bz];
+            auto& wp = attribs[PIdx::w];
 
             const long np = pti.numParticles();
+            
+            //
+            // copy data from particle container to temp arrays
+            //
+            pti.GetPosition(m_xp[thread_num], m_yp[thread_num], m_zp[thread_num]);
 
             // Data on the grid
             const FArrayBox& exfab = Ex[pti];
@@ -1583,16 +1747,83 @@ PhysicalParticleContainer::PushP (int lev, Real dt,
 
             m_giv[thread_num].resize(np);
 
-            //
-            // copy data from particle container to temp arrays
-            //
-            pti.GetPosition(m_xp[thread_num], m_yp[thread_num], m_zp[thread_num]);
+            // For Pulsar //
+            // spin particles 
+            // find center of pulsar //
+            auto& particles = pti.GetArrayOfStructs();
+            const Real xc = (Geom(0).ProbHi(0) - Geom(0).ProbLo(0))/2.0;
+            const Real yc = (Geom(0).ProbHi(1) - Geom(0).ProbLo(1))/2.0;
+            const Real zc = (Geom(0).ProbHi(2) - Geom(0).ProbLo(2))/2.0;
+            // Pointers to position, velocity, and particle field //
+            Real* const AMREX_RESTRICT xp_pm = m_xp[thread_num].dataPtr();
+            Real* const AMREX_RESTRICT yp_pm = m_yp[thread_num].dataPtr();
+            Real* const AMREX_RESTRICT zp_pm = m_zp[thread_num].dataPtr();
+            Real* const AMREX_RESTRICT ux_pm = attribs[PIdx::ux].dataPtr();
+            Real* const AMREX_RESTRICT uy_pm = attribs[PIdx::uy].dataPtr();
+            Real* const AMREX_RESTRICT uz_pm = attribs[PIdx::uz].dataPtr();
+            Real* const AMREX_RESTRICT Expp_pm = Exp.dataPtr();
+            Real* const AMREX_RESTRICT Eypp_pm = Eyp.dataPtr();
+            Real* const AMREX_RESTRICT Ezpp_pm = Ezp.dataPtr();
+            Real* const AMREX_RESTRICT Bxpp_pm = Bxp.dataPtr();
+            Real* const AMREX_RESTRICT Bypp_pm = Byp.dataPtr();
+            Real* const AMREX_RESTRICT Bzpp_pm = Bzp.dataPtr();
+            Real* const AMREX_RESTRICT wp_pm = wp.dataPtr();
+            Real t = WarpX::GetInstance().gett_new(lev);
+            int istep = t/dt;
+            const Real q_pm = this->charge;
+            const Real m_pm = this-> mass;
+
+            amrex::ParallelFor(pti.numParticles(), 
+                 [=] AMREX_GPU_DEVICE (long i) {
+                     auto& p = particles[i];
+                     if (p.id() == 11264000){
+                        const amrex::Real r = std::sqrt( (xp_pm[i]-xc)*(xp_pm[i]-xc) + 
+                                                         (yp_pm[i]-yc)*(yp_pm[i]-yc) + 
+                                                         (zp_pm[i]-zc)*(zp_pm[i]-zc));
+                        const amrex::Real phi = std::atan2((yp_pm[i]-yc),(xp_pm[i]-xc));
+                        amrex::Real theta = 0.0;
+                        if (r>0) {
+                           theta = std::acos( (zp_pm[i]-zc)/r );
+                        }
+                        amrex::Real c_theta = std::cos(theta);
+                        amrex::Real s_theta = std::sin(theta);
+                        amrex::Real c_phi = std::cos(phi);
+                        amrex::Real s_phi = std::sin(phi);
+                        constexpr amrex::Real inv_c2 = 1./(PhysConst::c*PhysConst::c);
+                         amrex::Print() << " ***before ext force t = " << t << " istep " << istep <<" *** \n" ;
+                         amrex::Print() << " r " << r << " dt " << dt <<  "\n"; 
+                         amrex::Print() << " theta " << theta << " phi " << phi << "\n";
+
+                        // Compute inverse Lorentz factor
+                        const amrex::Real inv_gamma = 1./std::sqrt(1. + (ux_pm[i]*ux_pm[i] + uy_pm[i]*uy_pm[i] + uz_pm[i]*uz_pm[i])*inv_c2);
+                         const amrex::Real omega_star = 11250;
+                         amrex::Print() << " speed " << std::sqrt(ux_pm[i]*ux_pm[i]*inv_gamma*inv_gamma + uy_pm[i]*uy_pm[i]*inv_gamma*inv_gamma + uz_pm[i]*uz_pm[i]*inv_gamma*inv_gamma) << " romega " << r*s_theta*omega_star << "\n";;
+                     }
+                     ApplyExternalForce(xp_pm[i],yp_pm[i],zp_pm[i],
+                         ux_pm[i],uy_pm[i],uz_pm[i],Expp_pm[i],Eypp_pm[i],
+                         Ezpp_pm[i],Bxpp_pm[i],Bypp_pm[i],Bzpp_pm[i],
+                         xc,yc,zc,q_pm,m_pm,dt,istep,wp_pm[i]);               
+                     if (p.id() == 11264000){
+                        constexpr amrex::Real inv_c2 = 1./(PhysConst::c*PhysConst::c);
+
+                        // Compute inverse Lorentz factor
+                        const amrex::Real inv_gamma = 1./std::sqrt(1. + (ux_pm[i]*ux_pm[i] + uy_pm[i]*uy_pm[i] + uz_pm[i]*uz_pm[i])*inv_c2);
+                         amrex::Print() << " ***** after ext *****\n";
+                         amrex::Print() << " Efield " << Expp_pm[i] ;  
+                         amrex::Print() << " " << Eypp_pm[i] << " " << Ezpp_pm[i] << "\n";
+                         amrex::Print() << " Bfield " << Bxpp_pm[i] ;  
+                         amrex::Print() << " " << Bypp_pm[i] << " " << Bzpp_pm[i] << "\n";
+                         amrex::Print() << " q_pm " << q_pm << "\n";
+                     }
+            });
+ 
 
             int e_is_nodal = Ex.is_nodal() and Ey.is_nodal() and Ez.is_nodal();
+        if (istep >= 0) {
             FieldGather(pti, Exp, Eyp, Ezp, Bxp, Byp, Bzp,
                         &exfab, &eyfab, &ezfab, &bxfab, &byfab, &bzfab, 
                         Ex.nGrow(), e_is_nodal, 0, np, thread_num, lev, lev);
-
+        }
             // This wraps the momentum advance so that inheritors can modify the call.
             // Extract pointers to the different particle quantities
             Real* const AMREX_RESTRICT gi = m_giv[thread_num].dataPtr();
@@ -1607,20 +1838,130 @@ PhysicalParticleContainer::PushP (int lev, Real dt,
             const Real* const AMREX_RESTRICT Bzpp = Bzp.dataPtr();
 
             // Loop over the particles and update their momentum
+            auto& particless = pti.GetArrayOfStructs();
             const Real q = this->charge;
             const Real m = this-> mass;
             if (WarpX::particle_pusher_algo == ParticlePusherAlgo::Boris){
                 amrex::ParallelFor( pti.numParticles(),
                     [=] AMREX_GPU_DEVICE (long i) {
+                     auto& p = particless[i];
+                     if (p.id() == 11264000){
+                         //amrex::Print() << " before mom boris\n";
+                         //amrex::Print() << " position " << xp_pm[i] << " "; 
+                         //amrex::Print() << yp_pm[i] << " " << zp_pm[i] << "\n";
+                         //constexpr amrex::Real inv_c2 = 1./(PhysConst::c*PhysConst::c);
+
+                        //// Compute inverse Lorentz factor
+                        //const amrex::Real inv_gamma = 1./std::sqrt(1. + (ux_pm[i]*ux_pm[i] + uy_pm[i]*uy_pm[i] + uz_pm[i]*uz_pm[i])*inv_c2);
+                         //amrex::Print() << " vel " << ux_pm[i]*inv_gamma << " " << uy_pm[i]*inv_gamma ; 
+                         //amrex::Print() << " " << uz_pm[i]*inv_gamma << "\n";
+                         amrex::Print() << " Efield " << Expp_pm[i] ;  
+                         amrex::Print() << " " << Eypp[i] << " " << Ezpp[i] << "\n";
+                         //amrex::Print() << " Bfield " << Bxpp[i] ;  
+                         //amrex::Print() << " " << Bypp_pm[i] << " " << Bzpp_pm[i] << "\n";
+                         //amrex::Print() << " q_pm " << q << "\n";
+                         amrex::Print() << " Bfield " << Bxpp[i]; 
+                         amrex::Print() << " " << Bypp[i] << " " << Bzpp[i] << "\n";
+
+                         const amrex::Real econst = 0.5*q*dt/m;
+
+                         // First half-push for E
+                         amrex::Real ux = 0.0;  ux += econst*Expp_pm[i];
+                         amrex::Real uy = 0.0;  uy += econst*Eypp_pm[i];
+                         amrex::Real uz = 0.0;  uz += econst*Ezpp_pm[i];
+                         amrex::Print() << " my vel 1 " << ux << " " << uy << " " << uz << "\n"; 
+                         // Compute temporary gamma factor
+                         constexpr amrex::Real inv_c2 = 1./(PhysConst::c*PhysConst::c);
+                         const amrex::Real inv_gamma = 1./std::sqrt(1. + (ux*ux + uy*uy + uz*uz)*inv_c2);
+                         // Magnetic rotation
+                         // - Compute temporary variables
+                         const amrex::Real tx = econst*inv_gamma*Bxpp_pm[i];
+                         const amrex::Real ty = econst*inv_gamma*Bypp_pm[i];
+                         const amrex::Real tz = econst*inv_gamma*Bzpp_pm[i];
+                         const amrex::Real tsqi = 2./(1. + tx*tx + ty*ty + tz*tz);
+                         const amrex::Real sx = tx*tsqi;
+                         const amrex::Real sy = ty*tsqi;
+                         const amrex::Real sz = tz*tsqi;
+                         const amrex::Real ux_p = ux + uy*tz - uz*ty;
+                         const amrex::Real uy_p = uy + uz*tx - ux*tz;
+                         const amrex::Real uz_p = uz + ux*ty - uy*tx;
+                         amrex::Print() << " tx " << tx << " " << ty << " " << tz << "\n";
+                         amrex::Print() << " sx " << sx << " " << sy << " " << sz << "\n";
+                         amrex::Print() << " uxp " << ux_p << " " << uy_p << " " << uz_p << "\n";
+                         // - Update momentum
+                         ux += uy_p*sz - uz_p*sy;
+                         uy += uz_p*sx - ux_p*sz;
+                         uz += ux_p*sy - uy_p*sx;
+                         amrex::Print() << " my vel 2 " << ux << " " << uy << " " << uz << "\n"; 
+                         amrex::Print() << " epush  " << econst*Expp_pm[i]  ;
+                         amrex::Print() << " " << econst*Eypp_pm[i] << " ";
+                         amrex::Print() << " " << econst*Ezpp_pm[i] << "\n";
+                         // Second half-push for E
+                         ux += econst*Expp_pm[i];
+                         uy += econst*Eypp_pm[i];
+                         uz += econst*Ezpp_pm[i];
+                         amrex::Print() << " my vel 3 " << ux << " " << uy << " " << uz << "\n"; 
+                         amrex::Real tgaminv = 1./std::sqrt(1. + (ux*ux + uy*uy + uz*uz)*inv_c2);
+                         amrex::Print() << " my vel  " << ux << " " << uy << " " << uz << "\n"; 
+                     }
                         UpdateMomentumBoris( ux[i], uy[i], uz[i], gi[i],
                               Expp[i], Eypp[i], Ezpp[i], Bxpp[i], Bypp[i], Bzpp[i], q, m, dt);
+
+                     if (p.id() == 11264000){
+                         //amrex::Print() << " after mom boris\n";
+                         //amrex::Print() << " position " << xp_pm[i] << " "; 
+                         //amrex::Print() << yp_pm[i] << " " << zp_pm[i] << "\n";
+                        constexpr amrex::Real inv_c2 = 1./(PhysConst::c*PhysConst::c);
+
+                        // Compute inverse Lorentz factor
+                        const amrex::Real inv_gamma = 1./std::sqrt(1. + (ux_pm[i]*ux_pm[i] + uy_pm[i]*uy_pm[i] + uz_pm[i]*uz_pm[i])*inv_c2);
+                         amrex::Print() << " vel " << ux_pm[i]*inv_gamma << " " << uy_pm[i]*inv_gamma ; 
+                         amrex::Print() << " " << uz_pm[i]*inv_gamma << "\n";
+                         //amrex::Print() << " Efield " << Expp_pm[i] ;  
+                         //amrex::Print() << " " << Eypp_pm[i] << " " << Ezpp_pm[i] << "\n";
+                         //amrex::Print() << " Bfield " << Bxpp_pm[i] ;  
+                         //amrex::Print() << " " << Bypp_pm[i] << " " << Bzpp_pm[i] << "\n";
+                         //amrex::Print() << " q_pm " << q << "\n";
+                     }
+
                     }
                 );
             } else if (WarpX::particle_pusher_algo == ParticlePusherAlgo::Vay) {
                 amrex::ParallelFor( pti.numParticles(),
                     [=] AMREX_GPU_DEVICE (long i) {
+                     auto& p = particles[i];
+                     if (p.id() == 11264000){
+                         amrex::Print() << " before mom vay\n";
+                         amrex::Print() << " position " << xp_pm[i] << " "; 
+                         amrex::Print() << yp_pm[i] << " " << zp_pm[i] << "\n";
+                        constexpr amrex::Real inv_c2 = 1./(PhysConst::c*PhysConst::c);
+
+                        // Compute inverse Lorentz factor
+                        const amrex::Real inv_gamma = 1./std::sqrt(1. + (ux_pm[i]*ux_pm[i] + uy_pm[i]*uy_pm[i] + uz_pm[i]*uz_pm[i])*inv_c2);
+                         amrex::Print() << " vel " << ux_pm[i]*inv_gamma << " " << uy_pm[i]*inv_gamma ; 
+                         amrex::Print() << " " << uz_pm[i]*inv_gamma << "\n";
+                         amrex::Print() << " Efield " << Expp_pm[i] ;  
+                         amrex::Print() << " " << Eypp_pm[i] << " " << Ezpp_pm[i] << "\n";
+                         amrex::Print() << " Bfield " << Bxpp_pm[i] ;  
+                         amrex::Print() << " " << Bypp_pm[i] << " " << Bzpp_pm[i] << "\n";
+                     }
                         UpdateMomentumVay( ux[i], uy[i], uz[i], gi[i],
                               Expp[i], Eypp[i], Ezpp[i], Bxpp[i], Bypp[i], Bzpp[i], q, m, dt);
+                     if (p.id() == 11264000){
+                         amrex::Print() << " before mom vay\n";
+                         amrex::Print() << " position " << xp_pm[i] << " "; 
+                         amrex::Print() << yp_pm[i] << " " << zp_pm[i] << "\n";
+                        constexpr amrex::Real inv_c2 = 1./(PhysConst::c*PhysConst::c);
+
+                        // Compute inverse Lorentz factor
+                        const amrex::Real inv_gamma = 1./std::sqrt(1. + (ux_pm[i]*ux_pm[i] + uy_pm[i]*uy_pm[i] + uz_pm[i]*uz_pm[i])*inv_c2);
+                         amrex::Print() << " vel " << ux_pm[i]*inv_gamma << " " << uy_pm[i]*inv_gamma ; 
+                         amrex::Print() << " " << uz_pm[i]*inv_gamma << "\n";
+                         amrex::Print() << " Efield " << Expp_pm[i] ;  
+                         amrex::Print() << " " << Eypp_pm[i] << " " << Ezpp_pm[i] << "\n";
+                         amrex::Print() << " Bfield " << Bxpp_pm[i] ;  
+                         amrex::Print() << " " << Bypp_pm[i] << " " << Bzpp_pm[i] << "\n";
+                     }
                     }
                 );
             } else {
