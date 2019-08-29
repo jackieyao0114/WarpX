@@ -27,7 +27,7 @@ void ApplyExternalForce(
     const amrex::Real r_star = 100.;
   
     // 
-    const amrex::Real f_drag_coeff = -1.0 * m /(q*dt*0.01);    
+    const amrex::Real f_drag_coeff = -1.0 * m /(q*dt*50.0);    
     amrex::Real f_drag_ux, f_drag_uy, f_drag_uz;
     amrex::Real B_star, c_theta, s_theta, c_phi, s_phi;
     B_star = 1.0e8;
@@ -48,8 +48,8 @@ void ApplyExternalForce(
         f_drag_uy = uy*inv_gamma - (r_cl/r_star)*r_star*omega_star*std::cos(phi);
         f_drag_uz = uz*inv_gamma - 0.0;
  
-        Ex += 1.0e8*f_drag_coeff * f_drag_ux ;
-        Ey += 1.0e8*f_drag_coeff * f_drag_uy ;
+        Ex += f_drag_coeff * f_drag_ux ;
+        Ey += f_drag_coeff * f_drag_uy ;
 //        Ez += f_drag_coeff * f_drag_uz;
 //        Ex -= (-1.0)*B_star*2.0*r_cl*omega_star*c_phi;
 //        Ey -= (-1.0)*B_star*2.0*r_cl*omega_star*s_phi;
