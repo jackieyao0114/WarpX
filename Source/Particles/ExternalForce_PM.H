@@ -23,7 +23,7 @@ void ApplyExternalForce(
     const amrex::Real r_cl = std::sin(theta) * r;
     
     // angular vel and radius of star 
-    const amrex::Real omega_star = 1125000. ; // rotation axis is k_hat
+    const amrex::Real omega_star = 11250. ; // rotation axis is k_hat
     const amrex::Real r_star = 100.;
   
     // 
@@ -72,9 +72,8 @@ void ApplyExternalForce(
            Bx += B_r*c_phi*s_theta + B_theta*c_phi*c_theta;
            By += B_r*s_phi*s_theta + B_theta*s_phi*c_theta;
            Bz += B_r*c_theta - B_theta*s_theta;
-           amrex::Real E_r = omega_star*r_star*B_star*r3*r_ratio*(1.0-3.0*c_theta*c_theta) ;
-//           amrex::Real E_r = 0.0 ;
-//                             + (2.0/3.0)*omega_star*B_star*r_star*r_ratio*r_ratio;
+           amrex::Real E_r = omega_star*r_star*B_star*r3*r_ratio*(1.0-3.0*c_theta*c_theta) 
+                             + (2.0/3.0)*omega_star*B_star*r_star*r_ratio*r_ratio;
            amrex::Real E_theta = (-1.0)*omega_star*B_star*r_star*r3*r_ratio*(c_theta*s_theta*2.0);
            Ex += E_r*c_phi*s_theta + E_theta*c_phi*c_theta;
            Ey += E_r*s_phi*s_theta + E_theta*s_phi*c_theta;

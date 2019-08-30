@@ -929,11 +929,9 @@ PhysicalParticleContainer::FieldGather (int lev,
             // Field Gather
             //
             int e_is_nodal = Ex.is_nodal() and Ey.is_nodal() and Ez.is_nodal();
-        if (istep >= 0) {
             FieldGather(pti, Exp, Eyp, Ezp, Bxp, Byp, Bzp,
                         &exfab, &eyfab, &ezfab, &bxfab, &byfab, &bzfab, 
                         Ex.nGrow(), e_is_nodal, 0, np, thread_num, lev, lev); 
-        }
             if (cost) {
                 const Box& tbx = pti.tilebox();
                 wt = (amrex::second() - wt) / tbx.d_numPts();
