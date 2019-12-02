@@ -23,11 +23,12 @@ void ApplyExternalForce(
     const amrex::Real r_cl = std::sin(theta) * r;
     
     // angular vel and radius of star 
-    const amrex::Real omega_star = 1125000. ; // rotation axis is k_hat
-    const amrex::Real r_star = 100.;
+    const amrex::Real omega_star = 11250. ; // rotation axis is k_hat
+    const amrex::Real r_star = 10000.;
   
     // 
-    const amrex::Real f_drag_coeff = -1.0 * m /(q*dt*50.0);    
+    const amrex::Real f_drag_coeff = -1.0 * m /(q*dt*0.01) * 1e12;    
+//    const amrex::Real f_drag_coeff = 1.0 * m /(q*dt*50.0);    
     amrex::Real f_drag_ux, f_drag_uy, f_drag_uz;
     amrex::Real B_star, c_theta, s_theta, c_phi, s_phi;
     B_star = 1.0e8;
@@ -50,9 +51,9 @@ void ApplyExternalForce(
  
         Ex += f_drag_coeff * f_drag_ux ;
         Ey += f_drag_coeff * f_drag_uy ;
-        Ez += f_drag_coeff * f_drag_uz;
-//        Ex -= (-1.0)*B_star*2.0*r_cl*omega_star*c_phi;
-//        Ey -= (-1.0)*B_star*2.0*r_cl*omega_star*s_phi;
+//        Ez += f_drag_coeff * f_drag_uz;
+//          Ex -= (-1.0)*B_star*2.0*r_cl*omega_star*c_phi;
+//          Ey -= (-1.0)*B_star*2.0*r_cl*omega_star*s_phi;
 
     }
     if(r <= r_star*1.001)
@@ -67,18 +68,19 @@ void ApplyExternalForce(
 
            amrex::Real r_ratio = r_star/r;
            amrex::Real r3 = r_ratio*r_ratio*r_ratio;
-           amrex::Real B_r = 2.0*B_star*r3*c_theta;
-           amrex::Real B_theta = B_star*r3*s_theta;
+           amrex::Real B_r = 1.0* 2.0*B_star*r3*c_theta;
+           amrex::Real B_theta = 1.0*B_star*r3*s_theta;
            Bx += B_r*c_phi*s_theta + B_theta*c_phi*c_theta;
            By += B_r*s_phi*s_theta + B_theta*s_phi*c_theta;
            Bz += B_r*c_theta - B_theta*s_theta;
            amrex::Real E_r ;
-           E_r = omega_star*r_star*B_star*r3*r_ratio*(1.0-3.0*c_theta*c_theta) ;
+           amrex::Real E_theta ;
+           E_r =  (+1.0)*omega_star*r_star*B_star*r3*r_ratio*(1.0-3.0*c_theta*c_theta) ;
 //                             + (2.0/3.0)*omega_star*B_star*r_star*r_ratio*r_ratio;
-           amrex::Real E_theta = (-1.0)*omega_star*B_star*r_star*r3*r_ratio*(c_theta*s_theta*2.0);
-           Ex += E_r*c_phi*s_theta + E_theta*c_phi*c_theta;
-           Ey += E_r*s_phi*s_theta + E_theta*s_phi*c_theta;
-           Ez += 1.0*E_r*c_theta - (1.0)*E_theta*s_theta;
+           E_theta = (-1.0)*omega_star*B_star*r_star*r3*r_ratio*(c_theta*s_theta*2.0);
+//           Ex += E_r*c_phi*s_theta + E_theta*c_phi*c_theta;
+//           Ey += E_r*s_phi*s_theta + E_theta*s_phi*c_theta;
+//           Ez += 1.0*E_r*c_theta - (1.0)*E_theta*s_theta;
     }
 
 }

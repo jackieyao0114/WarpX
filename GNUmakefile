@@ -8,6 +8,9 @@ DEBUG = FALSE
 #DIM     = 2
 DIM = 3
 
+#QED	       = TRUE
+#QED_TABLE_GEN = TRUE
+
 COMP = gcc
 #COMP = intel
 #COMP = pgi

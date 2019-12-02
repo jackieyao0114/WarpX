@@ -2,7 +2,7 @@
 ####### GENERAL PARAMETERS ######
 #################################
 stop_time = 3.93151387287e-11
-amr.n_cell = 32 32 320
+amr.n_cell = 32 32 256
 amr.max_grid_size = 64
 amr.blocking_factor = 32
 amr.max_level = 0
@@ -10,8 +10,8 @@ amr.plot_file = "plotfiles/plt"
 amr.plot_int = 50
 geometry.coord_sys   = 0                  # 0: Cartesian
 geometry.is_periodic = 1 1 0     # Is periodic?
-geometry.prob_lo     = -0.00015 -0.00015 -0.00012 
-geometry.prob_hi     = 0.00015 0.00015 1.e-06 
+geometry.prob_lo     = -0.00015 -0.00015 -0.00012
+geometry.prob_hi     = 0.00015 0.00015 1.e-06
 
 #################################
 ############ NUMERICS ###########
@@ -38,7 +38,7 @@ interpolation.noz = 3
 #################################
 warpx.gamma_boost = 10.0
 warpx.boost_direction = z
-warpx.do_boosted_frame_diagnostic = 1
+warpx.do_back_transformed_diagnostics = 1
 warpx.num_snapshots_lab = 22
 warpx.dt_snapshots_lab = 3.335640951981521e-11
 

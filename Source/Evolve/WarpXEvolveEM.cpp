@@ -141,14 +141,14 @@ WarpX::EvolveEM (int numsteps)
         bool do_insitu = ((step+1) >= insitu_start) &&
             (insitu_int > 0) && ((step+1) % insitu_int == 0);
 
-        if (do_boosted_frame_diagnostic) {
+        if (do_back_transformed_diagnostics) {
             std::unique_ptr<MultiFab> cell_centered_data = nullptr;
-            if (WarpX::do_boosted_frame_fields) {
+            if (WarpX::do_back_transformed_fields) {
                 cell_centered_data = GetCellCenteredData();
             }
             myBFD->writeLabFrameData(cell_centered_data.get(), *mypc, geom[0], cur_time, dt[0]);
         }
-        
+
         bool move_j = is_synchronized || to_make_plot || do_insitu;
         // If is_synchronized we need to shift j too so that next step we can evolve E by dt/2.
         // We might need to move j because we are going to make a plotfile.
@@ -183,7 +183,7 @@ WarpX::EvolveEM (int numsteps)
         }
 
         // slice gen //
-	if (to_make_plot || do_insitu || to_make_slice_plot)
+        if (to_make_plot || do_insitu || to_make_slice_plot)
         {
             FillBoundaryE();
             FillBoundaryB();
@@ -199,7 +199,7 @@ WarpX::EvolveEM (int numsteps)
             last_insitu_step = step+1;
 
             if (to_make_plot)
-    	        WritePlotFile();
+                WritePlotFile();
 
             if (to_make_slice_plot)
             {
@@ -211,7 +211,7 @@ WarpX::EvolveEM (int numsteps)
 
             if (do_insitu)
                 UpdateInSitu();
-	}
+        }
 
         if (check_int > 0 && (step+1) % check_int == 0) {
             last_check_file_step = step+1;
@@ -261,7 +261,7 @@ WarpX::EvolveEM (int numsteps)
         WriteCheckPointFile();
     }
 
-    if (do_boosted_frame_diagnostic) {
+    if (do_back_transformed_diagnostics) {
         myBFD->Flush(geom[0]);
     }
 
@@ -277,7 +277,7 @@ WarpX::EvolveEM (int numsteps)
 void
 WarpX::OneStep_nosub (Real cur_time)
 {
-    // Loop over species. For each ionizable species, create particles in 
+    // Loop over species. For each ionizable species, create particles in
     // product species.
     mypc->doFieldIonization();
     // Push particle from x^{n} to x^{n+1}
@@ -349,7 +349,7 @@ WarpX::OneStep_sub1 (Real curtime)
 {
     // TODO: we could save some charge depositions
 
-    // Loop over species. For each ionizable species, create particles in 
+    // Loop over species. For each ionizable species, create particles in
     // product species.
     mypc->doFieldIonization();
 
@@ -358,12 +358,12 @@ WarpX::OneStep_sub1 (Real curtime)
     const int coarse_lev = 0;
 
     // i) Push particles and fields on the fine patch (first fine step)
-    PushParticlesandDepose(fine_lev, curtime);
+    PushParticlesandDepose(fine_lev, curtime, DtType::FirstHalf);
     RestrictCurrentFromFineToCoarsePatch(fine_lev);
     RestrictRhoFromFineToCoarsePatch(fine_lev);
     ApplyFilterandSumBoundaryJ(fine_lev, PatchType::fine);
     NodalSyncJ(fine_lev, PatchType::fine);
-    ApplyFilterandSumBoundaryRho(fine_lev, PatchType::fine, 0, 2);
+    ApplyFilterandSumBoundaryRho(fine_lev, PatchType::fine, 0, 2*ncomps);
     NodalSyncRho(fine_lev, PatchType::fine, 0, 2);
 
     EvolveB(fine_lev, PatchType::fine, 0.5*dt[fine_lev]);
@@ -387,10 +387,10 @@ WarpX::OneStep_sub1 (Real curtime)
     // ii) Push particles on the coarse patch and mother grid.
     // Push the fields on the coarse patch and mother grid
     // by only half a coarse step (first half)
-    PushParticlesandDepose(coarse_lev, curtime);
+    PushParticlesandDepose(coarse_lev, curtime, DtType::Full);
     StoreCurrent(coarse_lev);
     AddCurrentFromFineLevelandSumBoundary(coarse_lev);
-    AddRhoFromFineLevelandSumBoundary(coarse_lev, 0, 1);
+    AddRhoFromFineLevelandSumBoundary(coarse_lev, 0, ncomps);
 
     EvolveB(fine_lev, PatchType::coarse, dt[fine_lev]);
     EvolveF(fine_lev, PatchType::coarse, dt[fine_lev], DtType::FirstHalf);
@@ -412,12 +412,12 @@ WarpX::OneStep_sub1 (Real curtime)
     UpdateAuxilaryData();
 
     // iv) Push particles and fields on the fine patch (second fine step)
-    PushParticlesandDepose(fine_lev, curtime+dt[fine_lev]);
+    PushParticlesandDepose(fine_lev, curtime+dt[fine_lev], DtType::SecondHalf);
     RestrictCurrentFromFineToCoarsePatch(fine_lev);
     RestrictRhoFromFineToCoarsePatch(fine_lev);
     ApplyFilterandSumBoundaryJ(fine_lev, PatchType::fine);
     NodalSyncJ(fine_lev, PatchType::fine);
-    ApplyFilterandSumBoundaryRho(fine_lev, PatchType::fine, 0, 2);
+    ApplyFilterandSumBoundaryRho(fine_lev, PatchType::fine, 0, ncomps);
     NodalSyncRho(fine_lev, PatchType::fine, 0, 2);
 
     EvolveB(fine_lev, PatchType::fine, 0.5*dt[fine_lev]);
@@ -443,7 +443,7 @@ WarpX::OneStep_sub1 (Real curtime)
     // by only half a coarse step (second half)
     RestoreCurrent(coarse_lev);
     AddCurrentFromFineLevelandSumBoundary(coarse_lev);
-    AddRhoFromFineLevelandSumBoundary(coarse_lev, 1, 1);
+    AddRhoFromFineLevelandSumBoundary(coarse_lev, ncomps, ncomps);
 
     EvolveE(fine_lev, PatchType::coarse, dt[fine_lev]);
     FillBoundaryE(fine_lev, PatchType::coarse);
@@ -485,7 +485,7 @@ WarpX::PushParticlesandDepose (Real cur_time)
 }
 
 void
-WarpX::PushParticlesandDepose (int lev, Real cur_time)
+WarpX::PushParticlesandDepose (int lev, Real cur_time, DtType a_dt_type)
 {
     mypc->Evolve(lev,
                  *Efield_aux[lev][0],*Efield_aux[lev][1],*Efield_aux[lev][2],
@@ -495,7 +495,7 @@ WarpX::PushParticlesandDepose (int lev, Real cur_time)
                  rho_fp[lev].get(), charge_buf[lev].get(),
                  Efield_cax[lev][0].get(), Efield_cax[lev][1].get(), Efield_cax[lev][2].get(),
                  Bfield_cax[lev][0].get(), Bfield_cax[lev][1].get(), Bfield_cax[lev][2].get(),
-                 cur_time, dt[lev]);
+                 cur_time, dt[lev], a_dt_type);
 #ifdef WARPX_DIM_RZ
     // This is called after all particles have deposited their current and charge.
     ApplyInverseVolumeScalingToCurrentDensity(current_fp[lev][0].get(), current_fp[lev][1].get(), current_fp[lev][2].get(), lev);
@@ -520,8 +520,22 @@ WarpX::ComputeDt ()
     if (maxwell_fdtd_solver_id == 0) {
         // CFL time step Yee solver
 #ifdef WARPX_DIM_RZ
-        // Derived semi-analytically by R. Lehe
-        deltat  = cfl * 1./( std::sqrt((1+0.2105)/(dx[0]*dx[0]) + 1./(dx[1]*dx[1])) * PhysConst::c );
+        // In the rz case, the Courant limit has been evaluated
+        // semi-analytically by R. Lehe, and resulted in the following
+        // coefficients.
+        // NB : Here the coefficient for m=1 as compared to this document,
+        // as it was observed in practice that this coefficient was not
+        // high enough (The simulation became unstable).
+        Real multimode_coeffs[6] = { 0.2105, 1.0, 3.5234, 8.5104, 15.5059, 24.5037 };
+        Real multimode_alpha;
+        if (n_rz_azimuthal_modes < 7) {
+            // Use the table of the coefficients
+            multimode_alpha = multimode_coeffs[n_rz_azimuthal_modes-1];
+        } else {
+            // Use a realistic extrapolation
+            multimode_alpha = (n_rz_azimuthal_modes - 1)*(n_rz_azimuthal_modes - 1) - 0.4;
+        }
+        deltat  = cfl * 1./( std::sqrt((1+multimode_alpha)/(dx[0]*dx[0]) + 1./(dx[1]*dx[1])) * PhysConst::c );
 #else
         deltat  = cfl * 1./( std::sqrt(AMREX_D_TERM(  1./(dx[0]*dx[0]),
                                                       + 1./(dx[1]*dx[1]),
@@ -548,6 +562,18 @@ WarpX::ComputeDt ()
     if (do_electrostatic) {
         dt[0] = const_dt;
     }
+
+    for (int lev=0; lev <= max_level; lev++) {
+        const Real* dx_lev = geom[lev].CellSize();
+        Print()<<"Level "<<lev<<": dt = "<<dt[lev]
+               <<" ; dx = "<<dx_lev[0]
+#if (defined WARPX_DIM_XZ) || (defined WARPX_DIM_RZ)
+               <<" ; dz = "<<dx_lev[1]<<'\n';
+#elif (defined WARPX_DIM_3D)
+               <<" ; dy = "<<dx_lev[1]
+               <<" ; dz = "<<dx_lev[2]<<'\n';
+#endif
+    }
 }
 
 /* \brief computes max_step for wakefield simulation in boosted frame.
@@ -564,13 +590,14 @@ WarpX::computeMaxStepBoostAccelerator(amrex::Geometry a_geom){
         WarpX::moving_window_dir == AMREX_SPACEDIM-1,
         "Can use zmax_plasma_to_compute_max_step only if " +
         "moving window along z. TODO: all directions.");
-
-    AMREX_ALWAYS_ASSERT_WITH_MESSAGE(
-        (WarpX::boost_direction[0]-0)*(WarpX::boost_direction[0]-0) +
-        (WarpX::boost_direction[1]-0)*(WarpX::boost_direction[1]-0) +
-        (WarpX::boost_direction[2]-1)*(WarpX::boost_direction[2]-1) < 1.e-12,
-        "Can use zmax_plasma_to_compute_max_step only if " +
-        "warpx.boost_direction = z. TODO: all directions.");
+    if (gamma_boost > 1){
+        AMREX_ALWAYS_ASSERT_WITH_MESSAGE(
+            (WarpX::boost_direction[0]-0)*(WarpX::boost_direction[0]-0) +
+            (WarpX::boost_direction[1]-0)*(WarpX::boost_direction[1]-0) +
+            (WarpX::boost_direction[2]-1)*(WarpX::boost_direction[2]-1) < 1.e-12,
+            "Can use zmax_plasma_to_compute_max_step in boosted frame only if " +
+            "warpx.boost_direction = z. TODO: all directions.");
+    }
 
     // Lower end of the simulation domain. All quantities are given in boosted
     // frame except zmax_plasma_to_compute_max_step.

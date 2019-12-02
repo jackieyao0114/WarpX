@@ -1,12 +1,18 @@
 #ifndef WARPX_H_
 #define WARPX_H_
 
-#include <iostream>
-#include <memory>
-#include <array>
+#include "WarpXDtType.H"
+#include <MultiParticleContainer.H>
+#include <PML.H>
+#include <BackTransformedDiagnostic.H>
+#include <BilinearFilter.H>
+#include <NCIGodfreyFilter.H>
 
-#ifdef _OPENMP
-#include <omp.h>
+#ifdef WARPX_USE_PSATD
+#   include <SpectralSolver.H>
+#endif
+#ifdef WARPX_USE_PSATD_HYBRID
+#   include <PicsarHybridFFTData.H>
 #endif
 
 #include <AMReX_AmrCore.H>
@@ -19,31 +25,19 @@
 #include <AMReX_Interpolater.H>
 #include <AMReX_FillPatchUtil.H>
 
-#include <MultiParticleContainer.H>
-#include <PML.H>
-#include <BoostedFrameDiagnostic.H>
-#include <BilinearFilter.H>
-#include <NCIGodfreyFilter.H>
+#ifdef _OPENMP
+#   include <omp.h>
+#endif
 
-#ifdef WARPX_USE_PSATD
-#include <SpectralSolver.H>
-#endif
-#ifdef WARPX_USE_PSATD_HYBRID
-#include <PicsarHybridFFTData.H>
-#endif
+#include <iostream>
+#include <memory>
+#include <array>
 
 #if defined(BL_USE_SENSEI_INSITU)
 namespace amrex {
 class AmrMeshInSituBridge;
 }
 #endif
-
-enum struct DtType : int
-{
-    Full = 0,
-    FirstHalf,
-    SecondHalf
-};
 
 enum struct PatchType : int
 {
@@ -75,12 +69,18 @@ public:
 
     MultiParticleContainer& GetPartContainer () { return *mypc; }
 
-    static void shiftMF(amrex::MultiFab& mf, const amrex::Geometry& geom, int num_shift, int dir);
+    static void shiftMF(amrex::MultiFab& mf, const amrex::Geometry& geom, int num_shift, int dir,
+                        amrex::Real external_field = 0.);
 
     static void GotoNextLine (std::istream& is);
 
-    // External fields
-    static amrex::Vector<amrex::Real> B_external;
+    // External fields added to particle fields.
+    static amrex::Vector<amrex::Real> B_external_particle;
+    static amrex::Vector<amrex::Real> E_external_particle;
+
+    // Initial field on the grid.
+    static amrex::Vector<amrex::Real> E_external_grid;
+    static amrex::Vector<amrex::Real> B_external_grid;
 
     // Algorithms
     static long current_deposition_algo;
@@ -94,6 +94,10 @@ public:
     static long noy;
     static long noz;
 
+    // Number of modes for the RZ multimode version
+    static long n_rz_azimuthal_modes;
+    static long ncomps;
+
     static bool use_fdtd_nci_corr;
     static int  l_lower_order_in_v;
 
@@ -101,12 +105,12 @@ public:
     static bool serialize_ics;
 
     // Back transformation diagnostic
-    static bool do_boosted_frame_diagnostic;
+    static bool do_back_transformed_diagnostics;
     static std::string lab_data_directory;
     static int  num_snapshots_lab;
     static amrex::Real dt_snapshots_lab;
-    static bool do_boosted_frame_fields;
-    static bool do_boosted_frame_particles;
+    static bool do_back_transformed_fields;
+    static bool do_back_transformed_particles;
 
     // Boosted frame parameters
     static amrex::Real gamma_boost;
@@ -120,9 +124,11 @@ public:
 
     static int sort_int;
 
+    static int do_subcycling;
+
     // buffers
-    static int n_field_gather_buffer;
-    static int n_current_deposition_buffer;
+    static int n_field_gather_buffer;       //! in number of cells from the edge (identical for each dimension)
+    static int n_current_deposition_buffer; //! in number of cells from the edge (identical for each dimension)
 
     // do nodal
     static int do_nodal;
@@ -197,12 +203,14 @@ public:
 
     void CopyJPML ();
 
-    void PushParticlesandDepose (int lev, amrex::Real cur_time);
+    void PushParticlesandDepose (int lev, amrex::Real cur_time, DtType a_dt_type=DtType::Full);
     void PushParticlesandDepose (         amrex::Real cur_time);
 
     // This function does aux(lev) = fp(lev) + I(aux(lev-1)-cp(lev)).
     // Caller must make sure fp and cp have ghost cells filled.
     void UpdateAuxilaryData ();
+    void UpdateAuxilaryDataStagToNodal ();
+    void UpdateAuxilaryDataSameType ();
 
     // Fill boundary cells including coarse/fine boundaries
     void FillBoundaryB ();
@@ -242,6 +250,9 @@ public:
     static amrex::RealBox getRealBox(const amrex::Box& bx, int lev);
     static std::array<amrex::Real,3> LowerCorner (const amrex::Box& bx, int lev);
     static std::array<amrex::Real,3> UpperCorner (const amrex::Box& bx, int lev);
+    // Returns the locations of the lower corner of the box, shifted up
+    // a half cell if cell centered.
+    static std::array<amrex::Real,3> LowerCornerWithCentering (const amrex::Box& bx, int lev);
 
     static amrex::IntVect RefRatio (int lev);
 
@@ -269,6 +280,10 @@ public:
     void SliceGenerationForDiagnostics ();
     void WriteSlicePlotFile () const;
     void ClearSliceMultiFabs ();
+    static int num_slice_snapshots_lab;
+    static amrex::Real dt_slice_snapshots_lab;
+    static amrex::Real particle_slice_width_lab;
+    amrex::RealBox getSliceRealBox() const {return slice_realbox;}
 
     // these should be private, but can't due to Cuda limitations
     static void ComputeDivB (amrex::MultiFab& divB, int dcomp,
@@ -287,6 +302,19 @@ public:
                              const std::array<const amrex::MultiFab*, 3>& B,
                              const std::array<amrex::Real,3>& dx, int ngrow);
 
+
+    void InitSpaceChargeField (WarpXParticleContainer& pc);
+    void computePhi (const amrex::Vector<std::unique_ptr<amrex::MultiFab> >& rho,
+                     amrex::Vector<std::unique_ptr<amrex::MultiFab> >& phi,
+                     std::array<amrex::Real, 3> const beta = {{0,0,0}},
+                     amrex::Real const required_precision=1.e-11 ) const;
+    void computeE (amrex::Vector<std::array<std::unique_ptr<amrex::MultiFab>, 3> >& E,
+                   const amrex::Vector<std::unique_ptr<amrex::MultiFab> >& phi,
+                   std::array<amrex::Real, 3> const beta = {{0,0,0}} ) const;
+    void computeB (amrex::Vector<std::array<std::unique_ptr<amrex::MultiFab>, 3> >& B,
+                   const amrex::Vector<std::unique_ptr<amrex::MultiFab> >& phi,
+                   std::array<amrex::Real, 3> const beta = {{0,0,0}} ) const;
+
 protected:
 
     //! Tagging cells for refinement
@@ -296,20 +324,20 @@ protected:
     //! DistributionMapping.  Only used during initialization.  Called
     //! by AmrCoreInitFromScratch.
     virtual void MakeNewLevelFromScratch (int lev, amrex::Real time, const amrex::BoxArray& ba,
-					  const amrex::DistributionMapping& dm) final;
+                                          const amrex::DistributionMapping& dm) final;
 
     //! Make a new level using provided BoxArray and
     //! DistributionMapping and fill with interpolated coarse level
     //! data.  Called by AmrCore::regrid.
     virtual void MakeNewLevelFromCoarse (int lev, amrex::Real time, const amrex::BoxArray& ba,
-					 const amrex::DistributionMapping& dm) final
+                                         const amrex::DistributionMapping& dm) final
         { amrex::Abort("MakeNewLevelFromCoarse: To be implemented"); }
 
     //! Remake an existing level using provided BoxArray and
     //! DistributionMapping and fill with existing fine and coarse
     //! data.  Called by AmrCore::regrid.
     virtual void RemakeLevel (int lev, amrex::Real time, const amrex::BoxArray& ba,
-			      const amrex::DistributionMapping& dm) final;
+                              const amrex::DistributionMapping& dm) final;
 
     //! Delete level data.  Called by AmrCore::regrid.
     virtual void ClearLevel (int lev) final;
@@ -349,31 +377,12 @@ private:
     ///
     void EvolveES(int numsteps);
 
-    ///
-    /// Compute the gravitational potential from rho by solving Poisson's equation.
-    /// Both rho and phi are assumed to be node-centered. This method is only used
-    /// in electrostatic mode.
-    ///
-    void computePhi(const amrex::Vector<std::unique_ptr<amrex::MultiFab> >& rho,
-                          amrex::Vector<std::unique_ptr<amrex::MultiFab> >& phi) const;
-
-    ///
-    /// Compute the electric field in each direction by computing the gradient
-    /// the potential phi using 2nd order centered differences. Both rho and phi
-    /// are assumed to be node-centered. This method is only used in electrostatic mode.
-    ///
-    void computeE(amrex::Vector<std::array<std::unique_ptr<amrex::MultiFab>, 3> >& E,
-                  const amrex::Vector<std::unique_ptr<amrex::MultiFab> >& phi) const;
-
     //
     // This stuff is needed by the nodal multigrid solver when running in
     // electrostatic mode.
     //
     void zeroOutBoundary(amrex::MultiFab& input_data, amrex::MultiFab& bndry_data,
                          const amrex::FabArray<amrex::BaseFab<int> >& mask) const;
-
-    void sumFineToCrseNodal(const amrex::MultiFab& fine, amrex::MultiFab& crse,
-                            const amrex::Geometry& cgeom, const amrex::IntVect& ratio);
 
     void fixRHSForSolve(amrex::Vector<std::unique_ptr<amrex::MultiFab> >& rhs,
                         const amrex::Vector<std::unique_ptr<amrex::FabArray<amrex::BaseFab<int> > > >& masks) const ;
@@ -400,8 +409,6 @@ private:
     void InitFromCheckpoint ();
     void PostRestart ();
 
-    void InitOpenbc ();
-
     void InitPML ();
     void ComputePMLFactors ();
 
@@ -419,12 +426,6 @@ private:
     std::array<std::unique_ptr<amrex::MultiFab>, 3> getInterpolatedE(int lev) const;
 
     std::array<std::unique_ptr<amrex::MultiFab>, 3> getInterpolatedB(int lev) const;
-
-    void SyncCurrent (const std::array<const amrex::MultiFab*,3>& fine,
-                      const std::array<      amrex::MultiFab*,3>& crse,
-                      int ref_ratio);
-
-    void SyncRho (const amrex::MultiFab& fine, amrex::MultiFab& crse, int ref_ratio);
 
     void ExchangeWithPmlB (int lev);
     void ExchangeWithPmlE (int lev);
@@ -455,7 +456,7 @@ private:
     std::unique_ptr<MultiParticleContainer> mypc;
 
     // Boosted Frame Diagnostics
-    std::unique_ptr<BoostedFrameDiagnostic> myBFD;
+    std::unique_ptr<BackTransformedDiagnostic> myBFD;
 
     //
     // Fields: First array for level, second for direction
@@ -492,12 +493,6 @@ private:
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > current_buf;
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > charge_buf;
 
-    amrex::Vector<std::array<std::unique_ptr<amrex::iMultiFab>, 3 > > current_fp_owner_masks;
-    amrex::Vector<std::array<std::unique_ptr<amrex::iMultiFab>, 3 > > current_cp_owner_masks;
-
-    amrex::Vector<std::unique_ptr<amrex::iMultiFab> > rho_fp_owner_masks;
-    amrex::Vector<std::unique_ptr<amrex::iMultiFab> > rho_cp_owner_masks;
-
     // div E cleaning
     int do_dive_cleaning = 0;
 
@@ -529,10 +524,11 @@ private:
     int load_balance_with_sfc = 0;
     amrex::Real load_balance_knapsack_factor = 1.24;
 
+    // Override sync every ? steps
+    int override_sync_int = 10;
+
     // Other runtime parameters
     int verbose = 1;
-
-    int do_subcycling = 0;
 
     int max_step   = std::numeric_limits<int>::max();
     amrex::Real stop_time = std::numeric_limits<amrex::Real>::max();
