@@ -336,6 +336,13 @@ bool PlasmaInjector::insideBounds (Real x, Real y, Real z) const noexcept
             z < zmax and z >= zmin);
 }
 
+#ifdef PULSAR
+bool PlasmaInjector::insidePulsarBounds (Real r, Real R_star, Real dR_star) const noexcept
+{
+    return (r >= R_star and r <= R_star + dR_star);
+}
+#endif
+
 InjectorPosition*
 PlasmaInjector::getInjectorPosition ()
 {

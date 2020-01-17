@@ -316,6 +316,10 @@ public:
         amrex::Real dt);
 #endif
 
+#ifdef PULSAR
+    virtual void PulsarParticleInjection () override;
+#endif
+
 protected:
 
     std::string species_name;

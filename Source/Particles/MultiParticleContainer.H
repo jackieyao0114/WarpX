@@ -18,6 +18,9 @@
 #endif
 
 #include "CollisionType.H"
+#ifdef PULSAR
+    #include <PulsarParameters.H>
+#endif
 
 #include <memory>
 #include <map>
@@ -233,6 +236,7 @@ public:
 #ifdef PULSAR
     std::string m_E_ext_particle_coord = "cartesian";
     std::string m_B_ext_particle_coord = "cartesian";
+    void PulsarParticleInjection();
 #endif
 
 protected:

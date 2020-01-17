@@ -168,6 +168,11 @@ WarpX::EvolveEM (int numsteps)
 
         int num_moved = MoveWindow(move_j);
 
+#ifdef PULSAR
+//       mypc->PulsarParticleInjection();
+//       mypc->Redistribute();
+#endif
+
         if (max_level == 0) {
             int num_redistribute_ghost = num_moved + 1;
             mypc->RedistributeLocal(num_redistribute_ghost);

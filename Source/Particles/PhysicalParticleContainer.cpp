@@ -19,7 +19,10 @@
 #include <UpdateMomentumVay.H>
 #include <UpdateMomentumBorisWithRadiationReaction.H>
 #include <UpdateMomentumHigueraCary.H>
-#include <PulsarParameters.H>
+
+#ifdef PULSAR
+    #include <PulsarParameters.H>
+#endif
 
 using namespace amrex;
 
@@ -345,6 +348,27 @@ PhysicalParticleContainer::AddPlasma (int lev, RealBox part_realbox)
 {
     BL_PROFILE("PhysicalParticleContainer::AddPlasma");
 
+#ifdef PULSAR
+    amrex::Print() << " in add plasma" << PulsarParm::R_star << "\n";
+    // Steps to implement
+    // 1. inside PulsarBound p.id = -1 if not within R_star+dR_star
+    // 2. find sigma of the cell the particle belongs to
+    //    2a. Cell Id of the particle
+    //    2b. Get x,y,z -> r,theta,phi of the cell. if r >R_star-dR and r<R_star+dR
+    //    2c. Compute Er_corotating of the cell
+    //    2d. Access Ex Ey Ez of the cell and convert to Er
+    //    2e. Compute epsilon*(Er_cell - Er_corotating) = sigma 
+    //    2f. sigma could be positive or negative. Introduce
+    //        particles if |sigma|>threshold.
+    //        Ninj = sigma*Area/wt
+    //    2g. We introduce Nc particles every timestep
+    //        Only Ninj are supposed to be injected.
+    //        inject every (ip%(Nc/Ninj)==0) particle
+    //        else p.id = -1
+     
+   
+#endif
+
     // If no part_realbox is provided, initialize particles in the whole domain
     const Geometry& geom = Geom(lev);
     if (!part_realbox.ok()) part_realbox = geom.ProbDomain();
@@ -644,6 +668,25 @@ PhysicalParticleContainer::AddPlasma (int lev, RealBox part_realbox)
                     p.id() = -1;
                     return;
                 }
+//#ifdef PULSAR
+                //amrex::Real xc = PulsarParm::center_star[0];
+                //amrex::Real yc = PulsarParm::center_star[1];
+                //amrex::Real zc = PulsarParm::center_star[2];
+                amrex::Real xc = 90000;
+                amrex::Real yc = 90000;
+                amrex::Real zc = 90000;
+                amrex::Real rad = std::sqrt( (x-xc)*(x-xc) + (y-yc)*(y-yc) + (z-zc)*(z-zc));
+                //if (!inj_pos->insidePulsarBounds(r,PulsarParm::R_star,PulsarParm::dR_star)) {
+                //if (!inj_pos->insidePulsarBounds(r,12000,-2000)) {
+                if (  (rad< 10000) or (rad>12000)  ) {
+                   p.id() = -1;
+                   //amrex::Print() << "call inside pulsar bounds " << r << " rstar " << PulsarParm::R_star << " " << PulsarParm::dR_star<<"\n";
+                   amrex::Print() << "call inside pulsar bounds " <<"\n";
+                   return;
+                }
+                else
+                { amrex::Print() << " r " << rad << "\n";}
+//#endif
                 u = inj_mom->getMomentum(x, y, z);
                 dens = inj_rho->getDensity(x, y, z);
                 // Remove particle if density below threshold
@@ -2505,4 +2548,11 @@ set_quantum_sync_engine_ptr(std::shared_ptr<QuantumSynchrotronEngine> ptr)
     m_shr_p_qs_engine = ptr;
 }
 
+#endif
+
+#ifdef PULSAR
+void PhysicalParticleContainer::PulsarParticleInjection() {
+    
+     AddPlasma( 0 );
+}
 #endif
