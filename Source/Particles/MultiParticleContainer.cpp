@@ -93,6 +93,16 @@ MultiParticleContainer::ReadParameters ()
                        m_E_ext_particle_s.end(),
                        m_E_ext_particle_s.begin(),
                        ::tolower);
+
+#ifdef PULSAR
+        // co-ordinate system used to specify external fields 
+        // is cartesian (default) or spherical
+        // For pulsar it is easier to provide (r,theta,phi) components
+        // and let the code do the conversion to cartesian
+        pp.query("E_ext_particle_coord", m_E_ext_particle_coord);
+        pp.query("B_ext_particle_coord", m_B_ext_particle_coord);
+#endif    
+
         // if the input string for B_external on particles is "constant"
         // then the values for the external B on particles must
         // be provided in the input file.
@@ -128,7 +138,9 @@ MultiParticleContainer::ReadParameters ()
                                     makeParser(str_By_ext_particle_function)));
            m_Bz_particle_parser.reset(new ParserWrapper(
                                     makeParser(str_Bz_ext_particle_function)));
-
+           amrex::Print() << " Br : " << str_Bx_ext_particle_function;
+           amrex::Print() << " Btheta : " << str_By_ext_particle_function;
+           amrex::Print() << " Bphi : " << str_Bz_ext_particle_function << "\n";
         }
 
         // if the input string for E_ext_particle_s is
@@ -153,6 +165,9 @@ MultiParticleContainer::ReadParameters ()
                                     makeParser(str_Ey_ext_particle_function)));
            m_Ez_particle_parser.reset(new ParserWrapper(
                                     makeParser(str_Ez_ext_particle_function)));
+           amrex::Print() << " Er : " << str_Ex_ext_particle_function;
+           amrex::Print() << " Etheta : " << str_Ey_ext_particle_function;
+           amrex::Print() << " Ephi : " << str_Ez_ext_particle_function << "\n";
 
         }
 
