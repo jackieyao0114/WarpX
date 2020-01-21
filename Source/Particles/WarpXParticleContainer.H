@@ -323,6 +323,7 @@ public:
     amrex::ParticleReal getMass () const {return mass;}
 #ifdef PULSAR
     virtual void PulsarParticleInjection () {};
+    virtual void PulsarParticleRemoval () {};
 #endif
 protected:
 
