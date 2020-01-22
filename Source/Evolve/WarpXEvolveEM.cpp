@@ -170,7 +170,7 @@ WarpX::EvolveEM (int numsteps)
 
 #ifdef PULSAR
        mypc->PulsarParticleInjection();
-//       mypc->PulsarParticleRemoval(); 
+       mypc->PulsarParticleRemoval(); 
 #endif
 
         if (max_level == 0) {
