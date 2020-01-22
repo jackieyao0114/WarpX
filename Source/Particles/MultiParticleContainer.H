@@ -230,6 +230,10 @@ public:
     std::unique_ptr<ParserWrapper> m_Ey_particle_parser;
     std::unique_ptr<ParserWrapper> m_Ez_particle_parser;
 
+#ifdef PULSAR
+    std::string m_E_ext_particle_coord = "cartesian";
+    std::string m_B_ext_particle_coord = "cartesian";
+#endif
 
 protected:
 
