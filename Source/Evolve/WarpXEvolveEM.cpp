@@ -149,15 +149,15 @@ WarpX::EvolveEM (int numsteps)
                     amrex::ParallelFor(tex, tey, tez,
                     [=] AMREX_GPU_DEVICE (int i, int j, int k)
                     {
-                        PulsarParm::PulsarDampEField(i, j, k, geom, Exfab);
+                        PulsarParm::DampEField(i, j, k, geom, Exfab);
                     },
                     [=] AMREX_GPU_DEVICE (int i, int j, int k)
                     {
-                        PulsarParm::PulsarDampEField(i, j, k, geom, Eyfab);
+                        PulsarParm::DampEField(i, j, k, geom, Eyfab);
                     },
                     [=] AMREX_GPU_DEVICE (int i, int j, int k)
                     {
-                        PulsarParm::PulsarDampEField(i, j, k, geom, Ezfab);
+                        PulsarParm::DampEField(i, j, k, geom, Ezfab);
                     });
                 }
             }
