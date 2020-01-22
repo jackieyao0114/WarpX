@@ -1050,7 +1050,6 @@ PhysicalParticleContainer::AssignExternalFieldOnParticles(WarpXParIter& pti,
       Real time = warpx.gett_new(lev);
       amrex::ParallelFor(pti.numParticles(),
             [=] AMREX_GPU_DEVICE (long i) {
-            // spherical r, theta, phi, and cylidrical r
             PulsarParm::PulsarEBField(xp_data[i],yp_data[i],zp_data[i],
                           Exp_data[i],Eyp_data[i],Ezp_data[i],
                           Bxp_data[i],Byp_data[i],Bzp_data[i],time);
