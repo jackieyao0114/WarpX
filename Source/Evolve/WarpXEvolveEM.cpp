@@ -175,8 +175,8 @@ WarpX::EvolveEM (int numsteps)
        else {
           amrex::Print() << " rho is computed \n";
        }
-       mypc->PulsarParticleInjection();
        mypc->PulsarParticleRemoval(); 
+       mypc->PulsarParticleInjection();
 #endif
 
         if (max_level == 0) {
