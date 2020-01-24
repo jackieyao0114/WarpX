@@ -29,10 +29,6 @@ public:
     PlasmaInjector (int ispecies, const std::string& name);
 
     bool insideBounds (amrex::Real x, amrex::Real y, amrex::Real z) const noexcept;
-#ifdef PULSAR
-    bool insidePulsarBounds (amrex::Real r, amrex::Real R_star,
-                             amrex::Real dR_star) const noexcept;
-#endif
 
     int num_particles_per_cell;
 
