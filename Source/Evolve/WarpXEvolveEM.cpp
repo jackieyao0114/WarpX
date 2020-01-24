@@ -168,6 +168,17 @@ WarpX::EvolveEM (int numsteps)
 
         int num_moved = MoveWindow(move_j);
 
+#ifdef PULSAR
+       if (!rho_fp[0]) {
+          amrex::Print() << " no rho -- compute rho! \n";
+       }
+       else {
+          amrex::Print() << " rho is computed \n";
+       }
+       mypc->PulsarParticleRemoval(); 
+       mypc->PulsarParticleInjection();
+#endif
+
         if (max_level == 0) {
             int num_redistribute_ghost = num_moved + 1;
             mypc->RedistributeLocal(num_redistribute_ghost);
