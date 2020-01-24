@@ -578,9 +578,9 @@ PhysicalParticleContainer::AddPlasma (int lev, RealBox part_realbox)
         int loc_ionization_initial_level = ionization_initial_level;
 #ifdef PULSAR
         // Fab
-	const int Ex_nghost = Ex_mf.nGrow();
-	const int Ey_nghost = Ey_mf.nGrow();
-	const int Ez_nghost = Ez_mf.nGrow();
+        const int Ex_nghost = Ex_mf.nGrow();
+        const int Ey_nghost = Ey_mf.nGrow();
+        const int Ez_nghost = Ez_mf.nGrow();
         const FArrayBox& Ex_fab = Ex_mf[mfi];
         const FArrayBox& Ey_fab = Ey_mf[mfi];
         const FArrayBox& Ez_fab = Ez_mf[mfi];
@@ -592,14 +592,14 @@ PhysicalParticleContainer::AddPlasma (int lev, RealBox part_realbox)
         amrex::Array4<const amrex::Real> const& ey_arr = Ey_fab.array();
         amrex::Array4<const amrex::Real> const& ez_arr = Ez_fab.array();
         amrex::Array4<const amrex::Real> const& rho_arr = rho_fab.array();
-        const Real q_pm = this->charge; 
+        const Real q_pm = this->charge;
         //amrex::Print() << " box " << x_box << "\n";
         //FArrayBox Ey_fab = Ey_mf[mfi];
         //Box Ey_box = Ey_fab.validbox();
         //FArrayBox Ez_fab = Ez_mf[mfi];
         //Box Ez_box = Ez_fab.validbox();
-        //amrex::Print() << " Ey box " << Ey_box << "\n"; 
-        //amrex::Print() << " Ez box " << Ez_box << "\n"; 
+        //amrex::Print() << " Ey box " << Ey_box << "\n";
+        //amrex::Print() << " Ez box " << Ez_box << "\n";
 #endif
 
         // Loop over all new particles and inject them (creates too many
@@ -615,8 +615,8 @@ PhysicalParticleContainer::AddPlasma (int lev, RealBox part_realbox)
             if (t == 0) {
                p.id() = -1;
                return;
-            }      
- 
+            }
+
             int cellid, i_part;
             Real fac;
             if (dp_cellid == nullptr) {
@@ -705,12 +705,12 @@ PhysicalParticleContainer::AddPlasma (int lev, RealBox part_realbox)
                 amrex::Real cc_y = overlap_corner[1] + iv[1]*dx[1] + 0.5*dx[1] ;
                 amrex::Real cc_z = overlap_corner[2] + iv[2]*dx[2] + 0.5*dx[2] ;
                 // get spherical r, theta, phi
-                amrex::Real cc_rad = std::sqrt(  (cc_x-xc)*(cc_x-xc) 
+                amrex::Real cc_rad = std::sqrt(  (cc_x-xc)*(cc_x-xc)
                                                + (cc_y-yc)*(cc_y-yc)
                                                + (cc_z-zc)*(cc_z-zc));
-                amrex::Real r_cl = std::sqrt(  (cc_x-xc)*(cc_x-xc) 
+                amrex::Real r_cl = std::sqrt(  (cc_x-xc)*(cc_x-xc)
                                                + (cc_y-yc)*(cc_y-yc));
-                amrex::Real cc_theta = 0; 
+                amrex::Real cc_theta = 0;
                 if (cc_rad > 0 ) {
                     cc_theta = std::acos((cc_z-zc)/cc_rad);
                 }
@@ -723,10 +723,8 @@ PhysicalParticleContainer::AddPlasma (int lev, RealBox part_realbox)
                     c_phi = (cc_x-xc)/r_cl;
                     s_phi = (cc_y-yc)/r_cl;
                 }
-                amrex::Real omega = PulsarParm::omega_star;
-                if (t < 2.0e-4) {
-                   omega = PulsarParm::omega_star*t/2.0e-4;
-                }
+
+                amrex::Real omega = PulsarParm::Omega(t);
                 amrex::Real ratio = PulsarParm::R_star/cc_rad;
                 amrex::Real r3 = ratio*ratio*ratio;
                 amrex::Real Er_cor =  PulsarParm::B_star
@@ -746,7 +744,7 @@ PhysicalParticleContainer::AddPlasma (int lev, RealBox part_realbox)
                 Real ey_avg = 0.25*(ex_arr(ii,jj,kk) + ex_arr(ii+1,jj,kk)+ex_arr(ii,jj,kk+1) + ex_arr(ii+1,jj,kk+1));
                 Real ez_avg = 0.25*(ex_arr(ii,jj,kk) + ex_arr(ii,jj+1,kk)+ex_arr(ii+1,jj,kk) + ex_arr(ii+1,jj+1,kk));
                 Real Er_cell = ex_avg*s_theta*c_phi + ey_avg*s_theta*s_phi + ez_avg*c_theta;
-               
+
                 // analytical surface charge density
                 Real sigma_inj = (( Er_ext - Er_cor));
                 Real max_dens = PulsarParm::max_ndens;
@@ -763,7 +761,7 @@ PhysicalParticleContainer::AddPlasma (int lev, RealBox part_realbox)
                          }
                       }
                    }
-                   else 
+                   else
                    {
                       p.id() = -1;
                       return;
@@ -786,7 +784,7 @@ PhysicalParticleContainer::AddPlasma (int lev, RealBox part_realbox)
                       }
                    }
                 }
-                
+
 #endif
                 u = inj_mom->getMomentum(x, y, z);
                 dens = inj_rho->getDensity(x, y, z);
@@ -2651,7 +2649,7 @@ set_quantum_sync_engine_ptr(std::shared_ptr<QuantumSynchrotronEngine> ptr)
 
 #ifdef PULSAR
 void PhysicalParticleContainer::PulsarParticleInjection() {
-    
+
      AddPlasma( 0 );
 }
 
@@ -2679,7 +2677,7 @@ void PhysicalParticleContainer::PulsarParticleRemoval() {
             ParticleType* pp = pti.GetArrayOfStructs()().data();
             amrex::ParallelFor(pti.numParticles(),
                   [=] AMREX_GPU_DEVICE (long i) {
-                    
+
                   Real r = std::sqrt((xp_data[i]-xc)*(xp_data[i]-xc)
                                    + (yp_data[i]-yc)*(yp_data[i]-yc)
                                    + (zp_data[i]-zc)*(zp_data[i]-zc));
