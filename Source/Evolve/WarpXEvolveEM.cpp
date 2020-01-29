@@ -1,13 +1,3 @@
-/* Copyright 2019-2020 Andrew Myers, Ann Almgren, Aurore Blelly
- * Axel Huebl, Burlen Loring, David Grote
- * Glenn Richardson, Jean-Luc Vay, Luca Fedeli
- * Maxence Thevenet, Remi Lehe, Revathi Jambunathan
- * Weiqun Zhang, Yinjian Zhao
- *
- * This file is part of WarpX.
- *
- * License: BSD-3-Clause-LBNL
- */
 #include <cmath>
 #include <limits>
 
@@ -24,6 +14,9 @@
 #include <AMReX_AmrMeshInSituBridge.H>
 #endif
 
+#ifdef PULSAR
+#include <PulsarParameters.H>
+#endif
 
 using namespace amrex;
 
@@ -131,6 +124,105 @@ WarpX::EvolveEM (int numsteps)
             // B : guard cells are NOT up-to-date
         }
 
+#ifdef PULSAR
+        if (PulsarParm::damp_E_internal) {
+            MultiFab *Ex, *Ey, *Ez;
+            MultiFab *Bx, *By, *Bz;
+            for (int lev = 0; lev <= finest_level; ++lev) {
+                Ex = Efield_fp[lev][0].get();
+                Ey = Efield_fp[lev][1].get();
+                Ez = Efield_fp[lev][2].get();
+                Bx = Bfield_fp[lev][0].get();
+                By = Bfield_fp[lev][1].get();
+                Bz = Bfield_fp[lev][2].get();
+
+                auto geom = Geom(lev).data();
+#ifdef _OPENMP
+#pragma omp parallel if (Gpu::notInLaunchRegion())
+#endif
+                for ( MFIter mfi(*Ex, TilingIfNotGPU()); mfi.isValid(); ++mfi )
+                {
+                    const Box& tex  = mfi.tilebox(Ex_nodal_flag);
+                    auto const& Exfab = Ex->array(mfi);
+                    auto const& Ex_IndexType = (*Ex).ixType();
+                    IntVect mfx_type(AMREX_D_DECL(0,0,0));
+                    for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
+                        mfx_type[idim] = Ex_IndexType.nodeCentered(idim);
+                    }
+                    amrex::ParallelFor(tex,
+                    [=] AMREX_GPU_DEVICE (int i, int j, int k)
+                    {
+                        PulsarParm::DampEField(i, j, k, geom, Exfab, mfx_type);
+                    });
+                }
+                for ( MFIter mfi(*Ey, TilingIfNotGPU()); mfi.isValid(); ++mfi )
+                {
+                    const Box& tey  = mfi.tilebox(Ey_nodal_flag);
+                    auto const& Eyfab = Ey->array(mfi);
+                    auto const& Ey_IndexType = (*Ey).ixType();
+                    IntVect mfy_type(AMREX_D_DECL(0,0,0));
+                    for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
+                        mfy_type[idim] = Ey_IndexType.nodeCentered(idim);
+                    }
+                    amrex::ParallelFor(tey,
+                    [=] AMREX_GPU_DEVICE (int i, int j, int k)
+                    {
+                        PulsarParm::DampEField(i, j, k, geom, Eyfab, mfy_type);
+                    });
+                }
+                for ( MFIter mfi(*Ez, TilingIfNotGPU()); mfi.isValid(); ++mfi )
+                {
+                    const Box& tez  = mfi.tilebox(Ez_nodal_flag);
+                    auto const& Ezfab = Ez->array(mfi);
+                    auto const& Ez_IndexType = (*Ez).ixType();
+                    IntVect mfz_type(AMREX_D_DECL(0,0,0));
+                    for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
+                        mfz_type[idim] = Ez_IndexType.nodeCentered(idim);
+                    }
+                    amrex::ParallelFor(tez,
+                    [=] AMREX_GPU_DEVICE (int i, int j, int k)
+                    {
+                        PulsarParm::DampEField(i, j, k, geom, Ezfab, mfz_type);
+                    });
+                }
+                for ( MFIter mfi(*Bx, TilingIfNotGPU()); mfi.isValid(); ++mfi )
+                {
+                    const Box& tex  = mfi.tilebox(Bx_nodal_flag);
+                    const Box& tey  = mfi.tilebox(By_nodal_flag);
+                    const Box& tez  = mfi.tilebox(Bz_nodal_flag);
+                    auto const& Bxfab = Bx->array(mfi);
+                    auto const& Byfab = By->array(mfi);
+                    auto const& Bzfab = Bz->array(mfi);
+                    auto const& Bx_IndexType = (*Bx).ixType();
+                    auto const& By_IndexType = (*By).ixType();
+                    auto const& Bz_IndexType = (*Bz).ixType();
+                    IntVect mfx_type(AMREX_D_DECL(0,0,0));
+                    IntVect mfy_type(AMREX_D_DECL(0,0,0));
+                    IntVect mfz_type(AMREX_D_DECL(0,0,0));
+                    for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
+                        mfx_type[idim] = Bx_IndexType.nodeCentered(idim);
+                        mfy_type[idim] = By_IndexType.nodeCentered(idim);
+                        mfz_type[idim] = Bz_IndexType.nodeCentered(idim);
+                    }
+
+                    amrex::ParallelFor(tex, tey, tez,
+                    [=] AMREX_GPU_DEVICE (int i, int j, int k)
+                    {
+                        PulsarParm::DampEField(i, j, k, geom, Bxfab, mfx_type);
+                    },
+                    [=] AMREX_GPU_DEVICE (int i, int j, int k)
+                    {
+                        PulsarParm::DampEField(i, j, k, geom, Byfab, mfy_type);
+                    },
+                    [=] AMREX_GPU_DEVICE (int i, int j, int k)
+                    {
+                        PulsarParm::DampEField(i, j, k, geom, Bzfab, mfz_type);
+                    });
+                }
+            }
+        }
+#endif
+
 #ifdef WARPX_USE_PY
         if (warpx_py_beforeEsolve) warpx_py_beforeEsolve();
 #endif
@@ -156,8 +248,7 @@ WarpX::EvolveEM (int numsteps)
 
         cur_time += dt[0];
 
-        bool to_make_plot = ( (plot_int > 0) && ((step+1) % plot_int == 0) );
-        bool to_write_openPMD = ( (openpmd_int > 0) && ((step+1) % openpmd_int == 0) );
+        bool to_make_plot = (plot_int > 0) && ((step+1) % plot_int == 0);
 
         // slice generation //
         bool to_make_slice_plot = (slice_plot_int > 0) && ( (step+1)% slice_plot_int == 0);
@@ -173,11 +264,22 @@ WarpX::EvolveEM (int numsteps)
             myBFD->writeLabFrameData(cell_centered_data.get(), *mypc, geom[0], cur_time, dt[0]);
         }
 
-        bool move_j = is_synchronized || to_make_plot || to_write_openPMD || do_insitu;
+        bool move_j = is_synchronized || to_make_plot || do_insitu;
         // If is_synchronized we need to shift j too so that next step we can evolve E by dt/2.
         // We might need to move j because we are going to make a plotfile.
 
         int num_moved = MoveWindow(move_j);
+
+#ifdef PULSAR
+       if (!rho_fp[0]) {
+          amrex::Print() << " no rho -- compute rho! \n";
+       }
+       else {
+          amrex::Print() << " rho is computed \n";
+       }
+       mypc->PulsarParticleRemoval();
+       mypc->PulsarParticleInjection();
+#endif
 
         if (max_level == 0) {
             int num_redistribute_ghost = num_moved + 1;
@@ -207,7 +309,7 @@ WarpX::EvolveEM (int numsteps)
         }
 
         // slice gen //
-        if (to_make_plot || to_write_openPMD || do_insitu || to_make_slice_plot)
+        if (to_make_plot || do_insitu || to_make_slice_plot)
         {
             // This is probably overkill, but it's not called often
             FillBoundaryE(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
@@ -230,8 +332,6 @@ WarpX::EvolveEM (int numsteps)
 
             if (to_make_plot)
                 WritePlotFile();
-            if (to_write_openPMD)
-                WriteOpenPMDFile();
 
             if (to_make_slice_plot)
             {
@@ -263,12 +363,11 @@ WarpX::EvolveEM (int numsteps)
 
     bool write_plot_file = plot_int > 0 && istep[0] > last_plot_file_step
         && (max_time_reached || istep[0] >= max_step);
-    bool write_openPMD = openpmd_int > 0 && (max_time_reached || istep[0] >= max_step);
 
     bool do_insitu = (insitu_start >= istep[0]) && (insitu_int > 0) &&
         (istep[0] > last_insitu_step) && (max_time_reached || istep[0] >= max_step);
 
-    if (write_plot_file || write_openPMD || do_insitu)
+    if (write_plot_file || do_insitu)
     {
         // This is probably overkill, but it's not called often
         FillBoundaryE(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
@@ -290,8 +389,6 @@ WarpX::EvolveEM (int numsteps)
 
         if (write_plot_file)
             WritePlotFile();
-        if (write_openPMD)
-            WriteOpenPMDFile();
 
         if (do_insitu)
             UpdateInSitu();
