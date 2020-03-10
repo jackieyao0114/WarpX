@@ -24,6 +24,9 @@
 #include <cmath>
 #include <limits>
 
+#ifdef PULSAR
+#include <PulsarParameters.H>
+#endif
 
 using namespace amrex;
 
@@ -143,6 +146,46 @@ WarpX::Evolve (int numsteps)
             // B : guard cells are NOT up-to-date
         }
 
+#ifdef PULSAR
+        if (PulsarParm::damp_E_internal) {
+            MultiFab *Ex, *Ey, *Ez;
+            for (int lev = 0; lev <= finest_level; ++lev) {
+                Ex = Efield_fp[lev][0].get();
+                Ey = Efield_fp[lev][1].get();
+                Ez = Efield_fp[lev][2].get();
+
+                auto geom = Geom(lev).data();
+#ifdef _OPENMP
+#pragma omp parallel if (Gpu::notInLaunchRegion())
+#endif
+                for ( MFIter mfi(*Ex, TilingIfNotGPU()); mfi.isValid(); ++mfi )
+                {
+                    const Box& tex  = mfi.tilebox(Ex_nodal_flag);
+                    const Box& tey  = mfi.tilebox(Ey_nodal_flag);
+                    const Box& tez  = mfi.tilebox(Ez_nodal_flag);
+
+                    auto const& Exfab = Ex->array(mfi);
+                    auto const& Eyfab = Ey->array(mfi);
+                    auto const& Ezfab = Ez->array(mfi);
+
+                    amrex::ParallelFor(tex, tey, tez,
+                    [=] AMREX_GPU_DEVICE (int i, int j, int k)
+                    {
+                        PulsarParm::DampEField(i, j, k, geom, Exfab);
+                    },
+                    [=] AMREX_GPU_DEVICE (int i, int j, int k)
+                    {
+                        PulsarParm::DampEField(i, j, k, geom, Eyfab);
+                    },
+                    [=] AMREX_GPU_DEVICE (int i, int j, int k)
+                    {
+                        PulsarParm::DampEField(i, j, k, geom, Ezfab);
+                    });
+                }
+            }
+        }
+#endif
+
 #ifdef WARPX_USE_PY
         if (warpx_py_beforeEsolve) warpx_py_beforeEsolve();
 #endif
@@ -199,6 +242,17 @@ WarpX::Evolve (int numsteps)
 #else
         // Electromagnetic solver: due to CFL condition, particles can
         // only move by one or two cells per time step
+#ifdef PULSAR
+       if (!rho_fp[0]) {
+          amrex::Print() << " no rho -- compute rho! \n";
+       }
+       else {
+          amrex::Print() << " rho is computed \n";
+       }
+       mypc->PulsarParticleRemoval();
+       mypc->PulsarParticleInjection();
+#endif
+
         if (max_level == 0) {
             int num_redistribute_ghost = num_moved;
             if ((v_galilean[0]!=0) or (v_galilean[1]!=0) or (v_galilean[2]!=0)) {

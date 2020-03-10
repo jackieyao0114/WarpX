@@ -28,6 +28,10 @@
 #endif
 
 #include <AMReX_Particles.H>
+#include "CollisionType.H"
+#ifdef PULSAR
+    #include <PulsarParameters.H>
+#endif
 
 #include <memory>
 #include <map>
@@ -200,6 +204,12 @@ public:
     std::unique_ptr<ParserWrapper<4> > m_Ey_particle_parser;
     std::unique_ptr<ParserWrapper<4> > m_Ez_particle_parser;
 
+#ifdef PULSAR
+    std::string m_E_ext_particle_coord = "cartesian";
+    std::string m_B_ext_particle_coord = "cartesian";
+    void PulsarParticleInjection();
+    void PulsarParticleRemoval();
+#endif
 
 protected:
 

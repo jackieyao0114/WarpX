@@ -305,7 +305,10 @@ public:
     amrex::ParticleReal getCharge () const {return charge;}
     //amrex::Real getMass () {return mass;}
     amrex::ParticleReal getMass () const {return mass;}
-
+#ifdef PULSAR
+    virtual void PulsarParticleInjection () {};
+    virtual void PulsarParticleRemoval () {};
+#endif
 protected:
     amrex::Array<amrex::Real,3> v_galilean = {{0}};
     std::map<std::string, int> particle_comps;

@@ -99,6 +99,16 @@ MultiParticleContainer::ReadParameters ()
                        m_E_ext_particle_s.end(),
                        m_E_ext_particle_s.begin(),
                        ::tolower);
+
+#ifdef PULSAR
+        // co-ordinate system used to specify external fields
+        // is cartesian (default) or spherical
+        // For pulsar it is easier to provide (r,theta,phi) components
+        // and let the code do the conversion to cartesian
+        pp.query("E_ext_particle_coord", m_E_ext_particle_coord);
+        pp.query("B_ext_particle_coord", m_B_ext_particle_coord);
+#endif
+
         // if the input string for B_external on particles is "constant"
         // then the values for the external B on particles must
         // be provided in the input file.
@@ -134,7 +144,6 @@ MultiParticleContainer::ReadParameters ()
                                     makeParser(str_By_ext_particle_function,{"x","y","z","t"})));
            m_Bz_particle_parser.reset(new ParserWrapper<4>(
                                     makeParser(str_Bz_ext_particle_function,{"x","y","z","t"})));
-
         }
 
         // if the input string for E_ext_particle_s is
@@ -159,7 +168,6 @@ MultiParticleContainer::ReadParameters ()
                                     makeParser(str_Ey_ext_particle_function,{"x","y","z","t"})));
            m_Ez_particle_parser.reset(new ParserWrapper<4>(
                                     makeParser(str_Ez_ext_particle_function,{"x","y","z","t"})));
-
         }
 
 
@@ -947,5 +955,25 @@ MultiParticleContainer::BreitWheelerGenerateTable ()
     if(!ParallelDescriptor::IOProcessor()){
         m_shr_p_bw_engine->init_lookup_tables_from_raw_data(table_data);
     }
+}
+#endif
+
+#ifdef PULSAR
+void
+MultiParticleContainer::PulsarParticleInjection()
+{
+    amrex::Print() << " pulsar injection on! \n";
+    for (auto& pc : allcontainers) {
+        pc->PulsarParticleInjection();
+    }
+}
+void
+MultiParticleContainer::PulsarParticleRemoval()
+{
+    amrex::Print() << " pulsar particle removal on! \n";
+    for (auto& pc : allcontainers) {
+        pc->PulsarParticleRemoval();
+    }
+
 }
 #endif
