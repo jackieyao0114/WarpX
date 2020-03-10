@@ -236,7 +236,6 @@ WarpX::Evolve (int numsteps)
 
         int num_moved = MoveWindow(move_j);
 
-<<<<<<< HEAD:Source/Evolve/WarpXEvolveEM.cpp
 #ifdef PULSAR
        if (!rho_fp[0]) {
           amrex::Print() << " no rho -- compute rho! \n";
@@ -248,14 +247,12 @@ WarpX::Evolve (int numsteps)
        mypc->PulsarParticleInjection();
 #endif
 
-=======
 #ifdef WARPX_DO_ELECTROSTATIC
         // Electrostatic solver: particles can move by an arbitrary number of cells
         mypc->Redistribute();
 #else
         // Electromagnetic solver: due to CFL condition, particles can
         // only move by one or two cells per time step
->>>>>>> bc7c47fc1a50c961892f13110f701aa89c0a53d2:Source/Evolve/WarpXEvolve.cpp
         if (max_level == 0) {
             int num_redistribute_ghost = num_moved;
             if ((v_galilean[0]!=0) or (v_galilean[1]!=0) or (v_galilean[2]!=0)) {
