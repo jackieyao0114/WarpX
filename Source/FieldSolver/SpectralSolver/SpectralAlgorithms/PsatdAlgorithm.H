@@ -1,7 +1,17 @@
+/* Copyright 2019 Maxence Thevenet, Remi Lehe, Revathi Jambunathan
+ *
+ *
+ * This file is part of WarpX.
+ *
+ * License: BSD-3-Clause-LBNL
+ */
 #ifndef WARPX_PSATD_ALGORITHM_H_
 #define WARPX_PSATD_ALGORITHM_H_
 
-#include <SpectralBaseAlgorithm.H>
+#include "SpectralBaseAlgorithm.H"
+
+
+#if WARPX_USE_PSATD
 
 /**
  * \brief Class that updates the field in spectral space
@@ -27,7 +37,8 @@ class PsatdAlgorithm : public SpectralBaseAlgorithm
                                     const amrex::Real dt);
 
     private:
-        SpectralCoefficients C_coef, S_ck_coef, X1_coef, X2_coef, X3_coef;
+        SpectralRealCoefficients C_coef, S_ck_coef, X1_coef, X2_coef, X3_coef;
 };
 
+#endif // WARPX_USE_PSATD
 #endif // WARPX_PSATD_ALGORITHM_H_

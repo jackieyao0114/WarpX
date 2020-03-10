@@ -1,12 +1,23 @@
-
-#include <WarpX.H>
-#include <FieldIO.H>
-#ifdef WARPX_USE_OPENPMD
-#include <openPMD/openPMD.hpp>
-#endif
+/* Copyright 2019-2020 Andrew Myers, Axel Huebl, David Grote, Maxence Thevenet,
+ * Remi Lehe, Revathi Jambunathan, Weiqun Zhang, Edoardo Zoni
+ *
+ * This file is part of WarpX.
+ *
+ * License: BSD-3-Clause-LBNL
+ */
+#include "FieldIO.H"
+#include "WarpX.H"
 
 #include <AMReX_FillPatchUtil_F.H>
 #include <AMReX_Interpolater.H>
+
+#ifdef WARPX_USE_OPENPMD
+#include <openPMD/openPMD.hpp>
+#endif
+#ifdef WARPX_USE_PSATD
+#include <SpectralSolver.H>
+#endif
+
 
 using namespace amrex;
 
@@ -117,7 +128,7 @@ WriteOpenPMDFields( const std::string& filename,
                   const MultiFab& mf, const Geometry& geom,
                   const int iteration, const double time )
 {
-  BL_PROFILE("WriteOpenPMDFields()");
+  WARPX_PROFILE("WriteOpenPMDFields()");
 
   const int ncomp = mf.nComp();
 
@@ -201,7 +212,7 @@ WriteOpenPMDFields( const std::string& filename,
       auto chunk_size = getReversedVec(local_box.size());
 
       // Write local data
-      const double* local_data = fab.dataPtr(icomp);
+      Real const * local_data = fab.dataPtr(icomp);
       mesh_comp.storeChunk(openPMD::shareRaw(local_data),
                            chunk_offset, chunk_size);
     }
@@ -254,6 +265,9 @@ AverageAndPackVectorField( MultiFab& mf_avg,
                            const DistributionMapping& dm,
                            const int dcomp, const int ngrow )
 {
+#ifndef WARPX_DIM_RZ
+    (void)dm;
+#endif
     // The object below is temporary, and is needed because
     // `average_edge_to_cellcenter` requires fields to be passed as Vector
     Vector<const MultiFab*> srcmf(AMREX_SPACEDIM);
@@ -386,9 +400,7 @@ AverageAndPackScalarField( MultiFab& mf_avg,
     // and average accordingly:
     // - Fully cell-centered field (no average needed; simply copy)
     if ( scalar_field.is_cell_centered() ){
-
         MultiFab::Copy( mf_avg, scalar_field, 0, dcomp, 1, ngrow);
-
         // - Fully nodal
     } else if ( scalar_field.is_nodal() ){
 
@@ -494,10 +506,11 @@ WarpX::AverageAndPackFields ( Vector<std::string>& varnames,
                               amrex::Vector<MultiFab>& mf_avg, const int ngrow) const
 {
     // Count how many different fields should be written (ncomp)
+    MultiFab* cost = WarpX::getCosts(0);
     int ncomp = fields_to_plot.size()
         + static_cast<int>(plot_finepatch)*6
         + static_cast<int>(plot_crsepatch)*6
-        + static_cast<int>(costs[0] != nullptr and plot_costs);
+        + static_cast<int>(cost != nullptr and plot_costs);
 
     // Add in the RZ modes
     if (n_rz_azimuthal_modes > 1) {
@@ -607,9 +620,9 @@ WarpX::AverageAndPackFields ( Vector<std::string>& varnames,
 #pragma omp parallel
 #endif
                 for (MFIter mfi(mf_avg[lev]); mfi.isValid(); ++mfi) {
-                    (mf_avg[lev])[mfi].setVal(static_cast<Real>(npart_in_grid[mfi.index()]),
-                                              dcomp++);
+                    (mf_avg[lev])[mfi].setVal(static_cast<Real>(npart_in_grid[mfi.index()]));
                 }
+                dcomp++;
             } else if (fieldname == "part_per_proc"){
                 const Vector<long>& npart_in_grid = mypc->NumberOfParticlesInGrid(lev);
                 // MultiFab containing number of particles per process
@@ -621,16 +634,13 @@ WarpX::AverageAndPackFields ( Vector<std::string>& varnames,
                 for (MFIter mfi(mf_avg[lev]); mfi.isValid(); ++mfi) {
                     n_per_proc += npart_in_grid[mfi.index()];
                 }
-                mf_avg[lev].setVal(static_cast<Real>(n_per_proc), dcomp++,1);
+                mf_avg[lev].setVal(static_cast<Real>(n_per_proc),dcomp++,1);
             } else if (fieldname == "proc_number"){
                 // MultiFab containing the Processor ID
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-                for (MFIter mfi(mf_avg[lev]); mfi.isValid(); ++mfi) {
-                    (mf_avg[lev])[mfi].setVal(static_cast<Real>(ParallelDescriptor::MyProc()),
-                                              dcomp++);
-                }
+                mf_avg[lev].setVal(static_cast<Real>(ParallelDescriptor::MyProc()),dcomp++,1);
             } else if (fieldname == "divB"){
                 if (do_nodal) amrex::Abort("TODO: do_nodal && plot divb");
                 ComputeDivB(mf_avg[lev], dcomp++,
@@ -639,15 +649,16 @@ WarpX::AverageAndPackFields ( Vector<std::string>& varnames,
                                     Bfield_aux[lev][2].get()},
                             WarpX::CellSize(lev) );
             } else if (fieldname == "divE"){
-                if (do_nodal) amrex::Abort("TODO: do_nodal && plot dive");
+                if (do_nodal) amrex::Abort("TODO: do_nodal && plot divE");
                 const BoxArray& ba = amrex::convert(boxArray(lev),IntVect::TheUnitVector());
-                MultiFab dive(ba,DistributionMap(lev),1,0);
-                ComputeDivE( dive, 0,
-                             {Efield_aux[lev][0].get(),
-                                     Efield_aux[lev][1].get(),
-                                     Efield_aux[lev][2].get()},
-                             WarpX::CellSize(lev) );
-                AverageAndPackScalarField( mf_avg[lev], dive, dcomp++, ngrow );
+                MultiFab divE( ba, DistributionMap(lev), 1, 0 );
+#ifdef WARPX_USE_PSATD
+                spectral_solver_fp[lev]->ComputeSpectralDivE( Efield_aux[lev], divE );
+#else
+                ComputeDivE( divE, 0, {Efield_aux[lev][0].get(), Efield_aux[lev][1].get(),
+                             Efield_aux[lev][2].get()}, WarpX::CellSize(lev) );
+#endif
+                AverageAndPackScalarField( mf_avg[lev], divE, dcomp++, ngrow );
             } else {
                 amrex::Abort("unknown field in fields_to_plot: " + fieldname);
             }
@@ -713,13 +724,15 @@ WarpX::AverageAndPackFields ( Vector<std::string>& varnames,
             dcomp += 3;
         }
 
-        if (costs[0] != nullptr and plot_costs)
+        if (WarpX::load_balance_costs_update_algo == LoadBalanceCostsUpdateAlgo::Timers)
         {
-            AverageAndPackScalarField( mf_avg[lev], *costs[lev], dcomp, ngrow );
-            if(lev==0) varnames.push_back("costs");
-            dcomp += 1;
+            if (costs[0] != nullptr and plot_costs)
+            {
+                AverageAndPackScalarField( mf_avg[lev], *costs[lev], dcomp, ngrow );
+                if(lev==0) varnames.push_back("costs");
+                dcomp += 1;
+            }
         }
-
         BL_ASSERT(dcomp == ncomp);
     } // end loop over levels of refinement
 
@@ -881,7 +894,7 @@ std::unique_ptr<MultiFab>
 getInterpolatedScalar(
     const MultiFab& F_cp, const MultiFab& F_fp,
     const DistributionMapping& dm, const int r_ratio,
-    const Real* dx, const int ngrow )
+    const Real* /*dx*/, const int ngrow )
 {
     // Prepare the structure that will contain the returned fields
     std::unique_ptr<MultiFab> interpolated_F;

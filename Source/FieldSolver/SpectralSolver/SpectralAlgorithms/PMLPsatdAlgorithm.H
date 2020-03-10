@@ -1,7 +1,15 @@
+/* Copyright 2019 Axel Huebl, Remi Lehe
+ *
+ * This file is part of WarpX.
+ *
+ * License: BSD-3-Clause-LBNL
+ */
 #ifndef WARPX_PML_PSATD_ALGORITHM_H_
 #define WARPX_PML_PSATD_ALGORITHM_H_
 
-#include <SpectralBaseAlgorithm.H>
+#include "SpectralBaseAlgorithm.H"
+
+#if WARPX_USE_PSATD
 
 /* \brief Class that updates the field in spectral space
  * and stores the coefficients of the corresponding update equation.
@@ -27,8 +35,9 @@ class PMLPsatdAlgorithm : public SpectralBaseAlgorithm
         }
 
     private:
-        SpectralCoefficients C_coef, S_ck_coef;
+        SpectralRealCoefficients C_coef, S_ck_coef;
 
 };
 
+#endif // WARPX_USE_PSATD
 #endif // WARPX_PML_PSATD_ALGORITHM_H_
