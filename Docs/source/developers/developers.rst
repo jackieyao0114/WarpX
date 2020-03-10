@@ -15,6 +15,7 @@ Our Doxygen API documentation in classic formatting `is located here <../_static
    fields
    particles
    initialization
+   mesh_refinement
    diagnostics
    moving_window
    portability
