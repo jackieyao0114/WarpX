@@ -149,15 +149,20 @@ WarpX::Evolve (int numsteps)
 #ifdef PULSAR
         if (PulsarParm::damp_E_internal) {
             MultiFab *Ex, *Ey, *Ez;
+            MultiFab *Bx, *By, *Bz;
             for (int lev = 0; lev <= finest_level; ++lev) {
                 Ex = Efield_fp[lev][0].get();
                 Ey = Efield_fp[lev][1].get();
                 Ez = Efield_fp[lev][2].get();
+                Bx = Bfield_fp[lev][0].get();
+                By = Bfield_fp[lev][1].get();
+                Bz = Bfield_fp[lev][2].get();
 
                 auto geom = Geom(lev).data();
 #ifdef _OPENMP
 #pragma omp parallel if (Gpu::notInLaunchRegion())
 #endif
+                // damping Ex, Ey, Ez
                 for ( MFIter mfi(*Ex, TilingIfNotGPU()); mfi.isValid(); ++mfi )
                 {
                     const Box& tex  = mfi.tilebox(Ex_nodal_flag);
@@ -167,19 +172,62 @@ WarpX::Evolve (int numsteps)
                     auto const& Exfab = Ex->array(mfi);
                     auto const& Eyfab = Ey->array(mfi);
                     auto const& Ezfab = Ez->array(mfi);
+ 
+                    IntVect mfEx_type(AMREX_D_DECL(0,0,0));
+                    IntVect mfEy_type(AMREX_D_DECL(0,0,0));
+                    IntVect mfEz_type(AMREX_D_DECL(0,0,0));
+                    for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
+                        mfEx_type[idim] = ((*Ex).ixType()).nodeCentered(idim);
+                        mfEy_type[idim] = ((*Ey).ixType()).nodeCentered(idim);
+                        mfEz_type[idim] = ((*Ez).ixType()).nodeCentered(idim);
+                    }
 
                     amrex::ParallelFor(tex, tey, tez,
                     [=] AMREX_GPU_DEVICE (int i, int j, int k)
                     {
-                        PulsarParm::DampEField(i, j, k, geom, Exfab);
+                        PulsarParm::DampEField(i, j, k, geom, Exfab, mfEx_type);
                     },
                     [=] AMREX_GPU_DEVICE (int i, int j, int k)
                     {
-                        PulsarParm::DampEField(i, j, k, geom, Eyfab);
+                        PulsarParm::DampEField(i, j, k, geom, Eyfab, mfEy_type);
                     },
                     [=] AMREX_GPU_DEVICE (int i, int j, int k)
                     {
-                        PulsarParm::DampEField(i, j, k, geom, Ezfab);
+                        PulsarParm::DampEField(i, j, k, geom, Ezfab, mfEz_type);
+                    });
+                }
+                // damping Bx, By, Bz
+                for ( MFIter mfi(*Bx, TilingIfNotGPU()); mfi.isValid(); ++mfi )
+                {
+                    const Box& tex  = mfi.tilebox(Bx_nodal_flag);
+                    const Box& tey  = mfi.tilebox(By_nodal_flag);
+                    const Box& tez  = mfi.tilebox(Bz_nodal_flag);
+
+                    auto const& Bxfab = Bx->array(mfi);
+                    auto const& Byfab = By->array(mfi);
+                    auto const& Bzfab = Bz->array(mfi);
+                 
+                    IntVect mfBx_type(AMREX_D_DECL(0,0,0));
+                    IntVect mfBy_type(AMREX_D_DECL(0,0,0));
+                    IntVect mfBz_type(AMREX_D_DECL(0,0,0));
+                    for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
+                        mfBx_type[idim] = ((*Bx).ixType()).nodeCentered(idim);
+                        mfBy_type[idim] = ((*By).ixType()).nodeCentered(idim);
+                        mfBz_type[idim] = ((*Bz).ixType()).nodeCentered(idim);
+                    }
+
+                    amrex::ParallelFor(tex, tey, tez,
+                    [=] AMREX_GPU_DEVICE (int i, int j, int k)
+                    {
+                        PulsarParm::DampEField(i, j, k, geom, Bxfab, mfBx_type);
+                    },
+                    [=] AMREX_GPU_DEVICE (int i, int j, int k)
+                    {
+                        PulsarParm::DampEField(i, j, k, geom, Byfab, mfBy_type);
+                    },
+                    [=] AMREX_GPU_DEVICE (int i, int j, int k)
+                    {
+                        PulsarParm::DampEField(i, j, k, geom, Bzfab, mfBz_type);
                     });
                 }
             }
