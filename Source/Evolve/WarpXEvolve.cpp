@@ -172,7 +172,7 @@ WarpX::Evolve (int numsteps)
                     auto const& Exfab = Ex->array(mfi);
                     auto const& Eyfab = Ey->array(mfi);
                     auto const& Ezfab = Ez->array(mfi);
- 
+
                     IntVect mfEx_type(AMREX_D_DECL(0,0,0));
                     IntVect mfEy_type(AMREX_D_DECL(0,0,0));
                     IntVect mfEz_type(AMREX_D_DECL(0,0,0));
@@ -206,7 +206,7 @@ WarpX::Evolve (int numsteps)
                     auto const& Bxfab = Bx->array(mfi);
                     auto const& Byfab = By->array(mfi);
                     auto const& Bzfab = Bz->array(mfi);
-                 
+
                     IntVect mfBx_type(AMREX_D_DECL(0,0,0));
                     IntVect mfBy_type(AMREX_D_DECL(0,0,0));
                     IntVect mfBz_type(AMREX_D_DECL(0,0,0));
