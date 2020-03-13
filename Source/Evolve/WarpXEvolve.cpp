@@ -1,36 +1,47 @@
-#include <cmath>
-#include <limits>
-
-#include <WarpX.H>
-#include <WarpXConst.H>
-#include <WarpX_f.H>
-#include <WarpXUtil.H>
-#include <WarpXAlgorithmSelection.H>
+/* Copyright 2019-2020 Andrew Myers, Ann Almgren, Aurore Blelly
+ *                     Axel Huebl, Burlen Loring, David Grote
+ *                     Glenn Richardson, Jean-Luc Vay, Luca Fedeli
+ *                     Maxence Thevenet, Remi Lehe, Revathi Jambunathan
+ *                     Weiqun Zhang, Yinjian Zhao
+ *
+ * This file is part of WarpX.
+ *
+ * License: BSD-3-Clause-LBNL
+ */
+#include "WarpX.H"
+#include "FieldSolver/WarpX_QED_K.H"
+#include "Utils/WarpXConst.H"
+#include "Utils/WarpXUtil.H"
+#include "Utils/WarpXAlgorithmSelection.H"
 #ifdef WARPX_USE_PY
-#include <WarpX_py.H>
+#   include "Python/WarpX_py.H"
 #endif
 
 #ifdef BL_USE_SENSEI_INSITU
-#include <AMReX_AmrMeshInSituBridge.H>
+#   include <AMReX_AmrMeshInSituBridge.H>
 #endif
 
 #ifdef PULSAR
 #include <PulsarParameters.H>
 #endif
+#include <cmath>
+#include <limits>
+
 
 using namespace amrex;
 
 void
-WarpX::EvolveEM (int numsteps)
+WarpX::Evolve (int numsteps)
 {
-    BL_PROFILE("WarpX::EvolveEM()");
+    WARPX_PROFILE("WarpX::Evolve()");
 
     Real cur_time = t_new[0];
     static int last_plot_file_step = 0;
+    static int last_openPMD_step = 0;
     static int last_check_file_step = 0;
     static int last_insitu_step = 0;
 
-    if (do_compute_max_step_from_zmax){
+    if (do_compute_max_step_from_zmax) {
         computeMaxStepBoostAccelerator(geom[0]);
     }
 
@@ -53,25 +64,36 @@ WarpX::EvolveEM (int numsteps)
         if (warpx_py_beforestep) warpx_py_beforestep();
 #endif
 
-        if (costs[0] != nullptr)
-        {
+        MultiFab* cost = WarpX::getCosts(0);
+        amrex::Vector<amrex::Real>* cost_heuristic = WarpX::getCostsHeuristic(0);
+        if (cost != nullptr || cost_heuristic != nullptr) {
 #ifdef WARPX_USE_PSATD
             amrex::Abort("LoadBalance for PSATD: TODO");
 #endif
-
             if (step > 0 && (step+1) % load_balance_int == 0)
             {
                 LoadBalance();
                 // Reset the costs to 0
-                for (int lev = 0; lev <= finest_level; ++lev) {
-                    costs[lev]->setVal(0.0);
+                for (int lev = 0; lev <= finest_level; ++lev)
+                {
+                    if (WarpX::load_balance_costs_update_algo == LoadBalanceCostsUpdateAlgo::Timers)
+                    {
+                        costs[lev]->setVal(0.0);
+                    } else if (WarpX::load_balance_costs_update_algo == LoadBalanceCostsUpdateAlgo::Heuristic)
+                    {
+                        costs_heuristic[lev]->assign((*costs_heuristic[lev]).size(), 0.0);
+                    }
                 }
             }
-
-            for (int lev = 0; lev <= finest_level; ++lev) {
-                // Perform running average of the costs
-                // (Giving more importance to most recent costs)
-                (*costs[lev].get()).mult( (1. - 2./load_balance_int) );
+            for (int lev = 0; lev <= finest_level; ++lev)
+            {
+                MultiFab* cost = WarpX::getCosts(lev);
+                if (cost)
+                {
+                    // Perform running average of the costs
+                    // (Giving more importance to most recent costs)
+                    cost->mult( (1. - 2./load_balance_int) );
+                }
             }
         }
 
@@ -84,13 +106,13 @@ WarpX::EvolveEM (int numsteps)
             FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             UpdateAuxilaryData();
             // on first step, push p by -0.5*dt
-            for (int lev = 0; lev <= finest_level; ++lev) {
+            for (int lev = 0; lev <= finest_level; ++lev)
+            {
                 mypc->PushP(lev, -0.5*dt[lev],
                             *Efield_aux[lev][0],*Efield_aux[lev][1],*Efield_aux[lev][2],
                             *Bfield_aux[lev][0],*Bfield_aux[lev][1],*Bfield_aux[lev][2]);
             }
             is_synchronized = false;
-
         } else {
             // Beyond one step, we have E^{n} and B^{n}.
             // Particles have p^{n-1/2} and x^{n}.
@@ -189,7 +211,8 @@ WarpX::EvolveEM (int numsteps)
 
         cur_time += dt[0];
 
-        bool to_make_plot = (plot_int > 0) && ((step+1) % plot_int == 0);
+        bool to_make_plot = ( (plot_int > 0) && ((step+1) % plot_int == 0) );
+        bool to_write_openPMD = ( (openpmd_int > 0) && ((step+1) % openpmd_int == 0) );
 
         // slice generation //
         bool to_make_slice_plot = (slice_plot_int > 0) && ( (step+1)% slice_plot_int == 0);
@@ -205,9 +228,11 @@ WarpX::EvolveEM (int numsteps)
             myBFD->writeLabFrameData(cell_centered_data.get(), *mypc, geom[0], cur_time, dt[0]);
         }
 
-        bool move_j = is_synchronized || to_make_plot || do_insitu;
+        bool move_j = is_synchronized || to_make_plot || to_write_openPMD || do_insitu;
         // If is_synchronized we need to shift j too so that next step we can evolve E by dt/2.
         // We might need to move j because we are going to make a plotfile.
+
+        ShiftGalileanBoundary();
 
         int num_moved = MoveWindow(move_j);
 
@@ -222,18 +247,32 @@ WarpX::EvolveEM (int numsteps)
        mypc->PulsarParticleInjection();
 #endif
 
+#ifdef WARPX_DO_ELECTROSTATIC
+        // Electrostatic solver: particles can move by an arbitrary number of cells
+        mypc->Redistribute();
+#else
+        // Electromagnetic solver: due to CFL condition, particles can
+        // only move by one or two cells per time step
         if (max_level == 0) {
-            int num_redistribute_ghost = num_moved + 1;
+            int num_redistribute_ghost = num_moved;
+            if ((v_galilean[0]!=0) or (v_galilean[1]!=0) or (v_galilean[2]!=0)) {
+                // Galilean algorithm ; particles can move by up to 2 cells
+                num_redistribute_ghost += 2;
+            } else {
+                // Standard algorithm ; particles can move by up to 1 cell
+                num_redistribute_ghost += 1;
+            }
             mypc->RedistributeLocal(num_redistribute_ghost);
         }
         else {
             mypc->Redistribute();
         }
+#endif
 
         bool to_sort = (sort_int > 0) && ((step+1) % sort_int == 0);
         if (to_sort) {
             amrex::Print() << "re-sorting particles \n";
-            mypc->SortParticlesByCell();
+            mypc->SortParticlesByBin(sort_bin_size);
         }
 
         amrex::Print()<< "STEP " << step+1 << " ends." << " TIME = " << cur_time
@@ -249,8 +288,15 @@ WarpX::EvolveEM (int numsteps)
             t_new[i] = cur_time;
         }
 
+        /// reduced diags
+        if (reduced_diags->m_plot_rd != 0)
+        {
+            reduced_diags->ComputeDiags(step);
+            reduced_diags->WriteToFile(step);
+        }
+
         // slice gen //
-        if (to_make_plot || do_insitu || to_make_slice_plot)
+        if (to_make_plot || to_write_openPMD || do_insitu || to_make_slice_plot)
         {
             // This is probably overkill, but it's not called often
             FillBoundaryE(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
@@ -269,10 +315,13 @@ WarpX::EvolveEM (int numsteps)
             }
 
             last_plot_file_step = step+1;
+            last_openPMD_step = step+1;
             last_insitu_step = step+1;
 
             if (to_make_plot)
                 WritePlotFile();
+            if (to_write_openPMD)
+                WriteOpenPMDFile();
 
             if (to_make_slice_plot)
             {
@@ -304,11 +353,13 @@ WarpX::EvolveEM (int numsteps)
 
     bool write_plot_file = plot_int > 0 && istep[0] > last_plot_file_step
         && (max_time_reached || istep[0] >= max_step);
+    bool write_openPMD = openpmd_int > 0 && istep[0] > last_openPMD_step
+        && (max_time_reached || istep[0] >= max_step);
 
     bool do_insitu = (insitu_start >= istep[0]) && (insitu_int > 0) &&
         (istep[0] > last_insitu_step) && (max_time_reached || istep[0] >= max_step);
 
-    if (write_plot_file || do_insitu)
+    if (write_plot_file || write_openPMD || do_insitu)
     {
         // This is probably overkill, but it's not called often
         FillBoundaryE(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
@@ -330,6 +381,8 @@ WarpX::EvolveEM (int numsteps)
 
         if (write_plot_file)
             WritePlotFile();
+        if (write_openPMD)
+            WriteOpenPMDFile();
 
         if (do_insitu)
             UpdateInSitu();
@@ -356,6 +409,17 @@ WarpX::EvolveEM (int numsteps)
 void
 WarpX::OneStep_nosub (Real cur_time)
 {
+
+    if (do_electrostatic) {
+        // Electrostatic solver:
+        // For each species: deposit charge and add the associated space-charge
+        // E and B field to the grid ; this is done at the beginning of the PIC
+        // loop (i.e. immediately after a `Redistribute` and before particle
+        // positions are pushed) so that the particles do not deposit out of bound
+        bool const reset_fields = true;
+        ComputeSpaceChargeField( reset_fields );
+    }
+
     // Loop over species. For each ionizable species, create particles in
     // product species.
     mypc->doFieldIonization();
@@ -387,34 +451,51 @@ WarpX::OneStep_nosub (Real cur_time)
     if (do_pml && pml_has_particles) CopyJPML();
     if (do_pml && do_pml_j_damping) DampJPML();
 
+    if (!do_electrostatic) {
+    // Electromagnetic solver:
     // Push E and B from {n} to {n+1}
     // (And update guard cells immediately afterwards)
 #ifdef WARPX_USE_PSATD
-    PushPSATD(dt[0]);
-    if (do_pml) DampPML();
-    FillBoundaryE(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
-    FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
+        if (use_hybrid_QED)
+        {
+            WarpX::Hybrid_QED_Push(dt);
+            FillBoundaryE(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
+        }
+        PushPSATD(dt[0]);
+        FillBoundaryE(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
+        FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
+
+        if (use_hybrid_QED)
+        {
+            WarpX::Hybrid_QED_Push(dt);
+            FillBoundaryE(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
+
+        }
+        if (do_pml) DampPML();
 #else
-    EvolveF(0.5*dt[0], DtType::FirstHalf);
-    FillBoundaryF(guard_cells.ng_FieldSolverF);
-    EvolveB(0.5*dt[0]); // We now have B^{n+1/2}
+        EvolveF(0.5*dt[0], DtType::FirstHalf);
+        FillBoundaryF(guard_cells.ng_FieldSolverF);
+        EvolveB(0.5*dt[0]); // We now have B^{n+1/2}
 
-    FillBoundaryB(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
-    EvolveE(dt[0]); // We now have E^{n+1}
+        FillBoundaryB(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
+        EvolveE(dt[0]); // We now have E^{n+1}
 
-    FillBoundaryE(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
-    EvolveF(0.5*dt[0], DtType::SecondHalf);
-    EvolveB(0.5*dt[0]); // We now have B^{n+1}
-    if (do_pml) {
-        FillBoundaryF(guard_cells.ng_alloc_F);
-        DampPML();
-        FillBoundaryE(guard_cells.ng_MovingWindow, IntVect::TheZeroVector());
-        FillBoundaryF(guard_cells.ng_MovingWindow);
-        FillBoundaryB(guard_cells.ng_MovingWindow, IntVect::TheZeroVector());
-    }
-    // E and B are up-to-date in the domain, but all guard cells are
-    // outdated.
+        FillBoundaryE(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
+        EvolveF(0.5*dt[0], DtType::SecondHalf);
+        EvolveB(0.5*dt[0]); // We now have B^{n+1}
+        if (do_pml) {
+            FillBoundaryF(guard_cells.ng_alloc_F);
+            DampPML();
+            FillBoundaryE(guard_cells.ng_MovingWindow, IntVect::TheZeroVector());
+            FillBoundaryF(guard_cells.ng_MovingWindow);
+            FillBoundaryB(guard_cells.ng_MovingWindow, IntVect::TheZeroVector());
+        }
+        // E and B are up-to-date in the domain, but all guard cells are
+        // outdated.
+        if ( safe_guard_cells )
+            FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
 #endif
+    }
 }
 
 /* /brief Perform one PIC iteration, with subcycling
@@ -437,6 +518,10 @@ WarpX::OneStep_nosub (Real cur_time)
 void
 WarpX::OneStep_sub1 (Real curtime)
 {
+#ifdef WARPX_DO_ELECTROSTATIC
+    amrex::Abort("Electrostatic solver cannot be used with sub-cycling.");
+#endif
+
     // TODO: we could save some charge depositions
     // Loop over species. For each ionizable species, create particles in
     // product species.
@@ -527,6 +612,8 @@ WarpX::OneStep_sub1 (Real curtime)
         FillBoundaryE(fine_lev, PatchType::fine, guard_cells.ng_FieldSolver);
     }
 
+    if ( safe_guard_cells )
+        FillBoundaryF(fine_lev, PatchType::fine, guard_cells.ng_FieldSolver);
     FillBoundaryB(fine_lev, PatchType::fine, guard_cells.ng_FieldSolver);
 
     // v) Push the fields on the coarse patch and mother grid
@@ -567,7 +654,11 @@ WarpX::OneStep_sub1 (Real curtime)
             FillBoundaryF(coarse_lev, PatchType::fine, IntVect::TheZeroVector());
         }
         DampPML(coarse_lev, PatchType::fine);
+        if ( safe_guard_cells )
+            FillBoundaryE(coarse_lev, PatchType::fine, guard_cells.ng_FieldSolver);
     }
+    if ( safe_guard_cells )
+        FillBoundaryB(coarse_lev, PatchType::fine, guard_cells.ng_FieldSolver);
 }
 
 void
