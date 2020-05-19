@@ -974,6 +974,26 @@ Numerics and algorithms
 
      If ``algo.maxwell_fdtd_solver`` is not specified, ``yee`` is the default.
 
+* ``algo.em_solver_medium`` (`string`, optional)
+    The medium for evaluating the Maxwell solver. Available options are :
+
+    - ``vacuum``: vacuum properties are used in the Maxwell solver.
+    - ``macroscopic``: macroscopic Maxwell equation is evaluated. If this option is selected, then the corresponding properties of the medium must be provided using ``macroscopic.sigma``, ``macroscopic.epsilon``, and ``macroscopic.mu``.
+
+    If ``algo.em_solver_medium`` is not specified, ``vacuum`` is the default.
+
+* ``algo.macroscopic_sigma_method`` (`string`, optional)
+    The algorithm for updating electric field when ``algo.em_solver_medium`` is macroscopic. Available options are:
+
+    - ``laxwendroff`` is the semi-implicit scheme for E-update.
+    - ``backwardeuler`` is an explicit scheme for E-update.
+
+    If ``algo.em_solver_medium`` is set to macroscopic, and ``algo.macroscopic_sigma_method`` is not specified, then ``laxwendroff`` is the default.
+
+* ``macroscopic.sigma``, ``macroscopic.epsilon``, ``macroscopic.mu`` (`double`)
+    The conductivity, permittivity, and permeability of the computational medium, respectively.
+    If ``algo.em_solver_medium`` is set to macroscopic, then these properties must be provided.
+
 * ``interpolation.nox``, ``interpolation.noy``, ``interpolation.noz`` (`integer`)
     The order of the shape factors for the macroparticles, for the 3 dimensions of space.
     Lower-order shape factors result in faster simulations, but more noisy results,
@@ -1045,12 +1065,12 @@ Numerics and algorithms
     It also requires the use of the `direct` current deposition option
     `algo.current_deposition = direct` (does not work with Esirkepov algorithm).
 
-* ``warpx.override_sync_int`` (`integer`) optional (default `10`)
-    Number of time steps between synchronization of sources (`rho` and `J`) on
-    grid nodes at box boundaries. Since the grid nodes at the interface between
-    two neighbor boxes are duplicated in both boxes, an instability can occur
-    if they have too different values. This option makes sure that they are
-    synchronized periodically.
+* ``warpx.override_sync_int`` (`string`) optional (default `1`)
+    Using the `Intervals parser`_ syntax, this string defines the timesteps at which
+    synchronization of sources (`rho` and `J`) on grid nodes at box boundaries is performed.
+    Since the grid nodes at the interface between two neighbor boxes are duplicated in both
+    boxes, an instability can occur if they have too different values.
+    This option makes sure that they are synchronized periodically.
 
 * ``warpx.use_hybrid_QED`` ('bool'; default: 0)
     Will use the Hybird QED Maxwell solver when pushing fields: a QED correction is added to the
@@ -1132,11 +1152,11 @@ This should be changed in the future.
     Name of each diagnostics.
     example: ``diagnostics.diags_names = diag1 my_second_diag``.
 
-* ``<diag_name>.period`` (`integer` optional, default ``-1``)
-    The number of PIC cycles (interval) in between two consecutive data dumps.
-    Use a negative number to disable data dumping.
-    This is ``-1`` (disabled) by default.
-    example: ``diag1.period = 10``.
+* ``<diag_name>.period`` (`string` optional, default `0`)
+    Using the `Intervals parser`_ syntax, this string defines the timesteps at which data is dumped.
+    Use a negative number or 0 to disable data dumping.
+    This is ``0`` (disabled) by default.
+    example: ``diag1.period = 10,20:25:1``.
 
 * ``<diag_name>.diag_type`` (`string`)
     Type of diagnostics. So far, only ``Full`` is supported.
@@ -1606,6 +1626,35 @@ Lookup tables store pre-computed values for functions used by the QED modules.
 
 * ``qed_qs.photon_creation_energy_threshold`` (`float`) optional (default `2*me*c^2`)
     Energy threshold for photon particle creation in SI units.
+
+* ``warpx.do_qed_schwinger`` (`bool`) optional (default `0`)
+    If this is 1, Schwinger electron-positron pairs can be generated in vacuum in the cells where the EM field is high enough.
+    Activating the Schwinger process requires the code to be compiled with ``QED=TRUE`` and ``PICSAR`` on the branch ``QED``.
+    If ``warpx.do_qed_schwinger = 1``, Schwinger product species must be specified with
+    ``qed_schwinger.ele_product_species`` and ``qed_schwinger.pos_product_species``.
+    **Note: implementation of this feature is in progress.**
+    So far it requires ``warpx.do_nodal=1`` and does not support mesh refinement, cylindrical coordinates or single precision.
+
+* ``qed_schwinger.ele_product_species`` (`string`)
+    If Schwinger process is activated, an electron product species must be specified
+    (the name of an existing electron species must be provided).
+
+* ``qed_schwinger.pos_product_species`` (`string`)
+    If Schwinger process is activated, a positron product species must be specified
+    (the name of an existing positron species must be provided).
+
+* ``qed_schwinger.y_size`` (`float`; in meters)
+    If Schwinger process is activated with ``DIM=2D``, a transverse size must be specified.
+    It is used to convert the pair production rate per unit volume into an actual number of created particles.
+    This value should correspond to the typical transverse extent for which the EM field has a very high value
+    (e.g. the beam waist for a focused laser beam).
+
+* ``qed_schwinger.threshold_poisson_gaussian`` (`integer`) optional (default `25`)
+    If the expected number of physical pairs created in a cell at a given timestep is smaller than this threshold,
+    a Poisson distribution is used to draw the actual number of physical pairs created.
+    Otherwise a Gaussian distribution is used.
+    Note that, regardless of this parameter, the number of macroparticles created is at most one per cell
+    per timestep per species (with a weight corresponding to the number of physical pairs created).
 
 Checkpoints and restart
 -----------------------

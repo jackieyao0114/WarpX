@@ -74,6 +74,8 @@ long WarpX::particle_pusher_algo;
 int WarpX::maxwell_fdtd_solver_id;
 long WarpX::load_balance_costs_update_algo;
 int WarpX::do_dive_cleaning = 0;
+int WarpX::em_solver_medium;
+int WarpX::macroscopic_solver_algo;
 
 long WarpX::n_rz_azimuthal_modes = 1;
 long WarpX::ncomps = 1;
@@ -152,6 +154,8 @@ WarpX::WarpX ()
 
     ReadParameters();
 
+    BackwardCompatibility();
+
     // Geometry on all levels has been defined already.
 
     // No valid BoxArray and DistributionMapping have been defined.
@@ -219,6 +223,13 @@ WarpX::WarpX ()
 
     pml.resize(nlevs_max);
     costs.resize(nlevs_max);
+
+
+    if (em_solver_medium == 1) {
+        // create object for macroscopic solver
+        m_macroscopic_properties = std::unique_ptr<MacroscopicProperties> (new MacroscopicProperties());
+    }
+
 
     // Set default values for particle and cell weights for costs update;
     // Default values listed here for the case AMREX_USE_GPU are determined
@@ -360,7 +371,9 @@ WarpX::ReadParameters ()
         pp.query("do_subcycling", do_subcycling);
         pp.query("use_hybrid_QED", use_hybrid_QED);
         pp.query("safe_guard_cells", safe_guard_cells);
-        pp.query("override_sync_int", override_sync_int);
+        std::string override_sync_int_string = "1";
+        pp.query("override_sync_int", override_sync_int_string);
+        override_sync_intervals = IntervalsParser(override_sync_int_string);
 
         AMREX_ALWAYS_ASSERT_WITH_MESSAGE(do_subcycling != 1 || max_level <= 1,
                                          "Subcycling method 1 only works for 2 levels.");
@@ -629,6 +642,10 @@ WarpX::ReadParameters ()
             l_lower_order_in_v = false;
         }
         load_balance_costs_update_algo = GetAlgorithmInteger(pp, "load_balance_costs_update");
+        em_solver_medium = GetAlgorithmInteger(pp, "em_solver_medium");
+        if (em_solver_medium == 1) {
+            macroscopic_solver_algo = GetAlgorithmInteger(pp,"macroscopic_sigma_method");
+        }
         pp.query("costs_heuristic_cells_wt", costs_heuristic_cells_wt);
         pp.query("costs_heuristic_particles_wt", costs_heuristic_particles_wt);
     }
@@ -697,6 +714,33 @@ WarpX::ReadParameters ()
        }
 
     }
+}
+
+void
+WarpX::BackwardCompatibility ()
+{
+    ParmParse ppa("amr");
+    int backward_int;
+    if (ppa.query("plot_int", backward_int)){
+        amrex::Abort("amr.plot_int is not supported anymore. Please use the new syntax for diagnostics:\n"
+            "diagnostics.diags_names = my_diag\n"
+            "my_diag.period = 10\n"
+            "for output every 10 iterations. See documentation for more information");
+    }
+
+    std::string backward_str;
+    if (ppa.query("plot_file", backward_str)){
+        amrex::Abort("amr.plot_file is not supported anymore. "
+                     "Please use the new syntax for diagnostics, see documentation.");
+    }
+
+    ParmParse ppw("warpx");
+    std::vector<std::string> backward_strings;
+    if (ppw.queryarr("fields_to_plot", backward_strings)){
+        amrex::Abort("warpx.fields_to_plot is not supported anymore. "
+                     "Please use the new syntax for diagnostics, see documentation.");
+    }
+
 }
 
 // This is a virtual function.

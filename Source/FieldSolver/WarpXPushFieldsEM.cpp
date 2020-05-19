@@ -375,8 +375,6 @@ WarpX::EvolveE (int lev, PatchType patch_type, amrex::Real a_dt)
 
     if (do_pml && pml[lev]->ok())
     {
-        if (F) pml[lev]->ExchangeF(patch_type, F, do_pml_in_domain);
-
         const auto& pml_B = (patch_type == PatchType::fine) ? pml[lev]->GetB_fp() : pml[lev]->GetB_cp();
         const auto& pml_E = (patch_type == PatchType::fine) ? pml[lev]->GetE_fp() : pml[lev]->GetE_cp();
         const auto& pml_j = (patch_type == PatchType::fine) ? pml[lev]->Getj_fp() : pml[lev]->Getj_cp();
@@ -498,6 +496,7 @@ WarpX::EvolveE (int lev, PatchType patch_type, amrex::Real a_dt)
     }
 }
 
+
 void
 WarpX::EvolveF (amrex::Real a_dt, DtType a_dt_type)
 {
@@ -565,6 +564,39 @@ WarpX::EvolveF (int lev, PatchType patch_type, amrex::Real a_dt, DtType a_dt_typ
             });
 
         }
+    }
+}
+
+void
+WarpX::MacroscopicEvolveE (amrex::Real a_dt)
+{
+    for (int lev = 0; lev <= finest_level; ++lev ) {
+        MacroscopicEvolveE(lev, a_dt);
+    }
+}
+
+void
+WarpX::MacroscopicEvolveE (int lev, amrex::Real a_dt) {
+
+    WARPX_PROFILE("WarpX::MacroscopicEvolveE()");
+    MacroscopicEvolveE(lev, PatchType::fine, a_dt);
+    if (lev > 0) {
+        amrex::Abort("Macroscopic EvolveE is not implemented for lev>0, yet.");
+    }
+}
+
+void
+WarpX::MacroscopicEvolveE (int lev, PatchType patch_type, amrex::Real a_dt) {
+    if (patch_type == PatchType::fine) {
+        m_fdtd_solver_fp[lev]->MacroscopicEvolveE( Efield_fp[lev], Bfield_fp[lev],
+                                             current_fp[lev], a_dt,
+                                             m_macroscopic_properties);
+    }
+    else {
+        amrex::Abort("Macroscopic EvolveE is not implemented for lev > 0, yet.");
+    }
+    if (do_pml) {
+        amrex::Abort("Macroscopic EvolveE is not implemented for pml boundary condition, yet");
     }
 }
 

@@ -333,6 +333,9 @@ WarpX::OneStep_nosub (Real cur_time)
     // product species.
     mypc->doFieldIonization();
     mypc->doCoulombCollisions();
+#ifdef WARPX_QED
+    mypc->doQEDSchwinger();
+#endif
     // Push particle from x^{n} to x^{n+1}
     //               from p^{n-1/2} to p^{n+1/2}
     // Deposit current j^{n+1/2}
@@ -412,10 +415,15 @@ WarpX::OneStep_nosub (Real cur_time)
         FillBoundaryF(guard_cells.ng_FieldSolverF);
         EvolveM(0.5*dt[0]); // we now have M^{n+1/2}
         EvolveB(0.5*dt[0]); // We now have B^{n+1/2}
-        
-        FillBoundaryM(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
-        FillBoundaryB(guard_cells.ng_FieldSolver, IntVect::TheZeroVector()); 
-        EvolveE(dt[0]); // We now have E^{n+1}
+
+        FillBoundaryB(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
+        if (WarpX::em_solver_medium == 0) {
+            // vacuum medium
+            EvolveE(dt[0]); // We now have E^{n+1}
+        } else {
+            // macroscopic medium
+            MacroscopicEvolveE(dt[0]); // We now have E^{n+1}
+        }
 
         FillBoundaryE(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
         EvolveF(0.5*dt[0], DtType::SecondHalf);
