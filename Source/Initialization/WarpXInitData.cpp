@@ -454,6 +454,10 @@ WarpX::InitLevelData (int lev, Real /*time*/)
        }
     }
 
+    if (M_ext_grid_s == "parse_m_ext_grid_function") {
+        Abort("WarpXInitData: M field initializtion parser not implemented yet");
+    }
+
     if (F_fp[lev]) {
         F_fp[lev]->setVal(0.0);
     }
