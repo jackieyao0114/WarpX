@@ -21,7 +21,7 @@ public:
      */
     CellCenterFunctor(const amrex::MultiFab * const mf_src, const int lev,
                       const amrex::IntVect crse_ratio,
-                      bool convertRZmodes2cartesian=true, int ncomp=1);
+                      bool convertRZmodes2cartesian=true, int ncomp=1, int scomp=0);
     /** \brief Cell-center m_mf_src and write the result in mf_dst.
      *
      * In cylindrical geometry, by default this functor average all components
@@ -38,6 +38,9 @@ private:
     int m_lev; /**< level on which mf_src is defined (used in cylindrical) */
     /**< (for cylindrical) whether to average all modes into 1 comp */
     bool m_convertRZmodes2cartesian;
+
+    // starting component value
+    int m_scomp;
 };
 
 #endif // WARPX_CELLCENTERFUNCTOR_H_
