@@ -405,11 +405,23 @@ Diagnostics::InitializeFieldFunctors (int lev)
         } else if ( m_varnames[comp] == "Bz" ){
             m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Bfield_aux(lev, 2), lev, m_crse_ratio);
         } else if ( m_varnames[comp] == "Mx_xface" ){
-            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Mfield_aux(lev, 0), lev, m_crse_ratio);
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Mfield_aux(lev, 0), lev, m_crse_ratio, true, 1, 0);
         } else if ( m_varnames[comp] == "Mx_yface" ){
-            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Mfield_aux(lev, 1), lev, m_crse_ratio);
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Mfield_aux(lev, 1), lev, m_crse_ratio, true, 1, 0);
         } else if ( m_varnames[comp] == "Mx_zface" ){
-            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Mfield_aux(lev, 2), lev, m_crse_ratio);
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Mfield_aux(lev, 2), lev, m_crse_ratio, true, 1, 0);
+        } else if ( m_varnames[comp] == "My_xface" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Mfield_aux(lev, 0), lev, m_crse_ratio, true, 1, 1);
+        } else if ( m_varnames[comp] == "My_yface" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Mfield_aux(lev, 1), lev, m_crse_ratio, true, 1, 1);
+        } else if ( m_varnames[comp] == "My_zface" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Mfield_aux(lev, 2), lev, m_crse_ratio, true, 1, 1);
+        } else if ( m_varnames[comp] == "Mz_xface" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Mfield_aux(lev, 0), lev, m_crse_ratio, true, 1, 2);
+        } else if ( m_varnames[comp] == "Mz_yface" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Mfield_aux(lev, 1), lev, m_crse_ratio, true, 1, 2);
+        } else if ( m_varnames[comp] == "Mz_zface" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Mfield_aux(lev, 2), lev, m_crse_ratio, true, 1, 2);
         } else if ( m_varnames[comp] == "jx" ){
             m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_current_fp(lev, 0), lev, m_crse_ratio);
         } else if ( m_varnames[comp] == "jy" ){
