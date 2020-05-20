@@ -362,7 +362,7 @@ WarpX::AverageAndPackFields ( Vector<std::string>& varnames,
 
         // For E, B and J, if at least one component is requested,
         // build cell-centered temporary MultiFab with 3 comps
-        MultiFab mf_tmp_E, mf_tmp_B, mf_tmp_M, mf_tmp_J;
+        MultiFab mf_tmp_E, mf_tmp_B, mf_tmp_J;
         // Build mf_tmp_E is at least one component of E is requested
         if (WarpXUtilStr::is_in(fields_to_plot, {"Ex", "Ey", "Ez"} )){
             // Allocate temp MultiFab with 3 components
@@ -378,13 +378,6 @@ WarpX::AverageAndPackFields ( Vector<std::string>& varnames,
             AverageAndPackVectorField(mf_tmp_B, Bfield_aux[lev], dmap[lev], 0, ngrow);
             int dcomp = 3;
             AverageAndPackVectorFieldComponents(mf_tmp_B, Bfield_aux[lev], dmap[lev], dcomp, ngrow);
-        }
-        // Same for M
-        if (WarpXUtilStr::is_in(fields_to_plot, {"Mx_xface", "Mx_yface", "Mx_zface"} )){
-            mf_tmp_M = MultiFab(grids[lev], dmap[lev], nvecs, ngrow);
-            AverageAndPackVectorField(mf_tmp_M, Mfield_aux[lev], dmap[lev], 0, ngrow);
-            int dcomp = 3;
-            AverageAndPackVectorFieldComponents(mf_tmp_M, Mfield_aux[lev], dmap[lev], dcomp, ngrow);
         }
         // Same for J
         if (WarpXUtilStr::is_in(fields_to_plot, {"jx", "jy", "jz"} )){
