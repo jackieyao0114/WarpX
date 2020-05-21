@@ -405,6 +405,10 @@ Diagnostics::InitializeFieldFunctors (int lev)
         } else if ( m_varnames[comp] == "Bz" ){
             m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Bfield_aux(lev, 2), lev, m_crse_ratio);
         } else if ( m_varnames[comp] == "Mx_xface" ){
+            // For the magnetization variables (e.g., Mx_xface) we have to pass in an additional integer stating which variable from the Mfield MultiFab
+            // will get averaged/interpolated to the ce1ll-centered plotfile MultiFab.  This is the final integer in the calling sequence.
+            // Unlike the B field, for M we store all 3 components of the vector M at each face, where 0=Mx, 1=My, 2=Mz
+            // The additional "true, 1" arguments refer to a default cylindrical flag, and the default number of components.
             m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Mfield_aux(lev, 0), lev, m_crse_ratio, true, 1, 0);
         } else if ( m_varnames[comp] == "Mx_yface" ){
             m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Mfield_aux(lev, 1), lev, m_crse_ratio, true, 1, 0);
