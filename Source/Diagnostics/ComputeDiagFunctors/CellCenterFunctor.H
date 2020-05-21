@@ -41,7 +41,7 @@ private:
     /**< (for cylindrical) whether to average all modes into 1 comp */
     bool m_convertRZmodes2cartesian;
 
-    // starting component value
+    /** starting component of mf_src from which values are averaged/interpolated to mf_dst */
     int m_scomp;
 };
 
