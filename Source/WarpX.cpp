@@ -1006,10 +1006,6 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
         Efield_aux[lev][0].reset( new MultiFab(nba,dm,ncomps,ngE));
         Efield_aux[lev][1].reset( new MultiFab(nba,dm,ncomps,ngE));
         Efield_aux[lev][2].reset( new MultiFab(nba,dm,ncomps,ngE));
-        
-        Mfield_aux[lev][0].reset( new MultiFab(nba,dm,3     ,ngE));
-        Mfield_aux[lev][1].reset( new MultiFab(nba,dm,3     ,ngE));
-        Mfield_aux[lev][2].reset( new MultiFab(nba,dm,3     ,ngE));
     }
     else if (lev == 0)
     {
