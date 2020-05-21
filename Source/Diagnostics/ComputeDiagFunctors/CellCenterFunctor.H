@@ -18,6 +18,8 @@ public:
      * \param[in] convert_RZmodes2cartesian (in cylindrical) whether to
      *            sum all modes in mf_src before cell-centering into dst multifab.
      * \param[in] ncomp Number of component of mf_src to cell-center in dst multifab.
+     * \param[in] scomp starting component of mf_src from which values are 
+                  averaged/interpolated to mf_dst
      */
     CellCenterFunctor(const amrex::MultiFab * const mf_src, const int lev,
                       const amrex::IntVect crse_ratio,
