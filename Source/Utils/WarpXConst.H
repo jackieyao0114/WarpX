@@ -34,6 +34,8 @@ namespace PhysConst
                                          (45.*m_e*m_e*m_e*m_e*c*c*c*c*c); // SI value is 1.3050122.e-52
     static constexpr amrex::Real xi_c2 = xi * c * c; // This should be usable for single precision, though
     // very close to smallest number possible: smallest number = 1.2e-38, xi_c2 = 1.1e-35
+    static constexpr amrex::Real gamma = 1.759e-11; // gamma is gyromagnetic ratio
+    //gamma_L is gamma/(1+alpha^2), alpha^2 ~ 0
 }
 
 #endif
