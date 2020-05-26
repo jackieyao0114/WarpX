@@ -37,13 +37,13 @@ using namespace amrex;
 
 Vector<Real> WarpX::E_external_grid(3, 0.0); // this is fill constructor
 Vector<Real> WarpX::B_external_grid(3, 0.0);
-Vector<Real> WarpX::M_external_grid(3, 0.0); 
+Vector<Real> WarpX::M_external_grid(3, 0.0);
 // M could be one 9-comp vector or a vector of vectors
 
 std::string WarpX::authors = "";
 std::string WarpX::B_ext_grid_s = "default";
 std::string WarpX::E_ext_grid_s = "default";
-std::string WarpX::M_ext_grid_s = "default"; 
+std::string WarpX::M_ext_grid_s = "default";
 // "default" sets M to zero but will be overwritten by user defined input file
 
 // no M parser yet
@@ -299,17 +299,6 @@ WarpX::WarpX ()
     // Sanity checks. Must be done after calling the MultiParticleContainer
     // constructor, as it reads additional parameters
     // (e.g., use_fdtd_nci_corr)
-
-#ifndef WARPX_USE_PSATD
-    AMREX_ALWAYS_ASSERT_WITH_MESSAGE(
-        not ( do_pml && do_nodal ),
-        "PML + do_nodal for finite-difference not implemented"
-        );
-#endif
-    AMREX_ALWAYS_ASSERT_WITH_MESSAGE(
-        not ( do_dive_cleaning && do_nodal ),
-        "divE cleaning + do_nodal not implemented"
-        );
 #ifdef WARPX_USE_PSATD
     AMREX_ALWAYS_ASSERT(use_fdtd_nci_corr == 0);
     AMREX_ALWAYS_ASSERT(do_subcycling == 0);
@@ -760,7 +749,7 @@ WarpX::ClearLevel (int lev)
     for (int i = 0; i < 3; ++i) {
         Efield_aux[lev][i].reset();
         Bfield_aux[lev][i].reset();
-        Mfield_aux[lev][i].reset();        
+        Mfield_aux[lev][i].reset();
 
         current_fp[lev][i].reset();
         Efield_fp [lev][i].reset();
@@ -1006,10 +995,6 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
         Efield_aux[lev][0].reset( new MultiFab(nba,dm,ncomps,ngE));
         Efield_aux[lev][1].reset( new MultiFab(nba,dm,ncomps,ngE));
         Efield_aux[lev][2].reset( new MultiFab(nba,dm,ncomps,ngE));
-        
-        Mfield_aux[lev][0].reset( new MultiFab(nba,dm,3     ,ngE));
-        Mfield_aux[lev][1].reset( new MultiFab(nba,dm,3     ,ngE));
-        Mfield_aux[lev][2].reset( new MultiFab(nba,dm,3     ,ngE));
     }
     else if (lev == 0)
     {
@@ -1028,7 +1013,7 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
         Efield_aux[lev][0].reset( new MultiFab(amrex::convert(ba,Ex_nodal_flag),dm,ncomps,ngE));
         Efield_aux[lev][1].reset( new MultiFab(amrex::convert(ba,Ey_nodal_flag),dm,ncomps,ngE));
         Efield_aux[lev][2].reset( new MultiFab(amrex::convert(ba,Ez_nodal_flag),dm,ncomps,ngE));
-        
+
         Mfield_aux[lev][0].reset( new MultiFab(amrex::convert(ba,Mx_nodal_flag),dm,3     ,ngE));
         Mfield_aux[lev][1].reset( new MultiFab(amrex::convert(ba,My_nodal_flag),dm,3     ,ngE));
         Mfield_aux[lev][2].reset( new MultiFab(amrex::convert(ba,Mz_nodal_flag),dm,3     ,ngE));
