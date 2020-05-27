@@ -413,11 +413,20 @@ WarpX::OneStep_nosub (Real cur_time)
 #else
         EvolveF(0.5*dt[0], DtType::FirstHalf);
         FillBoundaryF(guard_cells.ng_FieldSolverF);
-        EvolveM(0.5*dt[0]); // we now have M^{n+1/2}
+        
         EvolveB(0.5*dt[0]); // We now have B^{n+1/2}
+        // EvolveM(0.5*dt[0]); // we now have M^{n+1/2}
 
-        FillBoundaryM(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
+        if (WarpX::em_solver_medium == 0) {
+            //vacuum medium
+            EvolveM(0.5*dt[0]); // we now have M^{n+1/2}
+        } else {
+            //macroscopic medium
+            MacroscopicEvolveM(0.5*dt[0]);
+        }
         FillBoundaryB(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
+        FillBoundaryM(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
+
         if (WarpX::em_solver_medium == 0) {
             // vacuum medium
             EvolveE(dt[0]); // We now have E^{n+1}
@@ -428,8 +437,14 @@ WarpX::OneStep_nosub (Real cur_time)
 
         FillBoundaryE(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
         EvolveF(0.5*dt[0], DtType::SecondHalf);
-        EvolveM(0.5*dt[0]); // we now have M^{n+1}
         EvolveB(0.5*dt[0]); // We now have B^{n+1}
+        // EvolveM(0.5*dt[0]); // we now have M^{n+1}
+
+        if (WarpX::em_solver_medium == 0){
+            EvolveM(0.5*dt[0]); // we now have M^{n+1}
+        } else {
+            MacroscopicEvolveM(0.5*dt[0]);  // we now have M^{n+1}
+        }
         //why not implementing FillBoundary here? possibly: implemented in if{safe_guard_cells} Line 452
         if (do_pml) {
             FillBoundaryF(guard_cells.ng_alloc_F);

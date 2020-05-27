@@ -14,9 +14,13 @@ MacroscopicProperties::ReadParameters ()
 {
     ParmParse pp("macroscopic");
     // Since macroscopic maxwell solve is turned on, user must define sigma, mu, and epsilon //
-//    pp.get("sigma", m_sigma);
-//    pp.get("mu", m_mu);
-//    pp.get("epsilon", m_epsilon);
+    //    pp.get("sigma", m_sigma);
+    //    pp.get("mu", m_mu);
+    //    pp.get("epsilon", m_epsilon);
+    
+    //   Functions with the string "get" in their names attempt to get a
+    //   value or an array of values from the table.  They generate a
+    //   run-time error if they are not successful.
 
     pp.get("sigma_init_style", m_sigma_s);
     // constant initialization
@@ -46,6 +50,25 @@ MacroscopicProperties::ReadParameters ()
                                  makeParser(m_str_mu_function,{"x","y","z"}) ) );
     }
 
+    pp.get("mag_Ms_init_style", m_mag_Ms_s);
+    if (m_mag_Ms_s == "constant") pp.get("mag_Ms", m_mag_Ms); 
+    // _mag_ such that it's clear the Ms variable is only meaningful for magnetic materials
+    //initialization with parser
+    if (m_mag_Ms_s == "parse_mag_Ms_function") {
+        Store_parserString(pp, "mag_Ms_function(x,y,z)", m_str_mag_Ms_function);
+        m_mag_Ms_parser.reset(new ParserWrapper<3>(
+                                  makeParser(m_str_mag_Ms_function,{"x","y","z"})));
+    }
+
+    pp.get("mag_alpha_init_style", m_mag_alpha_s);
+    if (m_mag_alpha_s == "constant") pp.get("mag_alpha", m_mag_alpha); 
+    // _mag_ such that it's clear the Ms variable is only meaningful for magnetic materials
+    //initialization with parser
+    if (m_mag_alpha_s == "parse_mag_alpha_function") {
+        Store_parserString(pp, "mag_alpha_function(x,y,z)", m_str_mag_alpha_function);
+        m_mag_alpha_parser.reset(new ParserWrapper<3>(
+                                  makeParser(m_str_mag_alpha_function,{"x","y","z"})));
+    }
 }
 
 void
@@ -63,6 +86,8 @@ MacroscopicProperties::InitData ()
     m_sigma_mf = std::make_unique<MultiFab>(ba, dmap, 1, ng); // cell-centered
     m_eps_mf = std::make_unique<MultiFab>(ba, dmap, 1, ng);
     m_mu_mf = std::make_unique<MultiFab>(amrex::convert(ba,amrex::IntVect::TheUnitVector()), dmap, 1, ng);
+    m_mag_Ms_mf = std::make_unique<MultiFab>(amrex::convert(ba,amrex::IntVect::TheUnitVector()), dmap, 1, ng);
+    m_mag_alpha_mf = std::make_unique<MultiFab>(amrex::convert(ba,amrex::IntVect::TheUnitVector()), dmap, 1, ng);
 
     if (m_sigma_s == "constant") {
 
@@ -91,6 +116,22 @@ MacroscopicProperties::InitData ()
 
         InitializeMacroMultiFabUsingParser(m_mu_mf.get(), m_mu_parser.get(), lev);
 
+    }
+
+    // mag_Ms - defined at node
+    if (m_mag_Ms_s == "constant") {
+        m_mag_Ms_mf->setVal(m_mag_Ms);
+    }
+    else if (m_mag_Ms_s == "parse_mag_Ms_function"){
+        InitializeMacroMultiFabUsingParser(m_mag_Ms_mf.get(), m_mag_Ms_parser.get(), lev);
+    }
+
+    // mag_alpha - defined at node
+    if (m_mag_alpha_s == "constant") {
+        m_mag_alpha_mf->setVal(m_mag_alpha);
+    }
+    else if (m_mag_alpha_s == "parse_mag_alpha_function"){
+        InitializeMacroMultiFabUsingParser(m_mag_alpha_mf.get(), m_mag_alpha_parser.get(), lev);
     }
 
 }

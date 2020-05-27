@@ -402,6 +402,39 @@ WarpX::MacroscopicEvolveE (int lev, PatchType patch_type, amrex::Real a_dt) {
     }
 }
 
+// define WarpX::MacroscopicEvolveM
+void
+WarpX::MacroscopicEvolveM (amrex::Real a_dt)
+{
+    for (int lev = 0; lev <= finest_level; ++lev ) {
+        MacroscopicEvolveM(lev, a_dt);
+    }
+}
+
+void
+WarpX::MacroscopicEvolveM (int lev, amrex::Real a_dt) {
+
+    WARPX_PROFILE("WarpX::MacroscopicEvolveM()");
+    MacroscopicEvolveM(lev, PatchType::fine, a_dt);
+    if (lev > 0) {
+        amrex::Abort("Macroscopic EvolveM is not implemented for lev>0, yet.");
+    }
+}
+
+void
+WarpX::MacroscopicEvolveM (int lev, PatchType patch_type, amrex::Real a_dt) {
+    if (patch_type == PatchType::fine) {
+        m_fdtd_solver_fp[lev]->MacroscopicEvolveM( Mfield_fp[lev], Bfield_fp[lev],
+                                             a_dt, m_macroscopic_properties);
+    }
+    else {
+        amrex::Abort("Macroscopic EvolveM is not implemented for lev > 0 yet");
+    }
+    if (do_pml) {
+        amrex::Abort("Macroscopic EvolveM is not implemented for pml boundary condition yet");
+    }
+}
+
 #ifdef WARPX_DIM_RZ
 // This scales the current by the inverse volume and wraps around the depostion at negative radius.
 // It is faster to apply this on the grid than to do it particle by particle.

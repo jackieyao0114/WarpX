@@ -323,6 +323,9 @@ public:
     void MacroscopicEvolveE (         amrex::Real dt);
     void MacroscopicEvolveE (int lev, amrex::Real dt);
     void MacroscopicEvolveE (int lev, PatchType patch_type, amrex::Real dt);
+    void MacroscopicEvolveM (         amrex::Real dt);
+    void MacroscopicEvolveM (int lev, amrex::Real dt);
+    void MacroscopicEvolveM (int lev, PatchType patch_type, amrex::Real dt);
     void FieldGather ();
 
     /** \brief apply QED correction on electric field

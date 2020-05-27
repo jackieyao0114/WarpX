@@ -15,10 +15,11 @@ using namespace amrex;
 
 // update M field over one timestep
 
-void FiniteDifferenceSolver::EvolveM (
+void FiniteDifferenceSolver::MacroscopicEvolveM (
     std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Mfield, // Mfield contains three components MultiFab
     std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Bfield,
-    amrex::Real const dt) {
+    amrex::Real const dt,
+    std::unique_ptr<MacroscopicProperties> const& macroscopic_properties) {
 
     /* if (m_do_nodal) {
 
@@ -39,7 +40,7 @@ void FiniteDifferenceSolver::EvolveM (
 
     if (m_fdtd_algo == MaxwellSolverAlgo::Yee)
     {
-        EvolveMCartesian <CartesianYeeAlgorithm> (Mfield, Bfield, dt);
+        MacroscopicEvolveMCartesian <CartesianYeeAlgorithm> (Mfield, Bfield, dt, macroscopic_properties);
     }
     else {
        amrex::Abort("Only yee algorithm is compatible for M updates.");
@@ -47,18 +48,26 @@ void FiniteDifferenceSolver::EvolveM (
     } // closes function EvolveM
 
     template<typename T_Algo>
-    void FiniteDifferenceSolver::EvolveMCartesian (
+    void FiniteDifferenceSolver::MacroscopicEvolveMCartesian (
         std::array< std::unique_ptr<amrex::MultiFab>, 3 > & Mfield,
         std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Bfield,
-        amrex::Real const dt )
+        amrex::Real const dt,
+        std::unique_ptr<MacroscopicProperties> const& macroscopic_properties )
     {
-        static constexpr amrex::Real alpha = 1e-4;
-        static constexpr amrex::Real Ms = 8e5;
+        // static constexpr amrex::Real alpha = 1e-4;
+        // static constexpr amrex::Real Ms = 1e4;
         Real constexpr cons1 = -PhysConst::mag_gamma; // should be mu0*gamma, mu0 is absorbed by B used in this case
-        Real constexpr cons2 = -cons1*alpha/Ms; // factor of the second term in scalar LLG
+        // Real constexpr cons2 = -cons1*alpha/Ms; // factor of the second term in scalar LLG
 
         for (MFIter mfi(*Mfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi) /* remember to FIX */
         {
+          auto& mag_Ms_mf = macroscopic_properties->getmag_Ms_mf();
+          auto& mag_alpha_mf = macroscopic_properties->getmag_alpha_mf();
+          // exctract material properties
+          Array4<Real> const& mag_Ms_arr = mag_Ms_mf.array(mfi);
+          Array4<Real> const& mag_alpha_arr = mag_alpha_mf.array(mfi);
+          Real constexpr cons2 = -cons1*mag_alpha_arr/mag_Ms_arr; // factor of the second term in scalar LLG
+
             // extract field data
             Array4<Real> const& Mx = Mfield[0]->array(mfi); // note Mx are x,y,z components at |_x faces
             Array4<Real> const& My = Mfield[1]->array(mfi);

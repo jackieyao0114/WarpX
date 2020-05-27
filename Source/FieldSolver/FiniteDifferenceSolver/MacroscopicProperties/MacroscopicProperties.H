@@ -38,6 +38,8 @@ public:
      amrex::MultiFab& getsigma_mf  () {return (*m_sigma_mf);}
      amrex::MultiFab& getepsilon_mf  () {return (*m_eps_mf);}
      amrex::MultiFab& getmu_mf  () {return (*m_mu_mf);}
+     amrex::MultiFab& getmag_Ms_mf () {return (*m_mag_Ms_mf);}
+     amrex::MultiFab& getmag_alpha_mf () {return (*m_mag_alpha_mf);}
 
      void InitializeMacroMultiFabUsingParser (amrex::MultiFab *macro_mf,
                                   ParserWrapper<3> *macro_parser, int lev);
@@ -48,25 +50,44 @@ private:
      amrex::Real m_epsilon;
      /** Permeability, mu, of the medium */
      amrex::Real m_mu;
+     /** Saturation magnetization, only applies for magnetic materials */
+     amrex::Real m_mag_Ms;
+     /** Gilbert damping, only applies for magnetic materials */
+     amrex::Real m_mag_alpha;
      /** Multifab for m_sigma */
      std::unique_ptr<amrex::MultiFab> m_sigma_mf;
      /** Multifab for m_epsilon */
      std::unique_ptr<amrex::MultiFab> m_eps_mf;
      /** Multifab for m_mu */
      std::unique_ptr<amrex::MultiFab> m_mu_mf;
+     /** Multifac for m_mag_Ms */
+     std::unique_ptr<amrex::MultiFab> m_mag_Ms_mf;
+     /** Multifac for m_mag_alpha */
+     std::unique_ptr<amrex::MultiFab> m_mag_alpha_mf;
+
      std::string m_sigma_s;
      std::string m_epsilon_s;
      std::string m_mu_s;
-
+     std::string m_mag_Ms_s;
+     std::string m_mag_alpha_s;
 
      /** string for storing parser function */
      std::string m_str_sigma_function;
      std::string m_str_epsilon_function;
      std::string m_str_mu_function;
+     std::string m_str_mag_Ms_function;
+     std::string m_str_mag_alpha_function;
      /** Parser Wrappers */
+     // The ParserWrapper struct is constructed to safely use the GpuParser class
+     // that can essentially be though of as a raw pointer. The GpuParser does
+     // not have an explicit destructor and the AddPlasma subroutines handle the GpuParser
+     // in a safe way. The ParserWrapper struct is used to avoid memory leak
+     // in the EB parser functions.
      std::unique_ptr<ParserWrapper<3> > m_sigma_parser;
      std::unique_ptr<ParserWrapper<3> > m_epsilon_parser;
      std::unique_ptr<ParserWrapper<3> > m_mu_parser;
+     std::unique_ptr<ParserWrapper<3> > m_mag_Ms_parser;
+     std::unique_ptr<ParserWrapper<3> > m_mag_alpha_parser;
 };
 
 struct LaxWendroffAlgo {
