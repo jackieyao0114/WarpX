@@ -2,16 +2,7 @@
 #define WARPX_MACROSCOPICPROPERTIES_H_
 
 
-#include <AMReX_REAL.H>
-#include <AMReX_Array4.H>
-#include <AMReX_Gpu.H>
-
 #include <AMReX_MultiFab.H>
-#include <algorithm>
-#include <array>
-
-#include "Parser/WarpXParser.H"
-#include "Parser/WarpXParserWrapper.H"
 
 
 /**
@@ -25,24 +16,13 @@ public:
      MacroscopicProperties (); // constructor
      /** \brief Read user-defined macroscopic properties. Called in constructor. */
      void ReadParameters ();
-     /** Initialize multifabs storing macroscopic multifabs */
-     void InitData ();
+     /** return Real, sigma (conductivity) of the medium. */
+     amrex::Real sigma () const noexcept {return m_sigma;}
+     /** return Real, epsilon (permittivity) of the medium. */
+     amrex::Real epsilon () const noexcept {return m_epsilon;}
+     /** return Real, mu (permeability) of the medium. */
+     amrex::Real mu () const noexcept {return m_mu;}
 
-//     /** return Real, sigma (conductivity) of the medium. */
-//     amrex::Real sigma () const noexcept {return m_sigma;}
-//     /** return Real, epsilon (permittivity) of the medium. */
-//     amrex::Real epsilon () const noexcept {return m_epsilon;}
-//     /** return Real, mu (permeability) of the medium. */
-//     amrex::Real mu () const noexcept {return m_mu;}
-     /** */
-     amrex::MultiFab& getsigma_mf  () {return (*m_sigma_mf);}
-     amrex::MultiFab& getepsilon_mf  () {return (*m_eps_mf);}
-     amrex::MultiFab& getmu_mf  () {return (*m_mu_mf);}
-     amrex::MultiFab& getmag_Ms_mf () {return (*m_mag_Ms_mf);}
-     amrex::MultiFab& getmag_alpha_mf () {return (*m_mag_alpha_mf);}
-
-     void InitializeMacroMultiFabUsingParser (amrex::MultiFab *macro_mf,
-                                  ParserWrapper<3> *macro_parser, int lev);
 private:
      /** Conductivity, sigma, of the medium */
      amrex::Real m_sigma;
@@ -50,10 +30,12 @@ private:
      amrex::Real m_epsilon;
      /** Permeability, mu, of the medium */
      amrex::Real m_mu;
+
      /** Saturation magnetization, only applies for magnetic materials */
      amrex::Real m_mag_Ms;
      /** Gilbert damping, only applies for magnetic materials */
      amrex::Real m_mag_alpha;
+
      /** Multifab for m_sigma */
      std::unique_ptr<amrex::MultiFab> m_sigma_mf;
      /** Multifab for m_epsilon */
@@ -183,6 +165,7 @@ struct BackwardEulerAlgo {
          amrex::Real beta = dt / ( macro_avg_to_edge(i, j, k, iv_cc, epsilon) * (1._rt + fac1) );
          return beta;
      };
+
 };
 
 #endif // WARPX_MACROSCOPIC_PROPERTIES_H_
