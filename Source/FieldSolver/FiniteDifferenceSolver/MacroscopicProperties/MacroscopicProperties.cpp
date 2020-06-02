@@ -14,13 +14,6 @@ MacroscopicProperties::ReadParameters ()
 {
     ParmParse pp("macroscopic");
     // Since macroscopic maxwell solve is turned on, user must define sigma, mu, and epsilon //
-    //    pp.get("sigma", m_sigma);
-    //    pp.get("mu", m_mu);
-    //    pp.get("epsilon", m_epsilon);
-    
-    //   Functions with the string "get" in their names attempt to get a
-    //   value or an array of values from the table.  They generate a
-    //   run-time error if they are not successful.
 
     pp.get("sigma_init_style", m_sigma_s);
     // constant initialization
