@@ -10,8 +10,6 @@
 
 #include "Utils/WarpX_Complex.H"
 #include "SpectralKSpace.H"
-#include "AnyFFT.H"
-
 #include <AMReX_MultiFab.H>
 
 #include <string>
@@ -40,6 +38,19 @@ struct SpectralPMLIndex {
 class SpectralFieldData
 {
 
+    // Define the FFTplans type, which holds one fft plan per box
+    // (plans are only initialized for the boxes that are owned by
+    // the local MPI rank)
+#ifdef AMREX_USE_GPU
+    using FFTplans = amrex::LayoutData<cufftHandle>;
+#else
+#  ifdef AMREX_USE_FLOAT
+    using FFTplans = amrex::LayoutData<fftwf_plan>;
+#  else
+    using FFTplans = amrex::LayoutData<fftw_plan>;
+#  endif
+#endif
+
     public:
         SpectralFieldData( const amrex::BoxArray& realspace_ba,
                            const SpectralKSpace& k_space,
@@ -61,7 +72,7 @@ class SpectralFieldData
         // right before/after the Fourier transform
         SpectralField tmpSpectralField; // contains Complexs
         amrex::MultiFab tmpRealField; // contains Reals
-        AnyFFT::FFTplans forward_plan, backward_plan;
+        FFTplans forward_plan, backward_plan;
         // Correcting "shift" factors when performing FFT from/to
         // a cell-centered grid in real space, instead of a nodal grid
         SpectralShiftFactor xshift_FFTfromCell, xshift_FFTtoCell,
