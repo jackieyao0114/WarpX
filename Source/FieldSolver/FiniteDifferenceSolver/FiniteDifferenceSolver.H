@@ -78,6 +78,7 @@ class FiniteDifferenceSolver
                             std::unique_ptr<MacroscopicProperties> const& macroscopic_properties);
 
         void MacroscopicEvolveM ( std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Mfield,
+                       std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Hfield,
                        std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Bfield,
                        amrex::Real const dt,
                        std::unique_ptr<MacroscopicProperties> const& macroscopic_properties);
@@ -190,6 +191,7 @@ class FiniteDifferenceSolver
         template< typename T_Algo >
         void MacroscopicEvolveMCartesian (
             std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Mfield,
+            std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Hfield,
             std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Bfield,
             amrex::Real const dt,
             std::unique_ptr<MacroscopicProperties> const& macroscopic_properties );

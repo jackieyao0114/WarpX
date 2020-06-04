@@ -38,15 +38,16 @@ using namespace amrex;
 Vector<Real> WarpX::E_external_grid(3, 0.0); // this is fill constructor
 Vector<Real> WarpX::B_external_grid(3, 0.0);
 Vector<Real> WarpX::M_external_grid(3, 0.0);
+Vector<Real> WarpX::H_external_grid(3, 0.0);
 // M could be one 9-comp vector or a vector of vectors
 
 std::string WarpX::authors = "";
 std::string WarpX::B_ext_grid_s = "default";
 std::string WarpX::E_ext_grid_s = "default";
 std::string WarpX::M_ext_grid_s = "default";
+std::string WarpX::H_ext_grid_s = "default";
 // "default" sets M to zero but will be overwritten by user defined input file
 
-// no M parser yet
 // Parser for B_external on the grid
 std::string WarpX::str_Bx_ext_grid_function;
 std::string WarpX::str_By_ext_grid_function;
@@ -55,6 +56,14 @@ std::string WarpX::str_Bz_ext_grid_function;
 std::string WarpX::str_Ex_ext_grid_function;
 std::string WarpX::str_Ey_ext_grid_function;
 std::string WarpX::str_Ez_ext_grid_function;
+// Parser for M_external on the grid
+std::string WarpX::str_Mx_ext_grid_function;
+std::string WarpX::str_My_ext_grid_function;
+std::string WarpX::str_Mz_ext_grid_function;
+// Parser for H_external on the grid
+std::string WarpX::str_Hx_ext_grid_function;
+std::string WarpX::str_Hy_ext_grid_function;
+std::string WarpX::str_Hz_ext_grid_function;
 
 int WarpX::do_moving_window = 0;
 int WarpX::moving_window_dir = -1;
@@ -199,6 +208,7 @@ WarpX::WarpX ()
     Efield_aux.resize(nlevs_max);
     Bfield_aux.resize(nlevs_max);
     Mfield_aux.resize(nlevs_max);
+    Hfield_aux.resize(nlevs_max);
 
     F_fp.resize(nlevs_max);
     rho_fp.resize(nlevs_max);
@@ -206,6 +216,7 @@ WarpX::WarpX ()
     Efield_fp.resize(nlevs_max);
     Bfield_fp.resize(nlevs_max);
     Mfield_fp.resize(nlevs_max);
+    Hfield_fp.resize(nlevs_max);
 
     current_store.resize(nlevs_max);
 
@@ -215,9 +226,12 @@ WarpX::WarpX ()
     Efield_cp.resize(nlevs_max);
     Bfield_cp.resize(nlevs_max);
     Mfield_cp.resize(nlevs_max);
+    Hfield_cp.resize(nlevs_max);
 
     Efield_cax.resize(nlevs_max);
     Bfield_cax.resize(nlevs_max);
+    Mfield_cax.resize(nlevs_max);
+    Hfield_cax.resize(nlevs_max);
     current_buffer_masks.resize(nlevs_max);
     gather_buffer_masks.resize(nlevs_max);
     current_buf.resize(nlevs_max);
@@ -750,11 +764,13 @@ WarpX::ClearLevel (int lev)
         Efield_aux[lev][i].reset();
         Bfield_aux[lev][i].reset();
         Mfield_aux[lev][i].reset();
+        Hfield_aux[lev][i].reset();
 
         current_fp[lev][i].reset();
         Efield_fp [lev][i].reset();
         Bfield_fp [lev][i].reset();
         Mfield_fp [lev][i].reset();
+        Hfield_fp [lev][i].reset();
 
         current_store[lev][i].reset();
 
@@ -762,9 +778,12 @@ WarpX::ClearLevel (int lev)
         Efield_cp [lev][i].reset();
         Bfield_cp [lev][i].reset();
         Mfield_cp [lev][i].reset();
+        Hfield_cp [lev][i].reset();
 
         Efield_cax[lev][i].reset();
         Bfield_cax[lev][i].reset();
+        Mfield_cax[lev][i].reset();
+        Hfield_cax[lev][i].reset();
         current_buf[lev][i].reset();
     }
 
@@ -832,6 +851,7 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
     IntVect Ex_nodal_flag, Ey_nodal_flag, Ez_nodal_flag;
     IntVect Bx_nodal_flag, By_nodal_flag, Bz_nodal_flag;
     IntVect Mx_nodal_flag, My_nodal_flag, Mz_nodal_flag;
+    IntVect Hx_nodal_flag, Hy_nodal_flag, Hz_nodal_flag;
     IntVect jx_nodal_flag, jy_nodal_flag, jz_nodal_flag;
     IntVect rho_nodal_flag;
 
@@ -847,6 +867,9 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
     Mx_nodal_flag = IntVect(1,0);
     My_nodal_flag = IntVect(0,0);
     Mz_nodal_flag = IntVect(0,1);
+    Hx_nodal_flag = IntVect(1,0);
+    Hy_nodal_flag = IntVect(0,0);
+    Hz_nodal_flag = IntVect(0,1);
     jx_nodal_flag = IntVect(0,1);
     jy_nodal_flag = IntVect(1,1);
     jz_nodal_flag = IntVect(1,0);
@@ -860,6 +883,9 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
     Mx_nodal_flag = IntVect(1,0,0);
     My_nodal_flag = IntVect(0,1,0);
     Mz_nodal_flag = IntVect(0,0,1);
+    Hx_nodal_flag = IntVect(1,0,0);
+    Hy_nodal_flag = IntVect(0,1,0);
+    Hz_nodal_flag = IntVect(0,0,1);
     jx_nodal_flag = IntVect(0,1,1);
     jy_nodal_flag = IntVect(1,0,1);
     jz_nodal_flag = IntVect(1,1,0);
@@ -879,6 +905,9 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
         Mx_nodal_flag  = IntVect::TheNodeVector();
         My_nodal_flag  = IntVect::TheNodeVector();
         Mz_nodal_flag  = IntVect::TheNodeVector();
+        Hx_nodal_flag  = IntVect::TheNodeVector();
+        Hy_nodal_flag  = IntVect::TheNodeVector();
+        Hz_nodal_flag  = IntVect::TheNodeVector();
         jx_nodal_flag  = IntVect::TheNodeVector();
         jy_nodal_flag  = IntVect::TheNodeVector();
         jz_nodal_flag  = IntVect::TheNodeVector();
@@ -921,9 +950,15 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
     Efield_fp[lev][1].reset( new MultiFab(amrex::convert(ba,Ey_nodal_flag),dm,ncomps,ngE+ngextra));
     Efield_fp[lev][2].reset( new MultiFab(amrex::convert(ba,Ez_nodal_flag),dm,ncomps,ngE+ngextra));
 
-    Mfield_fp[lev][0].reset( new MultiFab(amrex::convert(ba,Mx_nodal_flag),dm,3,ngE+ngextra));
-    Mfield_fp[lev][1].reset( new MultiFab(amrex::convert(ba,My_nodal_flag),dm,3,ngE+ngextra));
-    Mfield_fp[lev][2].reset( new MultiFab(amrex::convert(ba,Mz_nodal_flag),dm,3,ngE+ngextra)); // each Mfield[] is three components
+    Mfield_fp[lev][0].reset( new MultiFab(amrex::convert(ba,Mx_nodal_flag),dm,3     ,ngE+ngextra));
+    Mfield_fp[lev][1].reset( new MultiFab(amrex::convert(ba,My_nodal_flag),dm,3     ,ngE+ngextra));
+    Mfield_fp[lev][2].reset( new MultiFab(amrex::convert(ba,Mz_nodal_flag),dm,3     ,ngE+ngextra)); 
+    // each Mfield[] is three components
+
+    Hfield_fp[lev][0].reset( new MultiFab(amrex::convert(ba,Hx_nodal_flag),dm,ncomps,ngE+ngextra));
+    Hfield_fp[lev][1].reset( new MultiFab(amrex::convert(ba,Hy_nodal_flag),dm,ncomps,ngE+ngextra));
+    Hfield_fp[lev][2].reset( new MultiFab(amrex::convert(ba,Hz_nodal_flag),dm,ncomps,ngE+ngextra));
+    // Hfield is very similar to Bfield setup
 
     current_fp[lev][0].reset( new MultiFab(amrex::convert(ba,jx_nodal_flag),dm,ncomps,ngJ));
     current_fp[lev][1].reset( new MultiFab(amrex::convert(ba,jy_nodal_flag),dm,ncomps,ngJ));
@@ -995,12 +1030,22 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
         Efield_aux[lev][0].reset( new MultiFab(nba,dm,ncomps,ngE));
         Efield_aux[lev][1].reset( new MultiFab(nba,dm,ncomps,ngE));
         Efield_aux[lev][2].reset( new MultiFab(nba,dm,ncomps,ngE));
+
+        Mfield_aux[lev][0].reset( new MultiFab(nba,dm,3     ,ngE));
+        Mfield_aux[lev][1].reset( new MultiFab(nba,dm,3     ,ngE));
+        Mfield_aux[lev][2].reset( new MultiFab(nba,dm,3     ,ngE));
+        
+        Hfield_aux[lev][0].reset( new MultiFab(nba,dm,ncomps,ngE));
+        Hfield_aux[lev][1].reset( new MultiFab(nba,dm,ncomps,ngE));
+        Hfield_aux[lev][2].reset( new MultiFab(nba,dm,ncomps,ngE));
+
     }
     else if (lev == 0)
     {
         for (int idir = 0; idir < 3; ++idir) {
             Efield_aux[lev][idir].reset(new MultiFab(*Efield_fp[lev][idir], amrex::make_alias, 0, ncomps));
             Bfield_aux[lev][idir].reset(new MultiFab(*Bfield_fp[lev][idir], amrex::make_alias, 0, ncomps));
+            Hfield_aux[lev][idir].reset(new MultiFab(*Hfield_fp[lev][idir], amrex::make_alias, 0, ncomps));
             Mfield_aux[lev][idir].reset(new MultiFab(*Mfield_fp[lev][idir], amrex::make_alias, 0, 3     ));
         }
     }
@@ -1017,6 +1062,10 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
         Mfield_aux[lev][0].reset( new MultiFab(amrex::convert(ba,Mx_nodal_flag),dm,3     ,ngE));
         Mfield_aux[lev][1].reset( new MultiFab(amrex::convert(ba,My_nodal_flag),dm,3     ,ngE));
         Mfield_aux[lev][2].reset( new MultiFab(amrex::convert(ba,Mz_nodal_flag),dm,3     ,ngE));
+
+        Hfield_aux[lev][0].reset( new MultiFab(amrex::convert(ba,Hx_nodal_flag),dm,ncomps,ngE));
+        Hfield_aux[lev][1].reset( new MultiFab(amrex::convert(ba,Hy_nodal_flag),dm,ncomps,ngE));
+        Hfield_aux[lev][2].reset( new MultiFab(amrex::convert(ba,Hz_nodal_flag),dm,ncomps,ngE));
     }
 
     //
@@ -1042,6 +1091,11 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
         Mfield_cp[lev][0].reset( new MultiFab(amrex::convert(cba,Mx_nodal_flag),dm,3     ,ngE));
         Mfield_cp[lev][1].reset( new MultiFab(amrex::convert(cba,My_nodal_flag),dm,3     ,ngE));
         Mfield_cp[lev][2].reset( new MultiFab(amrex::convert(cba,Mz_nodal_flag),dm,3     ,ngE));
+
+        // Create the MultiFabs for H
+        Hfield_cp[lev][0].reset( new MultiFab(amrex::convert(cba,Hx_nodal_flag),dm,ncomps,ngE));
+        Hfield_cp[lev][1].reset( new MultiFab(amrex::convert(cba,Hy_nodal_flag),dm,ncomps,ngE));
+        Hfield_cp[lev][2].reset( new MultiFab(amrex::convert(cba,Hz_nodal_flag),dm,ncomps,ngE));
 
         // Create the MultiFabs for the current
         current_cp[lev][0].reset( new MultiFab(amrex::convert(cba,jx_nodal_flag),dm,ncomps,ngJ));
@@ -1102,6 +1156,12 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
                 Efield_cax[lev][0].reset( new MultiFab(cnba,dm,ncomps,ngE));
                 Efield_cax[lev][1].reset( new MultiFab(cnba,dm,ncomps,ngE));
                 Efield_cax[lev][2].reset( new MultiFab(cnba,dm,ncomps,ngE));
+                Mfield_cax[lev][0].reset( new MultiFab(cnba,dm,3     ,ngE));
+                Mfield_cax[lev][1].reset( new MultiFab(cnba,dm,3     ,ngE));
+                Mfield_cax[lev][2].reset( new MultiFab(cnba,dm,3     ,ngE));
+                Hfield_cax[lev][0].reset( new MultiFab(cnba,dm,ncomps,ngE));
+                Hfield_cax[lev][1].reset( new MultiFab(cnba,dm,ncomps,ngE));
+                Hfield_cax[lev][2].reset( new MultiFab(cnba,dm,ncomps,ngE));
             } else {
                 // Create the MultiFabs for B
                 Bfield_cax[lev][0].reset( new MultiFab(amrex::convert(cba,Bx_nodal_flag),dm,ncomps,ngE));
@@ -1112,6 +1172,16 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
                 Efield_cax[lev][0].reset( new MultiFab(amrex::convert(cba,Ex_nodal_flag),dm,ncomps,ngE));
                 Efield_cax[lev][1].reset( new MultiFab(amrex::convert(cba,Ey_nodal_flag),dm,ncomps,ngE));
                 Efield_cax[lev][2].reset( new MultiFab(amrex::convert(cba,Ez_nodal_flag),dm,ncomps,ngE));
+
+                // Create the MultiFabs for M
+                Mfield_cax[lev][0].reset( new MultiFab(amrex::convert(cba,Mx_nodal_flag),dm,3     ,ngE));
+                Mfield_cax[lev][1].reset( new MultiFab(amrex::convert(cba,My_nodal_flag),dm,3     ,ngE));
+                Mfield_cax[lev][2].reset( new MultiFab(amrex::convert(cba,Mz_nodal_flag),dm,3     ,ngE));
+
+                // Create the MultiFabs for H
+                Hfield_cax[lev][0].reset( new MultiFab(amrex::convert(cba,Hx_nodal_flag),dm,ncomps,ngE));
+                Hfield_cax[lev][1].reset( new MultiFab(amrex::convert(cba,Hy_nodal_flag),dm,ncomps,ngE));
+                Hfield_cax[lev][2].reset( new MultiFab(amrex::convert(cba,Hz_nodal_flag),dm,ncomps,ngE));
             }
 
             gather_buffer_masks[lev].reset( new iMultiFab(ba, dm, ncomps, 1) );
