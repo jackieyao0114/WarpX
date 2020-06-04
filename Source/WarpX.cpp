@@ -231,6 +231,7 @@ WarpX::WarpX ()
     Efield_cax.resize(nlevs_max);
     Bfield_cax.resize(nlevs_max);
     Mfield_cax.resize(nlevs_max);
+    // confirm the usage of Hfield_cax
     Hfield_cax.resize(nlevs_max);
     current_buffer_masks.resize(nlevs_max);
     gather_buffer_masks.resize(nlevs_max);
