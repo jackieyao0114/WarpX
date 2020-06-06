@@ -20,8 +20,6 @@ import yt
 yt.funcs.mylog.setLevel(50)
 import numpy as np
 from scipy.constants import e, m_e, epsilon_0, c
-sys.path.insert(1, '../../../../warpx/Regression/Checksum/')
-import checksumAPI
 
 # this will be the name of the plot file
 fn = sys.argv[1]
@@ -106,6 +104,3 @@ print("error_rel    : " + str(error_rel))
 print("tolerance_rel: " + str(tolerance_rel))
 
 assert( error_rel < tolerance_rel )
-
-test_name = fn[:-9] # Could also be os.path.split(os.getcwd())[1]
-checksumAPI.evaluate_checksum(test_name, fn)

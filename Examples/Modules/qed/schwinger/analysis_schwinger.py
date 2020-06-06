@@ -15,8 +15,6 @@ import yt
 import numpy as np
 import sys
 import re
-sys.path.insert(1, '../../../../warpx/Regression/Checksum/')
-import checksumAPI
 
 # define some parameters
 
@@ -117,6 +115,3 @@ def do_analysis(Ex,Ey,Ez,Bx,By,Bz):
         assert(error<5*std_total_physical_pairs_created)
 
 do_analysis(Ex_test, Ey_test, Ez_test, Bx_test, By_test, Bz_test)
-
-test_name = filename[:-9] # Could also be os.path.split(os.getcwd())[1]
-checksumAPI.evaluate_checksum(test_name, filename)

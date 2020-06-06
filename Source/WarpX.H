@@ -236,8 +236,6 @@ public:
             Efield_aux[lev][2].get()
         };
     }
-
-#ifdef WARPX_MAG_LLG
     std::array<const amrex::MultiFab* const, 3>
     get_array_Mfield_aux  (const int lev) const {
         return {
@@ -257,14 +255,11 @@ public:
 
     amrex::MultiFab * get_pointer_Efield_aux  (int lev, int direction) const { return Efield_aux[lev][direction].get(); }
     amrex::MultiFab * get_pointer_Bfield_aux  (int lev, int direction) const { return Bfield_aux[lev][direction].get(); }
-#ifdef WARPX_MAG_LLG
     amrex::MultiFab * get_pointer_Mfield_aux  (int lev, int direction) const { return Mfield_aux[lev][direction].get(); }
     amrex::MultiFab * get_pointer_Hfield_aux  (int lev, int direction) const { return Hfield_aux[lev][direction].get(); }
 
     amrex::MultiFab * get_pointer_Efield_fp  (int lev, int direction) const { return Efield_fp[lev][direction].get(); }
     amrex::MultiFab * get_pointer_Bfield_fp  (int lev, int direction) const { return Bfield_fp[lev][direction].get(); }
-
-#ifdef WARPX_MAG_LLG
     // note "direction" of M means face.  For M, each face stores all 3 vector components of M
     amrex::MultiFab * get_pointer_Mfield_fp  (int lev, int direction) const { return Mfield_fp[lev][direction].get();}
     amrex::MultiFab * get_pointer_Hfield_fp  (int lev, int direction) const { return Hfield_fp[lev][direction].get();}
@@ -274,7 +269,6 @@ public:
 
     amrex::MultiFab * get_pointer_Efield_cp  (int lev, int direction) const { return Efield_cp[lev][direction].get(); }
     amrex::MultiFab * get_pointer_Bfield_cp  (int lev, int direction) const { return Bfield_cp[lev][direction].get(); }
-#ifdef WARPX_MAG_LLG
     amrex::MultiFab * get_pointer_Mfield_cp  (int lev, int direction) const { return Mfield_cp[lev][direction].get(); }
     amrex::MultiFab * get_pointer_Hfield_cp  (int lev, int direction) const { return Hfield_cp[lev][direction].get(); }
     amrex::MultiFab * get_pointer_current_cp  (int lev, int direction) const { return current_cp[lev][direction].get(); }
@@ -284,14 +278,12 @@ public:
     const amrex::MultiFab& getcurrent (int lev, int direction) {return *current_fp[lev][direction];}
     const amrex::MultiFab& getEfield  (int lev, int direction) {return *Efield_aux[lev][direction];}
     const amrex::MultiFab& getBfield  (int lev, int direction) {return *Bfield_aux[lev][direction];}
-#ifdef WARPX_MAG_LLG
     const amrex::MultiFab& getMfield  (int lev, int direction) {return *Mfield_aux[lev][direction];}
     const amrex::MultiFab& getHfield  (int lev, int direction) {return *Hfield_aux[lev][direction];}
 
     const amrex::MultiFab& getcurrent_cp (int lev, int direction) {return *current_cp[lev][direction];}
     const amrex::MultiFab& getEfield_cp  (int lev, int direction) {return  *Efield_cp[lev][direction];}
     const amrex::MultiFab& getBfield_cp  (int lev, int direction) {return  *Bfield_cp[lev][direction];}
-#ifdef WARPX_MAG_LLG
     const amrex::MultiFab& getMfield_cp  (int lev, int direction) {return  *Mfield_cp[lev][direction];}
     const amrex::MultiFab& getHfield_cp  (int lev, int direction) {return  *Hfield_cp[lev][direction];}
     const amrex::MultiFab& getrho_cp (int lev) {return  *rho_cp[lev];}
@@ -299,7 +291,6 @@ public:
     const amrex::MultiFab& getcurrent_fp (int lev, int direction) {return *current_fp[lev][direction];}
     const amrex::MultiFab& getEfield_fp  (int lev, int direction) {return *Efield_fp[lev][direction];}
     const amrex::MultiFab& getBfield_fp  (int lev, int direction) {return *Bfield_fp[lev][direction];}
-#ifdef WARPX_MAG_LLG
     const amrex::MultiFab& getMfield_fp  (int lev, int direction) {return *Mfield_fp[lev][direction];}
     const amrex::MultiFab& getHfield_fp  (int lev, int direction) {return *Hfield_fp[lev][direction];}
     const amrex::MultiFab& getrho_fp (int lev) {return *rho_fp[lev];}
@@ -715,7 +706,6 @@ private:
     // Full solution
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Efield_aux;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Bfield_aux;
-#ifdef WARPX_MAG_LLG
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Mfield_aux;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Hfield_aux;
 
@@ -725,7 +715,6 @@ private:
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > current_fp;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Efield_fp;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Bfield_fp;
-#ifdef WARPX_MAG_LLG
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Mfield_fp;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Hfield_fp;
     // define Mfield MultiFab; only fine patches
@@ -739,7 +728,6 @@ private:
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > current_cp;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Efield_cp;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Bfield_cp;
-#ifdef WARPX_MAG_LLG
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Mfield_cp;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Hfield_cp;
 

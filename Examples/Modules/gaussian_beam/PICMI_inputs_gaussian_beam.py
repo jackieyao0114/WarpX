@@ -47,8 +47,7 @@ field_diag1 = picmi.FieldDiagnostic(name = 'diag1',
                                     grid = grid,
                                     period = 10,
                                     data_list = ['E', 'B', 'J', 'part_per_cell'],
-                                    write_dir = '.',
-                                    warpx_file_prefix = 'Python_gaussian_beam_plt')
+                                    warpx_file_prefix = 'plotfiles/plt')
 
 part_diag1 = picmi.ParticleDiagnostic(name = 'diag1',
                                       period = 10,

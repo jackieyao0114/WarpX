@@ -15,8 +15,6 @@ import math as m
 import scipy.special as spe
 import scipy.integrate as integ
 import scipy.stats as st
-sys.path.insert(1, '../../../../warpx/Regression/Checksum/')
-import checksumAPI
 
 # This script checks if the optical depth of photons undergoing the
 # Breit Wheeler process behaves as expected. Four populations of photons
@@ -134,9 +132,6 @@ def check():
         print("lost fraction discrepancy = " + str(discrepancy_lost/exp_lost))
         assert(discrepancy_lost/exp_lost < tol)
         ###
-
-    test_name = filename_end[:-9] # Could also be os.path.split(os.getcwd())[1]
-    checksumAPI.evaluate_checksum(test_name, filename_end)
 
 def main():
     check()

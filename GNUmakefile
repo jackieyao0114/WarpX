@@ -36,7 +36,6 @@ WarpxBinDir = Bin
 USE_PSATD = FALSE
 USE_PSATD_PICSAR = FALSE
 USE_RZ = FALSE
-USE_LLG = FALSE
 
 WARPX_HOME := .
 include $(WARPX_HOME)/Source/Make.WarpX

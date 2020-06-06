@@ -33,8 +33,6 @@
 import numpy as np
 import sys
 import yt
-sys.path.insert(1, '../../../../warpx/Regression/Checksum/')
-import checksumAPI
 
 #Input filename
 inputname = "inputs"
@@ -147,9 +145,6 @@ def check():
         print("tolerance_rel: " + str(tolerance_rel))
 
         assert( error_rel < tolerance_rel )
-
-    test_name = filename[:-9] # Could also be os.path.split(os.getcwd())[1]
-    checksumAPI.evaluate_checksum(test_name, filename)
 
 def generate():
 

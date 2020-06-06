@@ -13,7 +13,6 @@ blank
 
 using namespace amrex;
 
-#ifdef WARPX_MAG_LLG
 // update M field over one timestep
 
 void FiniteDifferenceSolver::EvolveM (
@@ -38,18 +37,15 @@ void FiniteDifferenceSolver::EvolveM (
         amrex::Abort("Unknown algorithm");
     } */
 
-    if (m_fdtd_algo == MaxwellSolverAlgo::Yee) {
-
+    if (m_fdtd_algo == MaxwellSolverAlgo::Yee)
+    {
         EvolveMCartesian <CartesianYeeAlgorithm> (Mfield, Bfield, dt);
-
     }
     else {
        amrex::Abort("Only yee algorithm is compatible for M updates.");
     }
-} // closes function EvolveM
-#endif
+    } // closes function EvolveM
 
-#ifdef WARPX_MAG_LLG
     template<typename T_Algo>
     void FiniteDifferenceSolver::EvolveMCartesian (
         std::array< std::unique_ptr<amrex::MultiFab>, 3 > & Mfield,
@@ -155,8 +151,7 @@ void FiniteDifferenceSolver::EvolveM (
               Mz(i, j, k, 2) += dt * cons1 * ( Mz(i, j, k, 0) * By_ztemp - Mz(i, j, k, 1) * Bx_ztemp)
                 + dt * cons2 * ( Mz(i, j, k, 0) * ( Mz(i, j, k, 2) * Bx_ztemp - Mz(i, j, k, 0) * Bz(i, j, k))
                 - Mz(i, j, k, 1) * ( Mz(i, j, k, 1) * Bz(i, j, k) - My(i, j, k, 2) * By_ztemp));
-            });
+            }
+            );
         }
     }
-
-#endif

@@ -474,7 +474,6 @@ WarpX::FillBoundaryB (int lev, PatchType patch_type, IntVect ng)
     }
 }
 
-#ifdef WARPX_MAG_LLG
 void
 WarpX::FillBoundaryM (IntVect ng, IntVect ng_extra_fine)
 {
@@ -549,7 +548,6 @@ WarpX::FillBoundaryM (int lev, PatchType patch_type, IntVect ng)
         */
     }
 }
-#endif
 
 void
 WarpX::FillBoundaryH (IntVect ng, IntVect ng_extra_fine)
