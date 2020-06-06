@@ -454,6 +454,64 @@ WarpX::InitLevelData (int lev, Real /*time*/)
        }
     }
 
+    // if the input string for the Hbias-field is "parse_e_ext_grid_function",
+    // then the analytical expression or function must be
+    // provided in the input file.
+    if (H_bias_ext_grid_s == "parse_h_bias_ext_grid_function") {
+
+#ifdef WARPX_DIM_RZ
+       amrex::Abort("H bias parser for external fields does not work with RZ -- TO DO");
+#endif
+       Store_parserString(pp, "Hx_bias_external_grid_function(x,y,z)",
+                                                    str_Hx_bias_ext_grid_function);
+       Store_parserString(pp, "Hy_bias_external_grid_function(x,y,z)",
+                                                    str_Hy_bias_ext_grid_function);
+       Store_parserString(pp, "Hz_bias_external_grid_function(x,y,z)",
+                                                    str_Hz_bias_ext_grid_function);
+
+       Hx_biasfield_parser.reset(new ParserWrapper<3>(
+                                makeParser(str_Hx_bias_ext_grid_function,{"x","y","z"})));
+       Hy_biasfield_parser.reset(new ParserWrapper<3>(
+                                makeParser(str_Hy_bias_ext_grid_function,{"x","y","z"})));
+       Hz_biasfield_parser.reset(new ParserWrapper<3>(
+                                makeParser(str_Hz_bias_ext_grid_function,{"x","y","z"})));
+
+       // Initialize Efield_fp with external function
+       InitializeExternalFieldsOnGridUsingParser(Hfield_fp[lev][0].get(),
+                                                 Hfield_fp[lev][1].get(),
+                                                 Hfield_fp[lev][2].get(),
+                                                 Hx_biasfield_parser.get(),
+                                                 Hy_biasfield_parser.get(),
+                                                 Hz_biasfield_parser.get(),
+                                                 H_biasfield_fp[lev][0]->ixType().toIntVect(),
+                                                 H_biasfield_fp[lev][1]->ixType().toIntVect(),
+                                                 H_biasfield_fp[lev][2]->ixType().toIntVect(),
+                                                 lev);
+       if (lev > 0) {
+          InitializeExternalFieldsOnGridUsingParser(H_biasfield_aux[lev][0].get(),
+                                                    H_biasfield_aux[lev][1].get(),
+                                                    H_biasfield_aux[lev][2].get(),
+                                                    Hx_biasfield_parser.get(),
+                                                    Hy_biasfield_parser.get(),
+                                                    Hz_biasfield_parser.get(),
+                                                    H_biasfield_aux[lev][0]->ixType().toIntVect(),
+                                                    H_biasfield_aux[lev][1]->ixType().toIntVect(),
+                                                    H_biasfield_aux[lev][2]->ixType().toIntVect(),
+                                                    lev);
+
+          InitializeExternalFieldsOnGridUsingParser(H_biasfield_cp[lev][0].get(),
+                                                    H_biasfield_cp[lev][1].get(),
+                                                    H_biasfield_cp[lev][2].get(),
+                                                    Hx_biasfield_parser.get(),
+                                                    Hy_biasfield_parser.get(),
+                                                    Hz_biasfield_parser.get(),
+                                                    H_biasfield_cp[lev][0]->ixType().toIntVect(),
+                                                    H_biasfield_cp[lev][1]->ixType().toIntVect(),
+                                                    H_biasfield_cp[lev][2]->ixType().toIntVect(),
+                                                    lev);
+       }
+    }
+
     if (M_ext_grid_s == "parse_m_ext_grid_function") {
         Abort("WarpXInitData: M field initialization parser not implemented yet");
     }
