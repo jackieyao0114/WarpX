@@ -37,6 +37,9 @@ macroscopic.mag_Ms_function(x,y,z) = "8e5"
 macroscopic.mag_alpha_init_style = "parse_mag_alpha_function" 
 macroscopic.mag_alpha_function(x,y,z) = "1e-04"
 #macroscopic.mag_alpha = 1e-04
+macroscopic.mag_gamma_init_style = "parse_mag_gamma_function"
+macroscopic.mag_gamma_function(x,y,z) = "1.759e-11"
+#macroscopic.mag_gamma = 1.759e-11
 particles.nspecies = 0
 
 #################################
@@ -57,6 +60,11 @@ warpx.B_ext_grid_init_style = parse_B_ext_grid_function
 warpx.Bx_external_grid_function(x,y,z)= "-1.e5*exp(-z**2/L**2)*cos(2*pi*z/wavelength)/c"
 warpx.By_external_grid_function(x,y,z)= 0.
 warpx.Bz_external_grid_function(x,y,z) = 0.
+
+#warpx.M_ext_grid_init_style = parse_M_ext_grid_function
+#warpx.Mx_external_grid_function(x,y,z)= "-1.e5*exp(-z**2/L**2)*cos(2*pi*z/wavelength)/c"
+#warpx.My_external_grid_function(x,y,z)= 0.
+#warpx.Mz_external_grid_function(x,y,z) = 0.
 
 # Diagnostics
 diagnostics.diags_names = diag1
