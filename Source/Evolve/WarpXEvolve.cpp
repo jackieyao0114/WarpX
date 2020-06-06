@@ -100,6 +100,7 @@ WarpX::Evolve (int numsteps)
             // Not called at each iteration, so exchange all guard cells
             FillBoundaryE(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
+#ifdef WARPX_MAG_LLG
             FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             FillBoundaryH(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             UpdateAuxilaryData();
@@ -118,6 +119,7 @@ WarpX::Evolve (int numsteps)
             // E and B are up-to-date inside the domain only
             FillBoundaryE(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
             FillBoundaryB(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
+#ifdef WARPX_MAG_LLG
             FillBoundaryM(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
             FillBoundaryH(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
             // E and B: enough guard cells to update Aux or call Field Gather in fp and cp
@@ -424,6 +426,7 @@ WarpX::OneStep_nosub (Real cur_time)
         EvolveB(0.5*dt[0]); // We now have B^{n+1/2}
         // EvolveM(0.5*dt[0]); // we now have M^{n+1/2}
 
+#ifdef WARPX_MAG_LLG
         if (WarpX::em_solver_medium == 0) {
             //vacuum medium
             EvolveM(0.5*dt[0]); // we now have M^{n+1/2}
@@ -431,8 +434,12 @@ WarpX::OneStep_nosub (Real cur_time)
             //macroscopic medium
             MacroscopicEvolveM(0.5*dt[0]);
         }
+#endif
         FillBoundaryB(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
+
+#ifdef WARPX_MAG_LLG
         FillBoundaryM(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
+#endif
         FillBoundaryH(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
 
         if (WarpX::em_solver_medium == 0) {
@@ -448,11 +455,13 @@ WarpX::OneStep_nosub (Real cur_time)
         EvolveB(0.5*dt[0]); // We now have B^{n+1}
         // EvolveM(0.5*dt[0]); // we now have M^{n+1}
 
+#ifdef WARPX_MAG_LLG
         if (WarpX::em_solver_medium == 0){
             EvolveM(0.5*dt[0]); // we now have M^{n+1}
         } else {
             MacroscopicEvolveM(0.5*dt[0]);  // we now have M^{n+1}
         }
+#endif
         //why not implementing FillBoundary here? possibly: implemented in if{safe_guard_cells} Line 452
         if (do_pml) {
             FillBoundaryF(guard_cells.ng_alloc_F);
@@ -464,7 +473,9 @@ WarpX::OneStep_nosub (Real cur_time)
         // E and B are up-to-date in the domain, but all guard cells are
         // outdated.
         if ( safe_guard_cells ){
+#ifdef WARPX_MAG_LLG
             FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
+#endif
             FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             FillBoundaryH(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
         }
