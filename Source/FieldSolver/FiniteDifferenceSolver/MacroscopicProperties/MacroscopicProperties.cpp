@@ -62,6 +62,16 @@ MacroscopicProperties::ReadParameters ()
         m_mag_alpha_parser.reset(new ParserWrapper<3>(
                                   makeParser(m_str_mag_alpha_function,{"x","y","z"})));
     }
+
+    pp.get("mag_gamma_init_style", m_mag_gamma_s);
+    if (m_mag_gamma_s == "constant") pp.get("mag_gamma", m_mag_gamma); 
+    // _mag_ such that it's clear the Ms variable is only meaningful for magnetic materials
+    //initialization with parser
+    if (m_mag_gamma_s == "parse_mag_gamma_function") {
+        Store_parserString(pp, "mag_gamma_function(x,y,z)", m_str_mag_gamma_function);
+        m_mag_gamma_parser.reset(new ParserWrapper<3>(
+                                  makeParser(m_str_mag_gamma_function,{"x","y","z"})));
+    }
 }
 
 void
@@ -81,6 +91,7 @@ MacroscopicProperties::InitData ()
     m_mu_mf = std::make_unique<MultiFab>(amrex::convert(ba,amrex::IntVect::TheUnitVector()), dmap, 1, ng);
     m_mag_Ms_mf = std::make_unique<MultiFab>(amrex::convert(ba,amrex::IntVect::TheUnitVector()), dmap, 1, ng);
     m_mag_alpha_mf = std::make_unique<MultiFab>(amrex::convert(ba,amrex::IntVect::TheUnitVector()), dmap, 1, ng);
+    m_mag_gamma_mf = std::make_unique<MultiFab>(amrex::convert(ba,amrex::IntVect::TheUnitVector()), dmap, 1, ng);
 
     if (m_sigma_s == "constant") {
 
@@ -125,6 +136,14 @@ MacroscopicProperties::InitData ()
     }
     else if (m_mag_alpha_s == "parse_mag_alpha_function"){
         InitializeMacroMultiFabUsingParser(m_mag_alpha_mf.get(), m_mag_alpha_parser.get(), lev);
+    }
+
+    // mag_gamma - defined at node
+    if (m_mag_gamma_s == "constant") {
+        m_mag_gamma_mf->setVal(m_mag_gamma);
+    }
+    else if (m_mag_gamma_s == "parse_mag_gamma_function"){
+        InitializeMacroMultiFabUsingParser(m_mag_gamma_mf.get(), m_mag_gamma_parser.get(), lev);
     }
 
 }
