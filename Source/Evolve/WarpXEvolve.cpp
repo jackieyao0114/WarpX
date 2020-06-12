@@ -101,7 +101,6 @@ WarpX::Evolve (int numsteps)
             FillBoundaryE(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
-            FillBoundaryH(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             UpdateAuxilaryData();
             // on first step, push p by -0.5*dt
             for (int lev = 0; lev <= finest_level; ++lev)
@@ -119,7 +118,6 @@ WarpX::Evolve (int numsteps)
             FillBoundaryE(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
             FillBoundaryB(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
             FillBoundaryM(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
-            FillBoundaryH(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
             // E and B: enough guard cells to update Aux or call Field Gather in fp and cp
             // Need to update Aux on lower levels, to interpolate to higher levels.
 #ifndef WARPX_USE_PSATD
@@ -250,8 +248,6 @@ WarpX::Evolve (int numsteps)
             FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             // This is probably overkill, but it's not called often
             FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
-            // This is probably overkill, but it's not called often
-            FillBoundaryH(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
 #ifndef WARPX_USE_PSATD
             FillBoundaryAux(guard_cells.ng_UpdateAux);
 #endif
@@ -290,8 +286,6 @@ WarpX::Evolve (int numsteps)
         FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
         // This is probably overkill
         FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
-        // This is probably overkill
-        FillBoundaryH(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
 #ifndef WARPX_USE_PSATD
         FillBoundaryAux(guard_cells.ng_UpdateAux);
 #endif
@@ -433,7 +427,6 @@ WarpX::OneStep_nosub (Real cur_time)
         }
         FillBoundaryB(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
         FillBoundaryM(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
-        FillBoundaryH(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
 
         if (WarpX::em_solver_medium == 0) {
             // vacuum medium
@@ -466,7 +459,6 @@ WarpX::OneStep_nosub (Real cur_time)
         if ( safe_guard_cells ){
             FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
-            FillBoundaryH(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
         }
 #endif
     }

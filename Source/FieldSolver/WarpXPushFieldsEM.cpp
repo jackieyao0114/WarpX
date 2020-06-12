@@ -424,7 +424,7 @@ WarpX::MacroscopicEvolveM (int lev, amrex::Real a_dt) {
 void
 WarpX::MacroscopicEvolveM (int lev, PatchType patch_type, amrex::Real a_dt) {
     if (patch_type == PatchType::fine) {
-        m_fdtd_solver_fp[lev]->MacroscopicEvolveM( Mfield_fp[lev], Hfield_fp[lev], H_biasfield_fp[lev], Bfield_fp[lev],
+        m_fdtd_solver_fp[lev]->MacroscopicEvolveM( Mfield_fp[lev], H_biasfield_fp[lev], Bfield_fp[lev],
                                              a_dt, m_macroscopic_properties);
     }
     else {
