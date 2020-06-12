@@ -283,7 +283,7 @@ WarpX::InitLevelData (int lev, Real /*time*/)
                    H_bias_ext_grid_s.end(),
                    H_bias_ext_grid_s.begin(),
                    ::tolower);
-    
+
     // * Functions with the string "arr" in their names get an Array of
     //   values from the given entry in the table.  The array argument is
     //   resized (if necessary) to hold all the values requested.

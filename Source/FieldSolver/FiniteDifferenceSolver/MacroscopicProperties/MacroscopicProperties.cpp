@@ -44,7 +44,7 @@ MacroscopicProperties::ReadParameters ()
     }
 
     pp.get("mag_Ms_init_style", m_mag_Ms_s);
-    if (m_mag_Ms_s == "constant") pp.get("mag_Ms", m_mag_Ms); 
+    if (m_mag_Ms_s == "constant") pp.get("mag_Ms", m_mag_Ms);
     // _mag_ such that it's clear the Ms variable is only meaningful for magnetic materials
     //initialization with parser
     if (m_mag_Ms_s == "parse_mag_Ms_function") {
@@ -54,7 +54,7 @@ MacroscopicProperties::ReadParameters ()
     }
 
     pp.get("mag_alpha_init_style", m_mag_alpha_s);
-    if (m_mag_alpha_s == "constant") pp.get("mag_alpha", m_mag_alpha); 
+    if (m_mag_alpha_s == "constant") pp.get("mag_alpha", m_mag_alpha);
     // _mag_ such that it's clear the Ms variable is only meaningful for magnetic materials
     //initialization with parser
     if (m_mag_alpha_s == "parse_mag_alpha_function") {
@@ -64,7 +64,7 @@ MacroscopicProperties::ReadParameters ()
     }
 
     pp.get("mag_gamma_init_style", m_mag_gamma_s);
-    if (m_mag_gamma_s == "constant") pp.get("mag_gamma", m_mag_gamma); 
+    if (m_mag_gamma_s == "constant") pp.get("mag_gamma", m_mag_gamma);
     // _mag_ such that it's clear the Ms variable is only meaningful for magnetic materials
     //initialization with parser
     if (m_mag_gamma_s == "parse_mag_gamma_function") {

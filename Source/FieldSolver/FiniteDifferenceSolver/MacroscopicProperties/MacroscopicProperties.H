@@ -44,7 +44,7 @@ public:
 
      void InitializeMacroMultiFabUsingParser (amrex::MultiFab *macro_mf,
                                   ParserWrapper<3> *macro_parser, int lev);
-     
+
      // interpolate the magnetic properties to B locations
      // magnetic properties are cell nodal
      // B locations are face centered
@@ -70,7 +70,7 @@ public:
          Hz (0,0,1) components to Hy face (0,1,0)
          Real Hx_ytemp = 0.25*(Hx(i,j,k)+Hx(i+1,j,k)+Hx(i,j-1,k)+Hx(i+1,j-1,k));
          Real Hz_ytemp = 0.25*(Hz(i,j,k)+Hz(i,j,k+1)+Hz(i,j-1,k)+Hz(i,j-1,k+1));
-       
+
          Hx (1,0,0) components to Hz face (0,0,1)
          Hy (0,1,0) components to Hz face (0,0,1)
 
@@ -82,8 +82,8 @@ public:
      */
 
      AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-     static amrex::Real face_avg_to_face (int i, int j, int k, int n, 
-                                           amrex::IntVect iv_in, amrex::IntVect iv_out, 
+     static amrex::Real face_avg_to_face (int i, int j, int k, int n,
+                                           amrex::IntVect iv_in, amrex::IntVect iv_out,
                                            amrex::Array4<amrex::Real> const& Fieldcomp) {
          using namespace amrex;
          return ( 0.125_rt * ( Fieldcomp(i                   , j                   , k                   , n)
@@ -94,21 +94,21 @@ public:
                              + Fieldcomp(i+iv_in[0]-iv_out[0], j                   , k+iv_in[1]-iv_out[1], n)
                              + Fieldcomp(i                   , j+iv_in[1]-iv_out[1], k+iv_in[1]-iv_out[1], n)
                              + Fieldcomp(i+iv_in[0]-iv_out[0], j+iv_in[1]-iv_out[1], k+iv_in[1]-iv_out[1], n)
-                             )); 
+                             ));
      };
 
-     /** 
+     /**
      calculate local H_maxwell
      note Bcomp always has n=0 because it is a 3d matrix
      while Mcomp has n=0,1,2, indicating x,y,z components
      **/
      AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
      static amrex::Real getH_Maxwell (int i, int j, int k, int n,
-                                   amrex::IntVect iv_in, amrex::IntVect iv_out, 
+                                   amrex::IntVect iv_in, amrex::IntVect iv_out,
                                    amrex::Array4<amrex::Real> const& Bcomp, amrex::Array4<amrex::Real> const& Mcomp) {
          using namespace amrex;
          amrex::Real H_Maxwell = face_avg_to_face(i, j, k, 0, iv_in, iv_out, Bcomp)/PhysConst::mu0
-                                 - Mcomp(i, j, k, n); //magnetic constitutive relation 
+                                 - Mcomp(i, j, k, n); //magnetic constitutive relation
          return H_Maxwell;
      };
 

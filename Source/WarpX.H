@@ -118,7 +118,7 @@ public:
     // Initialization Type for External E and B on grid
     static std::string B_ext_grid_s;
     static std::string E_ext_grid_s;
-    static std::string M_ext_grid_s; // added for M; 
+    static std::string M_ext_grid_s; // added for M;
     static std::string H_ext_grid_s;
     static std::string H_bias_ext_grid_s;
 
@@ -436,7 +436,7 @@ public:
     void FillBoundaryB   (amrex::IntVect ng, amrex::IntVect ng_extra_fine=amrex::IntVect::TheZeroVector());
     void FillBoundaryE   (amrex::IntVect ng, amrex::IntVect ng_extra_fine=amrex::IntVect::TheZeroVector());
     void FillBoundaryM   (amrex::IntVect ng, amrex::IntVect ng_extra_fine=amrex::IntVect::TheZeroVector());
-    
+
     //find out where this is implemented
     void FillBoundaryF   (amrex::IntVect ng);
     void FillBoundaryAux (amrex::IntVect ng);
