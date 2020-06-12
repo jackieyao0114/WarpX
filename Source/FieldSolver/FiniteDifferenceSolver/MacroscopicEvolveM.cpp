@@ -61,7 +61,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
         // Real constexpr cons1 = -mag_gamma_interp; // should be mu0*gamma, mu0 is absorbed by B used in this case
         // Real constexpr cons2 = -cons1*alpha/Ms; // factor of the second term in scalar LLG
 
-	    for (MFIter mfi(*Mfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi) /* remember to FIX */
+        for (MFIter mfi(*Mfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi) /* remember to FIX */
         {
           auto& mag_Ms_mf = macroscopic_properties->getmag_Ms_mf();
           auto& mag_alpha_mf = macroscopic_properties->getmag_alpha_mf();

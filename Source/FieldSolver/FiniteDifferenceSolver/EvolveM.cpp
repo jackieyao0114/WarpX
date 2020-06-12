@@ -109,20 +109,20 @@ void FiniteDifferenceSolver::EvolveM (
                 + dt * cons2 * ( Mx(i, j, k, 0) * ( Mx(i, j, k, 2) * Bx(i, j, k) - Mx(i, j, k, 0) * Bz_xtemp)
                 - Mx(i, j, k, 1) * ( Mx(i, j, k, 1) * Bz_xtemp - Mx(i, j, k, 2) * By_xtemp));
          
-	      // temporary normalized magnitude of Mx field at the fixed point 
+          // temporary normalized magnitude of Mx field at the fixed point 
               Real M_normalized = sqrt( pow(Mx(i, j, k, 0),2.0) + pow(Mx(i, j, k, 1),2.0) + pow(Mx(i, j, k, 2),2.0) ) / Ms; 
 
               // check the normalized error
               if (M_normalized < (1.0-M_normalized_error) || M_normalized > (1.0+M_normalized_error)){
-		 amrex::Print() << "i " << i << " j " << j << " k " << k << "\n";
-	         amrex::Abort("Exceed the normalized error of the Mx field");
-	      }
+         amrex::Print() << "i " << i << " j " << j << " k " << k << "\n";
+             amrex::Abort("Exceed the normalized error of the Mx field");
+          }
 
-	      // normalize the Mx field
+          // normalize the Mx field
               Mx(i,j,k,0) = Mx(i,j,k,0)*M_normalized;
               Mx(i,j,k,1) = Mx(i,j,k,1)*M_normalized;
               Mx(i,j,k,2) = Mx(i,j,k,2)*M_normalized;
-	    },
+        },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
 
@@ -158,7 +158,7 @@ void FiniteDifferenceSolver::EvolveM (
               My(i,j,k,0) = My(i,j,k,0)*M_normalized;
               My(i,j,k,1) = My(i,j,k,1)*M_normalized;
               My(i,j,k,2) = My(i,j,k,2)*M_normalized; 
-      	    },
+              },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
 
