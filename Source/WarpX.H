@@ -255,14 +255,6 @@ public:
         };
     }
     std::array<const amrex::MultiFab* const, 3>
-    get_array_Hfield_aux  (const int lev) const {
-        return {
-            Hfield_aux[lev][0].get(),
-            Hfield_aux[lev][1].get(),
-            Hfield_aux[lev][2].get()
-        };
-    }
-    std::array<const amrex::MultiFab* const, 3>
     get_array_H_biasfield_aux  (const int lev) const {
         return {
             H_biasfield_aux[lev][0].get(),
@@ -274,14 +266,12 @@ public:
     amrex::MultiFab * get_pointer_Efield_aux  (int lev, int direction) const { return Efield_aux[lev][direction].get(); }
     amrex::MultiFab * get_pointer_Bfield_aux  (int lev, int direction) const { return Bfield_aux[lev][direction].get(); }
     amrex::MultiFab * get_pointer_Mfield_aux  (int lev, int direction) const { return Mfield_aux[lev][direction].get(); }
-    amrex::MultiFab * get_pointer_Hfield_aux  (int lev, int direction) const { return Hfield_aux[lev][direction].get(); }
     amrex::MultiFab * get_pointer_H_biasfield_aux  (int lev, int direction) const { return H_biasfield_aux[lev][direction].get(); }
 
     amrex::MultiFab * get_pointer_Efield_fp  (int lev, int direction) const { return Efield_fp[lev][direction].get(); }
     amrex::MultiFab * get_pointer_Bfield_fp  (int lev, int direction) const { return Bfield_fp[lev][direction].get(); }
     // note "direction" of M means face.  For M, each face stores all 3 vector components of M
     amrex::MultiFab * get_pointer_Mfield_fp  (int lev, int direction) const { return Mfield_fp[lev][direction].get();}
-    amrex::MultiFab * get_pointer_Hfield_fp  (int lev, int direction) const { return Hfield_fp[lev][direction].get();}
     amrex::MultiFab * get_pointer_H_biasfield_fp  (int lev, int direction) const { return H_biasfield_fp[lev][direction].get();}
     amrex::MultiFab * get_pointer_current_fp  (int lev, int direction) const { return current_fp[lev][direction].get(); }
     amrex::MultiFab * get_pointer_rho_fp  (int lev) const { return rho_fp[lev].get(); }
@@ -290,7 +280,6 @@ public:
     amrex::MultiFab * get_pointer_Efield_cp  (int lev, int direction) const { return Efield_cp[lev][direction].get(); }
     amrex::MultiFab * get_pointer_Bfield_cp  (int lev, int direction) const { return Bfield_cp[lev][direction].get(); }
     amrex::MultiFab * get_pointer_Mfield_cp  (int lev, int direction) const { return Mfield_cp[lev][direction].get(); }
-    amrex::MultiFab * get_pointer_Hfield_cp  (int lev, int direction) const { return Hfield_cp[lev][direction].get(); }
     amrex::MultiFab * get_pointer_H_biasfield_cp  (int lev, int direction) const { return H_biasfield_cp[lev][direction].get(); }
     amrex::MultiFab * get_pointer_current_cp  (int lev, int direction) const { return current_cp[lev][direction].get(); }
     amrex::MultiFab * get_pointer_rho_cp  (int lev) const { return rho_cp[lev].get(); }
@@ -300,14 +289,12 @@ public:
     const amrex::MultiFab& getEfield  (int lev, int direction) {return *Efield_aux[lev][direction];}
     const amrex::MultiFab& getBfield  (int lev, int direction) {return *Bfield_aux[lev][direction];}
     const amrex::MultiFab& getMfield  (int lev, int direction) {return *Mfield_aux[lev][direction];}
-    const amrex::MultiFab& getHfield  (int lev, int direction) {return *Hfield_aux[lev][direction];}
     const amrex::MultiFab& getH_biasfield  (int lev, int direction) {return *H_biasfield_aux[lev][direction];}
 
     const amrex::MultiFab& getcurrent_cp (int lev, int direction) {return *current_cp[lev][direction];}
     const amrex::MultiFab& getEfield_cp  (int lev, int direction) {return  *Efield_cp[lev][direction];}
     const amrex::MultiFab& getBfield_cp  (int lev, int direction) {return  *Bfield_cp[lev][direction];}
     const amrex::MultiFab& getMfield_cp  (int lev, int direction) {return  *Mfield_cp[lev][direction];}
-    const amrex::MultiFab& getHfield_cp  (int lev, int direction) {return  *Hfield_cp[lev][direction];}
     const amrex::MultiFab& getH_biasfield_cp  (int lev, int direction) {return  *H_biasfield_cp[lev][direction];}
     const amrex::MultiFab& getrho_cp (int lev) {return  *rho_cp[lev];}
 
@@ -315,7 +302,6 @@ public:
     const amrex::MultiFab& getEfield_fp  (int lev, int direction) {return *Efield_fp[lev][direction];}
     const amrex::MultiFab& getBfield_fp  (int lev, int direction) {return *Bfield_fp[lev][direction];}
     const amrex::MultiFab& getMfield_fp  (int lev, int direction) {return *Mfield_fp[lev][direction];}
-    const amrex::MultiFab& getHfield_fp  (int lev, int direction) {return *Hfield_fp[lev][direction];}
     const amrex::MultiFab& getH_biasfield_fp  (int lev, int direction) {return *H_biasfield_fp[lev][direction];}
     const amrex::MultiFab& getrho_fp (int lev) {return *rho_fp[lev];}
     const amrex::MultiFab& getF_fp (int lev) {return *F_fp[lev];}
@@ -450,8 +436,6 @@ public:
     void FillBoundaryB   (amrex::IntVect ng, amrex::IntVect ng_extra_fine=amrex::IntVect::TheZeroVector());
     void FillBoundaryE   (amrex::IntVect ng, amrex::IntVect ng_extra_fine=amrex::IntVect::TheZeroVector());
     void FillBoundaryM   (amrex::IntVect ng, amrex::IntVect ng_extra_fine=amrex::IntVect::TheZeroVector());
-    // confirm if FillBoundaryH is needed or not ???
-    void FillBoundaryH   (amrex::IntVect ng, amrex::IntVect ng_extra_fine=amrex::IntVect::TheZeroVector());
     
     //find out where this is implemented
     void FillBoundaryF   (amrex::IntVect ng);
@@ -459,7 +443,6 @@ public:
     void FillBoundaryE   (int lev, amrex::IntVect ng, amrex::IntVect ng_extra_fine=amrex::IntVect::TheZeroVector());
     void FillBoundaryB   (int lev, amrex::IntVect ng, amrex::IntVect ng_extra_fine=amrex::IntVect::TheZeroVector());
     void FillBoundaryM   (int lev, amrex::IntVect ng, amrex::IntVect ng_extra_fine=amrex::IntVect::TheZeroVector());
-    void FillBoundaryH   (int lev, amrex::IntVect ng, amrex::IntVect ng_extra_fine=amrex::IntVect::TheZeroVector());
     void FillBoundaryF   (int lev, amrex::IntVect ng);
     void FillBoundaryAux (int lev, amrex::IntVect ng);
 
@@ -634,7 +617,6 @@ private:
     void FillBoundaryB (int lev, PatchType patch_type, amrex::IntVect ng);
     void FillBoundaryE (int lev, PatchType patch_type, amrex::IntVect ng);
     void FillBoundaryM (int lev, PatchType patch_type, amrex::IntVect ng);
-    void FillBoundaryH (int lev, PatchType patch_type, amrex::IntVect ng);
     void FillBoundaryF (int lev, PatchType patch_type, amrex::IntVect ng);
 
     void OneStep_nosub (amrex::Real t);
@@ -731,7 +713,6 @@ private:
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Efield_aux;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Bfield_aux;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Mfield_aux;
-    amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Hfield_aux;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > H_biasfield_aux;
 
     // Fine patch
@@ -741,7 +722,6 @@ private:
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Efield_fp;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Bfield_fp;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Mfield_fp;
-    amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Hfield_fp;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > H_biasfield_fp;
     // define Mfield MultiFab; only fine patches
 
@@ -755,14 +735,12 @@ private:
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Efield_cp;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Bfield_cp;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Mfield_cp;
-    amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Hfield_cp;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > H_biasfield_cp;
 
     // Copy of the coarse aux
     amrex::Vector<std::array<std::unique_ptr<amrex::MultiFab>, 3 > > Efield_cax;
     amrex::Vector<std::array<std::unique_ptr<amrex::MultiFab>, 3 > > Bfield_cax;
     amrex::Vector<std::array<std::unique_ptr<amrex::MultiFab>, 3 > > Mfield_cax;
-    amrex::Vector<std::array<std::unique_ptr<amrex::MultiFab>, 3 > > Hfield_cax;
     amrex::Vector<std::array<std::unique_ptr<amrex::MultiFab>, 3 > > H_biasfield_cax;
     amrex::Vector<std::unique_ptr<amrex::iMultiFab> > current_buffer_masks;
     amrex::Vector<std::unique_ptr<amrex::iMultiFab> > gather_buffer_masks;
