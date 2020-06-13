@@ -358,7 +358,7 @@ WarpX::OneStep_nosub (Real cur_time)
 #ifdef WARPX_MAG_LLG
         EvolveM(0.5*dt[0]); // we now have M^{n+1/2}
 #endif
-        EvolveB(0.5*dt[0]); // We now have B^{n+1/2}
+        // EvolveB(0.5*dt[0]); // We now have B^{n+1/2}
 
 #ifdef WARPX_MAG_LLG
         FillBoundaryM(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
@@ -379,7 +379,8 @@ WarpX::OneStep_nosub (Real cur_time)
 #ifdef WARPX_MAG_LLG
         EvolveM(0.5*dt[0]); // we now have M^{n+1}
 #endif
-        EvolveB(0.5*dt[0]); // We now have B^{n+1}
+        // EvolveB(0.5*dt[0]); // We now have B^{n+1}
+        EvolveB(dt[0]); // We now have B^{n+1/2}
         //why not implementing FillBoundary here? possibly: implemented in if{safe_guard_cells} Line 452
         if (do_pml) {
             FillBoundaryF(guard_cells.ng_alloc_F);
