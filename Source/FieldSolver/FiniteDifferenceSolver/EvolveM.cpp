@@ -58,7 +58,6 @@ void FiniteDifferenceSolver::EvolveM (
 
         Real constexpr cons1 = -mag_gamma; // should be mu0*mag_gamma, mu0 is absorbed by B used in this case
         Real constexpr cons2 = -cons1*mag_alpha/Ms; // factor of the second term in scalar LLG
-        Real M_normalized_error = 0.1; // normalization error of M field for checking
 
         for (MFIter mfi(*Mfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi) /* remember to FIX */
         {
@@ -109,19 +108,6 @@ void FiniteDifferenceSolver::EvolveM (
                 + dt * cons2 * ( Mx(i, j, k, 0) * ( Mx(i, j, k, 2) * Bx(i, j, k) - Mx(i, j, k, 0) * Bz_xtemp)
                 - Mx(i, j, k, 1) * ( Mx(i, j, k, 1) * Bz_xtemp - Mx(i, j, k, 2) * By_xtemp));
 
-              // temporary normalized magnitude of Mx field at the fixed point
-              Real M_normalized = sqrt( pow(Mx(i, j, k, 0),2.0) + pow(Mx(i, j, k, 1),2.0) + pow(Mx(i, j, k, 2),2.0) ) / Ms;
-
-              // check the normalized error
-              if (M_normalized < (1.0-M_normalized_error) || M_normalized > (1.0+M_normalized_error)){
-                  amrex::Print() << "i " << i << " j " << j << " k " << k << "\n";
-                  amrex::Abort("Exceed the normalized error of the Mx field");
-              }
-
-              // normalize the Mx field
-              Mx(i,j,k,0) = Mx(i,j,k,0)*M_normalized;
-              Mx(i,j,k,1) = Mx(i,j,k,1)*M_normalized;
-              Mx(i,j,k,2) = Mx(i,j,k,2)*M_normalized;
             },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
@@ -145,19 +131,6 @@ void FiniteDifferenceSolver::EvolveM (
                 + dt * cons2 * ( My(i, j, k, 0) * ( My(i, j, k, 2) * Bx_ytemp - My(i, j, k, 0) * Bz_ytemp)
                 - My(i, j, k, 1) * ( My(i, j, k, 1) * Bz_ytemp - My(i, j, k, 2) * By(i, j, k)));
 
-              // temporary normalized magnitude of My field at the fixed point
-              Real M_normalized = sqrt( pow(My(i, j, k, 0),2.0) + pow(My(i, j, k, 1),2.0) + pow(My(i, j, k, 2),2.0) ) / Ms;
-
-              // check the normalized error
-              if (M_normalized < (1.0-M_normalized_error) || M_normalized > (1.0+M_normalized_error)){
-                 amrex::Print() << "i " << i << " j " << j << " k " << k << "\n";
-                 amrex::Abort("Exceed the normalized error of the My field");
-              }
-
-              // normalize the My field
-              My(i,j,k,0) = My(i,j,k,0)*M_normalized;
-              My(i,j,k,1) = My(i,j,k,1)*M_normalized;
-              My(i,j,k,2) = My(i,j,k,2)*M_normalized;
             },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
@@ -181,19 +154,6 @@ void FiniteDifferenceSolver::EvolveM (
                 + dt * cons2 * ( Mz(i, j, k, 0) * ( Mz(i, j, k, 2) * Bx_ztemp - Mz(i, j, k, 0) * Bz(i, j, k))
                 - Mz(i, j, k, 1) * ( Mz(i, j, k, 1) * Bz(i, j, k) - My(i, j, k, 2) * By_ztemp));
 
-              // temporary normalized magnitude of Mz field at the fixed point
-              Real M_normalized = sqrt( pow(Mz(i, j, k, 0),2.0) + pow(Mz(i, j, k, 1),2.0) + pow(Mz(i, j, k, 2),2.0) ) / Ms;
-
-              // check the normalized error
-              if (M_normalized < (1.0-M_normalized_error) || M_normalized > (1.0+M_normalized_error)){
-                 amrex::Print() << "i " << i << " j " << j << " k " << k << "\n";
-                 amrex::Abort("Exceed the normalized error of the Mz field");
-              }
-
-              // normalize the Mz field
-              Mz(i,j,k,0) = Mz(i,j,k,0)*M_normalized;
-              Mz(i,j,k,1) = Mz(i,j,k,1)*M_normalized;
-              Mz(i,j,k,2) = Mz(i,j,k,2)*M_normalized;
             }
             );
         }
