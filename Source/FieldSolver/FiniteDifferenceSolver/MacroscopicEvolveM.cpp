@@ -138,7 +138,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
               M_xface(i, j, k, 2) += dt * (-PhysConst::mu0 * mag_gamma_interp) * ( M_xface(i, j, k, 0) * Hy_eff - M_xface(i, j, k, 1) * Hx_eff)
                 + dt * Gil_damp * ( M_xface(i, j, k, 0) * ( M_xface(i, j, k, 2) * Hx_eff - M_xface(i, j, k, 0) * Hz_eff)
                 - M_xface(i, j, k, 1) * ( M_xface(i, j, k, 1) * Hz_eff - M_xface(i, j, k, 2) * Hy_eff));
- 
+
           // temporary normalized magnitude of M_xface field at the fixed point
               Real M_normalized = sqrt( pow(M_xface(i, j, k, 0),2.0) + pow(M_xface(i, j, k, 1),2.0) + pow(M_xface(i, j, k, 2),2.0) ) /
                                   MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr);
@@ -193,7 +193,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
               M_yface(i, j, k, 2) += dt * (-PhysConst::mu0 * mag_gamma_interp) * ( M_yface(i, j, k, 0) * Hy_eff - M_yface(i, j, k, 1) * Hz_eff)
                 + dt * Gil_damp * ( M_yface(i, j, k, 0) * ( M_yface(i, j, k, 2) * Hz_eff - M_yface(i, j, k, 0) * Hz_eff)
                 - M_yface(i, j, k, 1) * ( M_yface(i, j, k, 1) * Hz_eff - M_yface(i, j, k, 2) * Hy_eff));
- 
+
           // temporary normalized magnitude of M_yface field at the fixed point
               Real M_normalized = sqrt( pow(M_yface(i, j, k, 0),2.0) + pow(M_yface(i, j, k, 1),2.0) + pow(M_yface(i, j, k, 2),2.0) ) /
                                   MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_Ms_arr);
@@ -248,7 +248,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
               M_zface(i, j, k, 2) += dt * (-PhysConst::mu0 * mag_gamma_interp) * ( M_zface(i, j, k, 0) * Hy_eff - M_zface(i, j, k, 1) * Hx_eff)
                 + dt * Gil_damp * ( M_zface(i, j, k, 0) * ( M_zface(i, j, k, 2) * Hx_eff - M_zface(i, j, k, 0) * Hz_eff)
                 - M_zface(i, j, k, 1) * ( M_zface(i, j, k, 1) * Hz_eff - M_yface(i, j, k, 2) * Hy_eff));
- 
+
           // temporary normalized magnitude of M_zface field at the fixed point
               Real M_normalized = sqrt( pow(M_zface(i, j, k, 0),2.0) + pow(M_zface(i, j, k, 1),2.0) + pow(M_zface(i, j, k, 2),2.0) ) /
                                   MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_Ms_arr);
