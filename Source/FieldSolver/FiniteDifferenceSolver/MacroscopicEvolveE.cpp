@@ -176,7 +176,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
 #ifdef WARPX_MAG_LLG
  		Ex(i, j, k) = alpha * Ex(i, j, k) + beta
                      * ( - T_Algo::DownwardMagDz(By, M_yface, coefs_z, n_coefs_z, i, j, k, mu)
-                         + T_Algo::DownwardMayDy(Bz, M_zface, coefs_y, n_coefs_y, i, j, k, mu));
+                         + T_Algo::DownwardMagDy(Bz, M_zface, coefs_y, n_coefs_y, i, j, k, mu));
 #else
 		Ex(i, j, k) = alpha * Ex(i, j, k) + (beta/mu)
                      * ( - T_Algo::DownwardDz(By, coefs_z, n_coefs_z, i, j, k)
