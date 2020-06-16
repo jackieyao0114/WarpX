@@ -174,15 +174,15 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
                 amrex::Real mu = T_MacroAlgo::macro_avg_to_edge(i, j, k, amrex::IntVect(2,1,1),
                                                     mu_arr);
 #ifdef WARPX_MAG_LLG
-         Ex(i, j, k) = alpha * Ex(i, j, k) + beta
+                Ex(i, j, k) = alpha * Ex(i, j, k) + beta
                      * ( - T_Algo::DownwardMagDz(By, M_yface, coefs_z, n_coefs_z, i, j, k, mu)
                          + T_Algo::DownwardMagDy(Bz, M_zface, coefs_y, n_coefs_y, i, j, k, mu));
 #else
-        Ex(i, j, k) = alpha * Ex(i, j, k) + (beta/mu)
+                Ex(i, j, k) = alpha * Ex(i, j, k) + (beta/mu)
                      * ( - T_Algo::DownwardDz(By, coefs_z, n_coefs_z, i, j, k)
                          + T_Algo::DownwardDy(Bz, coefs_y, n_coefs_y, i, j, k));
 #endif
-         },
+            },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
                 amrex::Real alpha = T_MacroAlgo::alpha( sigma_arr, eps_arr, dt,
@@ -193,15 +193,15 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
                                                     mu_arr);
 
 #ifdef WARPX_MAG_LLG
-             Ey(i, j, k) = alpha * Ey(i, j, k) + beta
+                Ey(i, j, k) = alpha * Ey(i, j, k) + beta
                      * ( - T_Algo::DownwardMagDx(Bz, M_zface, coefs_x, n_coefs_x, i, j, k, mu)
                          + T_Algo::DownwardMagDz(Bx, M_xface, coefs_z, n_coefs_z, i, j, k, mu));
 #else
-        Ey(i, j, k) = alpha * Ey(i, j, k) + (beta/mu)
+                Ey(i, j, k) = alpha * Ey(i, j, k) + (beta/mu)
                      * ( - T_Algo::DownwardDx(Bz, coefs_x, n_coefs_x, i, j, k)
                          + T_Algo::DownwardDz(Bx, coefs_z, n_coefs_z, i, j, k));
 #endif
-        },
+            },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
                 amrex::Real alpha = T_MacroAlgo::alpha( sigma_arr, eps_arr, dt,
@@ -215,11 +215,11 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
                      * ( - T_Algo::DownwardMagDy(Bx, M_xface, coefs_y, n_coefs_y, i, j, k, mu)
                          + T_Algo::DownwardMagDx(By, M_yface, coefs_x, n_coefs_x, i, j, k, mu));
 #else
-        Ez(i, j, k) = alpha * Ez(i, j, k) + (beta/mu)
+                Ez(i, j, k) = alpha * Ez(i, j, k) + (beta/mu)
                      * ( - T_Algo::DownwardDy(Bx, coefs_y, n_coefs_y, i, j, k)
                          + T_Algo::DownwardDx(By, coefs_x, n_coefs_x, i, j, k));
 #endif
-        }
+            }
 
         );
 
