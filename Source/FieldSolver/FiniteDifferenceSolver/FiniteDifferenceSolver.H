@@ -73,7 +73,10 @@ class FiniteDifferenceSolver
 
         void MacroscopicEvolveE ( std::array< std::unique_ptr<amrex::MultiFab>, 3>& Efield,
                             std::array< std::unique_ptr<amrex::MultiFab>, 3> const& Bfield,
-                            std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Jfield,
+#ifdef WARPX_MAG_LLG
+			    std::array< std::unique_ptr<amrex::MultiFab>, 3> const& Mfield,
+#endif         
+		    	    std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Jfield,
                             amrex::Real const dt,
                             std::unique_ptr<MacroscopicProperties> const& macroscopic_properties);
 
@@ -184,7 +187,10 @@ class FiniteDifferenceSolver
         void MacroscopicEvolveECartesian (
             std::array< std::unique_ptr< amrex::MultiFab>, 3>& Efield,
             std::array< std::unique_ptr< amrex::MultiFab>, 3> const &Bfield,
-            std::array< std::unique_ptr< amrex::MultiFab>, 3> const& Jfield,
+#ifdef WARPX_MAG_LLG
+	    std::array< std::unique_ptr< amrex::MultiFab>, 3> const &Mfield,
+#endif
+	    std::array< std::unique_ptr< amrex::MultiFab>, 3> const& Jfield,
             amrex::Real const dt,
             std::unique_ptr<MacroscopicProperties> const& macroscopic_properties);
 
