@@ -38,7 +38,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveE (
 #ifdef WARPX_MAG_LLG
                          Mfield,
 #endif
-             Jfield, dt, macroscopic_properties );
+                         Jfield, dt, macroscopic_properties );
 
         }
         if (WarpX::macroscopic_solver_algo == MacroscopicSolverAlgo::BackwardEuler) {
@@ -48,7 +48,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveE (
 #ifdef WARPX_MAG_LLG
                          Mfield,
 #endif
-             Jfield, dt, macroscopic_properties );
+                         Jfield, dt, macroscopic_properties );
 
         }
 
@@ -63,7 +63,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveE (
 #ifdef WARPX_MAG_LLG
                          Mfield,
 #endif
-             Jfield, dt, macroscopic_properties );
+                         Jfield, dt, macroscopic_properties );
 
         } else if (WarpX::macroscopic_solver_algo == MacroscopicSolverAlgo::BackwardEuler) {
 
@@ -72,7 +72,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveE (
 #ifdef WARPX_MAG_LLG
                          Mfield,
 #endif
-             Jfield, dt, macroscopic_properties );
+                         Jfield, dt, macroscopic_properties );
 
         }
 
