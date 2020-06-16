@@ -146,8 +146,8 @@ struct CartesianCKCAlgorithm {
         int const i, int const j, int const k, amrex::Real const mu, int const ncomp=0, int const ncompM = 0 ) {
 
         amrex::Real const inv_dx = coefs_x[0];
-	amrex::Real const inv_mu = 1.0/mu;  
-   	return inv_dx*( (F(i,j,k,ncomp) - F(i-1,j,k,ncomp))*inv_mu - (M(i,j,k,ncompM) - M(i-1,j,k,ncompM)) );
+    amrex::Real const inv_mu = 1.0/mu;  
+       return inv_dx*( (F(i,j,k,ncomp) - F(i-1,j,k,ncomp))*inv_mu - (M(i,j,k,ncompM) - M(i-1,j,k,ncompM)) );
     };
 #endif
 
@@ -210,8 +210,8 @@ struct CartesianCKCAlgorithm {
         using namespace amrex;
 #if defined WARPX_DIM_3D
         Real const inv_dy = coefs_y[0];
- 	Real const inv_mu = 1.0/mu;
- 	return inv_dy*( (F(i,j,k,ncomp) - F(i,j-1,k,ncomp))*inv_mu - (M(i,j,k,ncompM) - M(i,j-1,k,ncompM)) );
+     Real const inv_mu = 1.0/mu;
+     return inv_dy*( (F(i,j,k,ncomp) - F(i,j-1,k,ncomp))*inv_mu - (M(i,j,k,ncompM) - M(i,j-1,k,ncompM)) );
 #elif (defined WARPX_DIM_XZ)
         return 0._rt; // 2D Cartesian: derivative along y is 0
 #endif
@@ -278,7 +278,7 @@ struct CartesianCKCAlgorithm {
 
         using namespace amrex;
         Real const inv_dz = coefs_z[0];
-	Real const inv_mu = 1.0/mu;
+    Real const inv_mu = 1.0/mu;
 #if defined WARPX_DIM_3D
         return inv_dz*( (F(i,j,k,ncomp) - F(i,j,k-1,ncomp))*inv_mu - (M(i,j,k,ncompM) - M(i,j,k-1,ncompM)));
 #elif (defined WARPX_DIM_XZ)
