@@ -34,7 +34,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveE (
         if (WarpX::macroscopic_solver_algo == MacroscopicSolverAlgo::LaxWendroff) {
 
             MacroscopicEvolveECartesian <CartesianYeeAlgorithm, LaxWendroffAlgo>
-                       ( Efield, Bfield, 
+                       ( Efield, Bfield,
 #ifdef WARPX_MAG_LLG
                          Mfield,
 #endif
@@ -44,7 +44,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveE (
         if (WarpX::macroscopic_solver_algo == MacroscopicSolverAlgo::BackwardEuler) {
 
             MacroscopicEvolveECartesian <CartesianYeeAlgorithm, BackwardEulerAlgo>
-                       ( Efield, Bfield, 
+                       ( Efield, Bfield,
 #ifdef WARPX_MAG_LLG
                          Mfield,
 #endif
@@ -59,7 +59,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveE (
         if (WarpX::macroscopic_solver_algo == MacroscopicSolverAlgo::LaxWendroff) {
 
             MacroscopicEvolveECartesian <CartesianCKCAlgorithm, LaxWendroffAlgo>
-                       ( Efield, Bfield, 
+                       ( Efield, Bfield,
 #ifdef WARPX_MAG_LLG
                          Mfield,
 #endif
@@ -68,7 +68,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveE (
         } else if (WarpX::macroscopic_solver_algo == MacroscopicSolverAlgo::BackwardEuler) {
 
             MacroscopicEvolveECartesian <CartesianCKCAlgorithm, BackwardEulerAlgo>
-                       ( Efield, Bfield, 
+                       ( Efield, Bfield,
 #ifdef WARPX_MAG_LLG
                          Mfield,
 #endif

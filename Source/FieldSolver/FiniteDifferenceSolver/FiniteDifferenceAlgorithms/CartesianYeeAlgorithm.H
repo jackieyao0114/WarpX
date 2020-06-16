@@ -72,7 +72,7 @@ struct CartesianYeeAlgorithm {
         int const i, int const j, int const k, amrex::Real const mu, int const ncomp=0, int const ncompM = 0 ) {
 
         amrex::Real const inv_dx = coefs_x[0];
-    amrex::Real const inv_mu = 1.0/mu;  
+    amrex::Real const inv_mu = 1.0/mu;
        return inv_dx*( (F(i,j,k,ncomp) - F(i-1,j,k,ncomp))*inv_mu - (M(i,j,k,ncompM) - M(i-1,j,k,ncompM)) );
     };
 #endif
