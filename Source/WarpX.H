@@ -111,15 +111,13 @@ public:
     static amrex::Vector<amrex::Real> E_external_grid;
     static amrex::Vector<amrex::Real> B_external_grid;
     static amrex::Vector<amrex::Real> M_external_grid;
-    static amrex::Vector<amrex::Real> H_external_grid;
     static amrex::Vector<amrex::Real> H_bias_external_grid;
     //static std::array<amrex::Vector<amrex::Real>, 3 > M_external_grid; // define M initial value
 
     // Initialization Type for External E and B on grid
     static std::string B_ext_grid_s;
     static std::string E_ext_grid_s;
-    static std::string M_ext_grid_s; // added for M; 
-    static std::string H_ext_grid_s;
+    static std::string M_ext_grid_s; // added for M;
     static std::string H_bias_ext_grid_s;
 
     // Parser for B_external on the grid
@@ -134,10 +132,6 @@ public:
     static std::string str_Mx_ext_grid_function;
     static std::string str_My_ext_grid_function;
     static std::string str_Mz_ext_grid_function;
-    // Parser for H_external on the grid
-    static std::string str_Hx_ext_grid_function;
-    static std::string str_Hy_ext_grid_function;
-    static std::string str_Hz_ext_grid_function;
     // Parser for H_bias_external on the grid
     static std::string str_Hx_bias_ext_grid_function;
     static std::string str_Hy_bias_ext_grid_function;
@@ -155,10 +149,6 @@ public:
     std::unique_ptr<ParserWrapper<3> > Mxfield_parser;
     std::unique_ptr<ParserWrapper<3> > Myfield_parser;
     std::unique_ptr<ParserWrapper<3> > Mzfield_parser;
-    // ParserWrapper for H_external on the grid
-    std::unique_ptr<ParserWrapper<3> > Hxfield_parser;
-    std::unique_ptr<ParserWrapper<3> > Hyfield_parser;
-    std::unique_ptr<ParserWrapper<3> > Hzfield_parser;
     // ParserWrapper for H_bias_external on the grid
     std::unique_ptr<ParserWrapper<3> > Hx_biasfield_parser;
     std::unique_ptr<ParserWrapper<3> > Hy_biasfield_parser;
@@ -264,13 +254,13 @@ public:
             H_biasfield_aux[lev][2].get()
         };
     }
-
+#endif
     amrex::MultiFab * get_pointer_Efield_aux  (int lev, int direction) const { return Efield_aux[lev][direction].get(); }
     amrex::MultiFab * get_pointer_Bfield_aux  (int lev, int direction) const { return Bfield_aux[lev][direction].get(); }
 #ifdef WARPX_MAG_LLG
     amrex::MultiFab * get_pointer_Mfield_aux  (int lev, int direction) const { return Mfield_aux[lev][direction].get(); }
     amrex::MultiFab * get_pointer_H_biasfield_aux  (int lev, int direction) const { return H_biasfield_aux[lev][direction].get(); }
-
+#endif
     amrex::MultiFab * get_pointer_Efield_fp  (int lev, int direction) const { return Efield_fp[lev][direction].get(); }
     amrex::MultiFab * get_pointer_Bfield_fp  (int lev, int direction) const { return Bfield_fp[lev][direction].get(); }
 
@@ -278,6 +268,7 @@ public:
     // note "direction" of M means face.  For M, each face stores all 3 vector components of M
     amrex::MultiFab * get_pointer_Mfield_fp  (int lev, int direction) const { return Mfield_fp[lev][direction].get();}
     amrex::MultiFab * get_pointer_H_biasfield_fp  (int lev, int direction) const { return H_biasfield_fp[lev][direction].get();}
+#endif
     amrex::MultiFab * get_pointer_current_fp  (int lev, int direction) const { return current_fp[lev][direction].get(); }
     amrex::MultiFab * get_pointer_rho_fp  (int lev) const { return rho_fp[lev].get(); }
     amrex::MultiFab * get_pointer_F_fp  (int lev) const { return F_fp[lev].get(); }
@@ -287,6 +278,7 @@ public:
 #ifdef WARPX_MAG_LLG
     amrex::MultiFab * get_pointer_Mfield_cp  (int lev, int direction) const { return Mfield_cp[lev][direction].get(); }
     amrex::MultiFab * get_pointer_H_biasfield_cp  (int lev, int direction) const { return H_biasfield_cp[lev][direction].get(); }
+#endif
     amrex::MultiFab * get_pointer_current_cp  (int lev, int direction) const { return current_cp[lev][direction].get(); }
     amrex::MultiFab * get_pointer_rho_cp  (int lev) const { return rho_cp[lev].get(); }
     amrex::MultiFab * get_pointer_F_cp  (int lev) const { return F_cp[lev].get(); }
@@ -297,13 +289,14 @@ public:
 #ifdef WARPX_MAG_LLG
     const amrex::MultiFab& getMfield  (int lev, int direction) {return *Mfield_aux[lev][direction];}
     const amrex::MultiFab& getH_biasfield  (int lev, int direction) {return *H_biasfield_aux[lev][direction];}
-
+#endif
     const amrex::MultiFab& getcurrent_cp (int lev, int direction) {return *current_cp[lev][direction];}
     const amrex::MultiFab& getEfield_cp  (int lev, int direction) {return  *Efield_cp[lev][direction];}
     const amrex::MultiFab& getBfield_cp  (int lev, int direction) {return  *Bfield_cp[lev][direction];}
 #ifdef WARPX_MAG_LLG
     const amrex::MultiFab& getMfield_cp  (int lev, int direction) {return  *Mfield_cp[lev][direction];}
     const amrex::MultiFab& getH_biasfield_cp  (int lev, int direction) {return  *H_biasfield_cp[lev][direction];}
+#endif
     const amrex::MultiFab& getrho_cp (int lev) {return  *rho_cp[lev];}
 
     const amrex::MultiFab& getcurrent_fp (int lev, int direction) {return *current_fp[lev][direction];}
@@ -312,6 +305,7 @@ public:
 #ifdef WARPX_MAG_LLG
     const amrex::MultiFab& getMfield_fp  (int lev, int direction) {return *Mfield_fp[lev][direction];}
     const amrex::MultiFab& getH_biasfield_fp  (int lev, int direction) {return *H_biasfield_fp[lev][direction];}
+#endif
     const amrex::MultiFab& getrho_fp (int lev) {return *rho_fp[lev];}
     const amrex::MultiFab& getF_fp (int lev) {return *F_fp[lev];}
     bool DoPML () const {return do_pml;};
@@ -724,7 +718,7 @@ private:
 #ifdef WARPX_MAG_LLG
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Mfield_aux;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > H_biasfield_aux;
-
+#endif
     // Fine patch
     amrex::Vector<            std::unique_ptr<amrex::MultiFab>      > F_fp;
     amrex::Vector<            std::unique_ptr<amrex::MultiFab>      > rho_fp;
@@ -735,7 +729,7 @@ private:
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Mfield_fp;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > H_biasfield_fp;
     // define Mfield MultiFab; only fine patches
-
+#endif
     // store fine patch
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > current_store;
 
@@ -748,7 +742,7 @@ private:
 #ifdef WARPX_MAG_LLG
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Mfield_cp;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > H_biasfield_cp;
-
+#endif
     // Copy of the coarse aux
     amrex::Vector<std::array<std::unique_ptr<amrex::MultiFab>, 3 > > Efield_cax;
     amrex::Vector<std::array<std::unique_ptr<amrex::MultiFab>, 3 > > Bfield_cax;

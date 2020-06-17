@@ -102,6 +102,7 @@ WarpX::Evolve (int numsteps)
             FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
 #ifdef WARPX_MAG_LLG
             FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
+#endif
             UpdateAuxilaryData();
             // on first step, push p by -0.5*dt
             for (int lev = 0; lev <= finest_level; ++lev)
@@ -120,6 +121,7 @@ WarpX::Evolve (int numsteps)
             FillBoundaryB(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
 #ifdef WARPX_MAG_LLG
             FillBoundaryM(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
+#endif
             // E and B: enough guard cells to update Aux or call Field Gather in fp and cp
             // Need to update Aux on lower levels, to interpolate to higher levels.
 #ifndef WARPX_USE_PSATD
@@ -432,7 +434,7 @@ WarpX::OneStep_nosub (Real cur_time)
 
 #ifdef WARPX_MAG_LLG
         FillBoundaryM(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
-
+#endif
         if (WarpX::em_solver_medium == 0) {
             // vacuum medium
             EvolveE(dt[0]); // We now have E^{n+1}
