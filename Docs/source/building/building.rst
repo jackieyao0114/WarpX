@@ -51,8 +51,11 @@ options are:
     * ``COMP=gcc`` or ``intel``: Compiler.
     * ``USE_MPI=TRUE`` or ``FALSE``: Whether to compile with MPI support.
     * ``USE_OMP=TRUE`` or ``FALSE``: Whether to compile with OpenMP support.
+<<<<<<< HEAD
     * ``USE_GPU=TRUE`` or ``FALSE``: Whether to compile for Nvidia GPUs (requires CUDA).
     * ``USE_OPENPMD=TRUE`` or ``FALSE``: Whether to support openPMD for I/O (requires openPMD-api).
+=======
+>>>>>>> parent of 0c02a5e2... Revert "pull from Reva's evolveM_dev with recent ifdef mag"
     * ``USE_LLG=TRUE`` or ``FALSE``: Whether to compile with Landau-Lifshitz-Gilbert (LLG) model to compute magnetization.
 
 For a description of these different options, see the `corresponding page <https://amrex-codes.github.io/amrex/docs_html/BuildingAMReX.html>`__ in the AMReX documentation.

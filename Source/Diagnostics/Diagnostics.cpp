@@ -188,9 +188,75 @@ Diagnostics::FilterComputePackFlush (int step, bool force_flush)
     if ( DoComputeAndPack (step, force_flush) ) {
         ComputeAndPack();
 
+<<<<<<< HEAD
         for (int i_buffer = 0; i_buffer < m_num_buffers; ++i_buffer) {
             if ( !DoDump (step, i_buffer, force_flush) ) continue;
                 Flush(i_buffer);
+=======
+    m_all_field_functors[lev].resize( m_varnames.size() );
+    // Fill vector of functors for all components except individual cylindrical modes.
+    for (int comp=0, n=m_all_field_functors[lev].size(); comp<n; comp++){
+        if        ( m_varnames[comp] == "Ex" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Efield_aux(lev, 0), lev, m_crse_ratio);
+        } else if ( m_varnames[comp] == "Ey" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Efield_aux(lev, 1), lev, m_crse_ratio);
+        } else if ( m_varnames[comp] == "Ez" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Efield_aux(lev, 2), lev, m_crse_ratio);
+        } else if ( m_varnames[comp] == "Bx" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Bfield_aux(lev, 0), lev, m_crse_ratio);
+        } else if ( m_varnames[comp] == "By" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Bfield_aux(lev, 1), lev, m_crse_ratio);
+        } else if ( m_varnames[comp] == "Bz" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Bfield_aux(lev, 2), lev, m_crse_ratio);
+#ifdef WARPX_MAG_LLG
+        } else if ( m_varnames[comp] == "Mx_xface" ){
+            // For the magnetization variables (e.g., Mx_xface) we have to pass in an additional integer stating which variable from the Mfield MultiFab
+            // will get averaged/interpolated to the ce1ll-centered plotfile MultiFab.  This is the final integer in the calling sequence.
+            // Unlike the B field, for M we store all 3 components of the vector M at each face, where 0=Mx, 1=My, 2=Mz
+            // The additional "true, 1" arguments refer to a default cylindrical flag, and the default number of components.
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Mfield_aux(lev, 0), lev, m_crse_ratio, true, 1, 0);
+        } else if ( m_varnames[comp] == "Mx_yface" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Mfield_aux(lev, 1), lev, m_crse_ratio, true, 1, 0);
+        } else if ( m_varnames[comp] == "Mx_zface" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Mfield_aux(lev, 2), lev, m_crse_ratio, true, 1, 0);
+        } else if ( m_varnames[comp] == "My_xface" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Mfield_aux(lev, 0), lev, m_crse_ratio, true, 1, 1);
+        } else if ( m_varnames[comp] == "My_yface" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Mfield_aux(lev, 1), lev, m_crse_ratio, true, 1, 1);
+        } else if ( m_varnames[comp] == "My_zface" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Mfield_aux(lev, 2), lev, m_crse_ratio, true, 1, 1);
+        } else if ( m_varnames[comp] == "Mz_xface" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Mfield_aux(lev, 0), lev, m_crse_ratio, true, 1, 2);
+        } else if ( m_varnames[comp] == "Mz_yface" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Mfield_aux(lev, 1), lev, m_crse_ratio, true, 1, 2);
+        } else if ( m_varnames[comp] == "Mz_zface" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Mfield_aux(lev, 2), lev, m_crse_ratio, true, 1, 2);
+#endif
+        } else if ( m_varnames[comp] == "jx" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_current_fp(lev, 0), lev, m_crse_ratio);
+        } else if ( m_varnames[comp] == "jy" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_current_fp(lev, 1), lev, m_crse_ratio);
+        } else if ( m_varnames[comp] == "jz" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_current_fp(lev, 2), lev, m_crse_ratio);
+        } else if ( m_varnames[comp] == "rho" ){
+            // rho_new is stored in component 1 of rho_fp when using PSATD
+#ifdef WARPX_USE_PSATD
+            MultiFab* rho_new = new MultiFab(*warpx.get_pointer_rho_fp(lev), amrex::make_alias, 1, 1);
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(rho_new, lev, m_crse_ratio);
+#else
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_rho_fp(lev), lev, m_crse_ratio);
+#endif
+        } else if ( m_varnames[comp] == "F" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_F_fp(lev), lev, m_crse_ratio);
+        } else if ( m_varnames[comp] == "part_per_cell" ){
+            m_all_field_functors[lev][comp] = std::make_unique<PartPerCellFunctor>(nullptr, lev, m_crse_ratio);
+        } else if ( m_varnames[comp] == "part_per_grid" ){
+            m_all_field_functors[lev][comp] = std::make_unique<PartPerGridFunctor>(nullptr, lev, m_crse_ratio);
+        } else if ( m_varnames[comp] == "divB" ){
+            m_all_field_functors[lev][comp] = std::make_unique<DivBFunctor>(warpx.get_array_Bfield_aux(lev), lev, m_crse_ratio);
+        } else if ( m_varnames[comp] == "divE" ){
+            m_all_field_functors[lev][comp] = std::make_unique<DivEFunctor>(warpx.get_array_Efield_aux(lev), lev, m_crse_ratio);
+>>>>>>> parent of 0c02a5e2... Revert "pull from Reva's evolveM_dev with recent ifdef mag"
         }
 
     }

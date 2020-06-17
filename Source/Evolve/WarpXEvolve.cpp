@@ -100,6 +100,7 @@ WarpX::Evolve (int numsteps)
             // Not called at each iteration, so exchange all guard cells
             FillBoundaryE(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
+#ifdef WARPX_MAG_LLG
             FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             UpdateAuxilaryData();
             // on first step, push p by -0.5*dt
@@ -117,6 +118,7 @@ WarpX::Evolve (int numsteps)
             // E and B are up-to-date inside the domain only
             FillBoundaryE(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
             FillBoundaryB(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
+#ifdef WARPX_MAG_LLG
             FillBoundaryM(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
             // E and B: enough guard cells to update Aux or call Field Gather in fp and cp
             // Need to update Aux on lower levels, to interpolate to higher levels.
@@ -417,6 +419,10 @@ WarpX::OneStep_nosub (Real cur_time)
         
         EvolveB(0.5*dt[0]); // We now have B^{n+1/2}
         // EvolveM(0.5*dt[0]); // we now have M^{n+1/2}
+<<<<<<< HEAD
+=======
+
+>>>>>>> parent of 0c02a5e2... Revert "pull from Reva's evolveM_dev with recent ifdef mag"
 #ifdef WARPX_MAG_LLG
         if (WarpX::em_solver_medium == 0) {
             //vacuum medium
@@ -427,7 +433,14 @@ WarpX::OneStep_nosub (Real cur_time)
         }
 #endif
         FillBoundaryB(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
+
+#ifdef WARPX_MAG_LLG
         FillBoundaryM(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
+<<<<<<< HEAD
+=======
+#endif
+        FillBoundaryH(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
+>>>>>>> parent of 0c02a5e2... Revert "pull from Reva's evolveM_dev with recent ifdef mag"
 
         if (WarpX::em_solver_medium == 0) {
             // vacuum medium
@@ -441,6 +454,10 @@ WarpX::OneStep_nosub (Real cur_time)
         EvolveF(0.5*dt[0], DtType::SecondHalf);
         EvolveB(0.5*dt[0]); // We now have B^{n+1}
         // EvolveM(0.5*dt[0]); // we now have M^{n+1}
+<<<<<<< HEAD
+=======
+
+>>>>>>> parent of 0c02a5e2... Revert "pull from Reva's evolveM_dev with recent ifdef mag"
 #ifdef WARPX_MAG_LLG
         if (WarpX::em_solver_medium == 0){
             EvolveM(0.5*dt[0]); // we now have M^{n+1}
@@ -459,7 +476,9 @@ WarpX::OneStep_nosub (Real cur_time)
         // E and B are up-to-date in the domain, but all guard cells are
         // outdated.
         if ( safe_guard_cells ){
+#ifdef WARPX_MAG_LLG
             FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
+#endif
             FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
         }
 #endif
