@@ -404,6 +404,7 @@ WarpX::MacroscopicEvolveE (int lev, PatchType patch_type, amrex::Real a_dt) {
     }
 }
 
+#ifdef WARPX_MAG_LLG
 // define WarpX::MacroscopicEvolveM
 void
 WarpX::MacroscopicEvolveM (amrex::Real a_dt)
@@ -436,6 +437,7 @@ WarpX::MacroscopicEvolveM (int lev, PatchType patch_type, amrex::Real a_dt) {
         amrex::Abort("Macroscopic EvolveM is not implemented for pml boundary condition yet");
     }
 }
+#endif
 
 #ifdef WARPX_DIM_RZ
 // This scales the current by the inverse volume and wraps around the depostion at negative radius.

@@ -354,7 +354,7 @@ WarpX::InitLevelData (int lev, Real /*time*/)
               H_biasfield_cp[lev][i]->setVal(H_bias_external_grid[i]);
            }
         }
-    }
+    
 #endif
 
    }
@@ -475,6 +475,7 @@ WarpX::InitLevelData (int lev, Real /*time*/)
        }
     }
 
+#ifdef WARPX_MAG_LLG
     // if the input string for the Hbias-field is "parse_h_bias_ext_grid_function",
     // then the analytical expression or function must be
     // provided in the input file.
@@ -596,6 +597,7 @@ WarpX::InitLevelData (int lev, Real /*time*/)
        }
     }
     */
+#endif //closes #ifdef WARPX_MAG_LLG
 
     if (F_fp[lev]) {
         F_fp[lev]->setVal(0.0);

@@ -1,14 +1,14 @@
 # ###############################
 ####### GENERAL PARAMETERS ######
 #################################
-max_step = 10
-amr.n_cell = 64 64 512
-amr.max_grid_size = 512
+max_step = 40
+amr.n_cell = 64 64 128
+amr.max_grid_size = 32
 amr.blocking_factor = 64
 geometry.coord_sys   = 0
 geometry.is_periodic = 1  1  1
-geometry.prob_lo     =  -32.e-6 -32.e-6 -512.e-6
-geometry.prob_hi     =   32.e-6  32.e-6  512.e-6
+geometry.prob_lo     =  -32.e-6 -32.e-6 -64.e-6
+geometry.prob_hi     =   32.e-6  32.e-6  64.e-6
 amr.max_level = 0
 
 #################################
@@ -81,8 +81,10 @@ warpx.M_external_grid = 1. 2. 3.
 #warpx.M_ext_grid_init_style = constant
 #warpx.M_external_grid= 1. 2. 3. 1. 2. 3. 1. 2. 3.
 
-
 # Diagnostics
 diagnostics.diags_names = diag1
-diag1.period = 20
+diag1.period = 10
 diag1.diag_type = Full
+
+diag1.fields_to_plot = Ex Ey Ez Bx By Bz Mx_xface Mx_yface Mx_zface My_xface My_yface My_zface Mz_xface Mz_yface Mz_zface
+diag1.plot_raw_fields = 0

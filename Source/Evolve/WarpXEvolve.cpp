@@ -250,8 +250,10 @@ WarpX::Evolve (int numsteps)
             FillBoundaryE(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             // This is probably overkill, but it's not called often
             FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
+#ifdef WARPX_MAG_LLG
             // This is probably overkill, but it's not called often
             FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
+#endif
 #ifndef WARPX_USE_PSATD
             FillBoundaryAux(guard_cells.ng_UpdateAux);
 #endif
@@ -288,8 +290,10 @@ WarpX::Evolve (int numsteps)
         FillBoundaryE(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
         // This is probably overkill, but it's not called often
         FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
+#ifdef WARPX_MAG_LLG
         // This is probably overkill
         FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
+#endif
 #ifndef WARPX_USE_PSATD
         FillBoundaryAux(guard_cells.ng_UpdateAux);
 #endif
