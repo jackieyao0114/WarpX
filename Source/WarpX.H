@@ -440,11 +440,7 @@ public:
     void FillBoundaryE   (amrex::IntVect ng, amrex::IntVect ng_extra_fine=amrex::IntVect::TheZeroVector());
 #ifdef WARPX_MAG_LLG
     void FillBoundaryM   (amrex::IntVect ng, amrex::IntVect ng_extra_fine=amrex::IntVect::TheZeroVector());
-<<<<<<< HEAD
-    
-=======
 #endif
->>>>>>> 6409fc49c3866b05daeefc98689f4c2221f29745
     //find out where this is implemented
     void FillBoundaryF   (amrex::IntVect ng);
     void FillBoundaryAux (amrex::IntVect ng);
