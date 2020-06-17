@@ -211,7 +211,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
                 amrex::Real mu = T_MacroAlgo::macro_avg_to_edge(i, j, k, amrex::IntVect(1,1,2),
                                                     mu_arr);
 #ifdef WARPX_MAG_LLG
-                Ez(i, j, k) = alpha * Ez(i, j, k) + beta/mu
+                Ez(i, j, k) = alpha * Ez(i, j, k) + beta
                      * ( - T_Algo::DownwardMagDy(Bx, M_xface, coefs_y, n_coefs_y, i, j, k, mu)
                          + T_Algo::DownwardMagDx(By, M_yface, coefs_x, n_coefs_x, i, j, k, mu));
 #else
