@@ -419,10 +419,6 @@ WarpX::OneStep_nosub (Real cur_time)
         
         EvolveB(0.5*dt[0]); // We now have B^{n+1/2}
         // EvolveM(0.5*dt[0]); // we now have M^{n+1/2}
-<<<<<<< HEAD
-=======
-
->>>>>>> parent of 0c02a5e2... Revert "pull from Reva's evolveM_dev with recent ifdef mag"
 #ifdef WARPX_MAG_LLG
         if (WarpX::em_solver_medium == 0) {
             //vacuum medium
@@ -436,11 +432,6 @@ WarpX::OneStep_nosub (Real cur_time)
 
 #ifdef WARPX_MAG_LLG
         FillBoundaryM(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
-<<<<<<< HEAD
-=======
-#endif
-        FillBoundaryH(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
->>>>>>> parent of 0c02a5e2... Revert "pull from Reva's evolveM_dev with recent ifdef mag"
 
         if (WarpX::em_solver_medium == 0) {
             // vacuum medium
@@ -454,10 +445,6 @@ WarpX::OneStep_nosub (Real cur_time)
         EvolveF(0.5*dt[0], DtType::SecondHalf);
         EvolveB(0.5*dt[0]); // We now have B^{n+1}
         // EvolveM(0.5*dt[0]); // we now have M^{n+1}
-<<<<<<< HEAD
-=======
-
->>>>>>> parent of 0c02a5e2... Revert "pull from Reva's evolveM_dev with recent ifdef mag"
 #ifdef WARPX_MAG_LLG
         if (WarpX::em_solver_medium == 0){
             EvolveM(0.5*dt[0]); // we now have M^{n+1}

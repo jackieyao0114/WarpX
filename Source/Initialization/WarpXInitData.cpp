@@ -346,7 +346,6 @@ WarpX::InitLevelData (int lev, Real /*time*/)
                 Mfield_fp[lev][i]->setVal(M_external_grid[icomp], icomp, 1, nghost);
             }
         }
-<<<<<<< HEAD
 
         if (H_bias_ext_grid_s == "constant" || H_bias_ext_grid_s == "default") {
            H_biasfield_fp[lev][i]->setVal(H_bias_external_grid[i]);
@@ -356,11 +355,9 @@ WarpX::InitLevelData (int lev, Real /*time*/)
            }
         }
     }
-=======
 #endif
 
    }
->>>>>>> parent of 0c02a5e2... Revert "pull from Reva's evolveM_dev with recent ifdef mag"
 
     // if the input string for the B-field is "parse_b_ext_grid_function",
     // then the analytical expression or function must be
