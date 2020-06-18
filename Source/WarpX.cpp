@@ -37,16 +37,22 @@ using namespace amrex;
 
 Vector<Real> WarpX::E_external_grid(3, 0.0); // this is fill constructor
 Vector<Real> WarpX::B_external_grid(3, 0.0);
+
+#ifdef WARPX_MAG_LLG
 Vector<Real> WarpX::M_external_grid(3, 0.0);
 Vector<Real> WarpX::H_bias_external_grid(3, 0.0);
 // M could be one 9-comp vector or a vector of vectors
+#endif
 
 std::string WarpX::authors = "";
 std::string WarpX::B_ext_grid_s = "default";
 std::string WarpX::E_ext_grid_s = "default";
+
+#ifdef
 std::string WarpX::M_ext_grid_s = "default";
 std::string WarpX::H_bias_ext_grid_s = "default";
 // "default" sets M to zero but will be overwritten by user defined input file
+#endif
 
 // Parser for B_external on the grid
 std::string WarpX::str_Bx_ext_grid_function;
@@ -56,6 +62,8 @@ std::string WarpX::str_Bz_ext_grid_function;
 std::string WarpX::str_Ex_ext_grid_function;
 std::string WarpX::str_Ey_ext_grid_function;
 std::string WarpX::str_Ez_ext_grid_function;
+
+#ifdef WARPX_MAG_LLG
 // Parser for M_external on the grid
 std::string WarpX::str_Mx_ext_grid_function;
 std::string WarpX::str_My_ext_grid_function;
@@ -64,6 +72,7 @@ std::string WarpX::str_Mz_ext_grid_function;
 std::string WarpX::str_Hx_bias_ext_grid_function;
 std::string WarpX::str_Hy_bias_ext_grid_function;
 std::string WarpX::str_Hz_bias_ext_grid_function;
+#endif
 
 int WarpX::do_moving_window = 0;
 int WarpX::moving_window_dir = -1;
@@ -744,8 +753,10 @@ WarpX::ClearLevel (int lev)
 #endif
         Efield_cax[lev][i].reset();
         Bfield_cax[lev][i].reset();
+#ifdef WARPX_MAG_LLG
         Mfield_cax[lev][i].reset();
         H_biasfield_cax[lev][i].reset();
+#endif
         current_buf[lev][i].reset();
     }
 
@@ -827,15 +838,14 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
     Bx_nodal_flag = IntVect(1,0);
     By_nodal_flag = IntVect(0,0);
     Bz_nodal_flag = IntVect(0,1);
+#ifdef WARPX_MAG_LLG
     Mx_nodal_flag = IntVect(1,0);
     My_nodal_flag = IntVect(0,0);
     Mz_nodal_flag = IntVect(0,1);
-    Hx_nodal_flag = IntVect(1,0);
-    Hy_nodal_flag = IntVect(0,0);
-    Hz_nodal_flag = IntVect(0,1);
     Hx_bias_nodal_flag = IntVect(1,0);
     Hy_bias_nodal_flag = IntVect(0,0);
     Hz_bias_nodal_flag = IntVect(0,1);
+#endif
     jx_nodal_flag = IntVect(0,1);
     jy_nodal_flag = IntVect(1,1);
     jz_nodal_flag = IntVect(1,0);
@@ -846,15 +856,14 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
     Bx_nodal_flag = IntVect(1,0,0);
     By_nodal_flag = IntVect(0,1,0);
     Bz_nodal_flag = IntVect(0,0,1);
+#ifdef WARPX_MAG_LLG
     Mx_nodal_flag = IntVect(1,0,0);
     My_nodal_flag = IntVect(0,1,0);
     Mz_nodal_flag = IntVect(0,0,1);
-    Hx_nodal_flag = IntVect(1,0,0);
-    Hy_nodal_flag = IntVect(0,1,0);
-    Hz_nodal_flag = IntVect(0,0,1);
     Hx_bias_nodal_flag = IntVect(1,0,0);
     Hy_bias_nodal_flag = IntVect(0,1,0);
     Hz_bias_nodal_flag = IntVect(0,0,1);
+#endif
     jx_nodal_flag = IntVect(0,1,1);
     jy_nodal_flag = IntVect(1,0,1);
     jz_nodal_flag = IntVect(1,1,0);
@@ -869,17 +878,16 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
         Bx_nodal_flag  = IntVect::TheNodeVector();
         By_nodal_flag  = IntVect::TheNodeVector();
         Bz_nodal_flag  = IntVect::TheNodeVector();
+#ifdef WARPX_MAG_LLG
         // M is not nodal and is unlikely to be nodal
         // so this definition is unlikely to be used
         Mx_nodal_flag  = IntVect::TheNodeVector();
         My_nodal_flag  = IntVect::TheNodeVector();
         Mz_nodal_flag  = IntVect::TheNodeVector();
-        Hx_nodal_flag  = IntVect::TheNodeVector();
-        Hy_nodal_flag  = IntVect::TheNodeVector();
-        Hz_nodal_flag  = IntVect::TheNodeVector();
         Hx_bias_nodal_flag  = IntVect::TheNodeVector();
         Hy_bias_nodal_flag  = IntVect::TheNodeVector();
         Hz_bias_nodal_flag  = IntVect::TheNodeVector();
+#endif
         jx_nodal_flag  = IntVect::TheNodeVector();
         jy_nodal_flag  = IntVect::TheNodeVector();
         jz_nodal_flag  = IntVect::TheNodeVector();
@@ -1135,12 +1143,14 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
                 Efield_cax[lev][0].reset( new MultiFab(cnba,dm,ncomps,ngE));
                 Efield_cax[lev][1].reset( new MultiFab(cnba,dm,ncomps,ngE));
                 Efield_cax[lev][2].reset( new MultiFab(cnba,dm,ncomps,ngE));
+#ifdef WARPX_MAG_LLG
                 Mfield_cax[lev][0].reset( new MultiFab(cnba,dm,3     ,ngE));
                 Mfield_cax[lev][1].reset( new MultiFab(cnba,dm,3     ,ngE));
                 Mfield_cax[lev][2].reset( new MultiFab(cnba,dm,3     ,ngE));
                 H_biasfield_cax[lev][0].reset( new MultiFab(cnba,dm,ncomps,ngE));
                 H_biasfield_cax[lev][1].reset( new MultiFab(cnba,dm,ncomps,ngE));
                 H_biasfield_cax[lev][2].reset( new MultiFab(cnba,dm,ncomps,ngE));
+#endif
             } else {
                 // Create the MultiFabs for B
                 Bfield_cax[lev][0].reset( new MultiFab(amrex::convert(cba,Bx_nodal_flag),dm,ncomps,ngE));
