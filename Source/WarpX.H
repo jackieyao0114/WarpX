@@ -371,6 +371,9 @@ public:
     void MacroscopicEvolveE (int lev, amrex::Real dt);
     void MacroscopicEvolveE (int lev, PatchType patch_type, amrex::Real dt);
 #ifdef WARPX_MAG_LLG
+    void EvolveM (         amrex::Real dt);
+    void EvolveM (int lev, amrex::Real dt);
+    void EvolveM (int lev, PatchType patch_type, amrex::Real dt);
     void MacroscopicEvolveM (         amrex::Real dt);
     void MacroscopicEvolveM (int lev, amrex::Real dt);
     void MacroscopicEvolveM (int lev, PatchType patch_type, amrex::Real dt);
