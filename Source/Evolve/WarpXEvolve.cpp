@@ -367,6 +367,8 @@ WarpX::OneStep_nosub (Real cur_time)
         if (WarpX::em_solver_medium == MediumForEM::Macroscopic) { //evolveM is not applicable to vacuum
             MacroscopicEvolveM(0.5*dt[0]); // we now have M^{n+1/2}
             FillBoundaryM(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
+        } else {
+            amrex::Abort("unsupported em_solver_medium for M field");
         }
 #endif
         if (WarpX::em_solver_medium == MediumForEM::Vacuum) {
@@ -402,6 +404,9 @@ WarpX::OneStep_nosub (Real cur_time)
             MacroscopicEvolveM(0.5*dt[0]); // we now have M^{n+1}
             if ( safe_guard_cells ){
                 FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
+            }
+            else {
+                amrex::Abort("unsupported em_solver_medium for M field");
             }
         }
 #endif // 
