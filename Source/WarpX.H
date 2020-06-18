@@ -103,15 +103,21 @@ public:
     // Initial field on the grid.
     static amrex::Vector<amrex::Real> E_external_grid;
     static amrex::Vector<amrex::Real> B_external_grid;
+
+#ifdef WARPX_MAG_LLG
     static amrex::Vector<amrex::Real> M_external_grid;
     static amrex::Vector<amrex::Real> H_bias_external_grid;
     //static std::array<amrex::Vector<amrex::Real>, 3 > M_external_grid; // define M initial value
+#endif
 
     // Initialization Type for External E and B on grid
     static std::string B_ext_grid_s;
     static std::string E_ext_grid_s;
+
+#ifdef WARPX_MAG_LLG
     static std::string M_ext_grid_s; // added for M;
     static std::string H_bias_ext_grid_s;
+#endif
 
     // Parser for B_external on the grid
     static std::string str_Bx_ext_grid_function;
@@ -121,6 +127,8 @@ public:
     static std::string str_Ex_ext_grid_function;
     static std::string str_Ey_ext_grid_function;
     static std::string str_Ez_ext_grid_function;
+
+#ifdef WARPX_MAG_LLG
     // Parser for M_external on the grid
     static std::string str_Mx_ext_grid_function;
     static std::string str_My_ext_grid_function;
@@ -129,6 +137,7 @@ public:
     static std::string str_Hx_bias_ext_grid_function;
     static std::string str_Hy_bias_ext_grid_function;
     static std::string str_Hz_bias_ext_grid_function;
+#endif
 
     // ParserWrapper for B_external on the grid
     std::unique_ptr<ParserWrapper<3> > Bxfield_parser;
@@ -138,6 +147,8 @@ public:
     std::unique_ptr<ParserWrapper<3> > Exfield_parser;
     std::unique_ptr<ParserWrapper<3> > Eyfield_parser;
     std::unique_ptr<ParserWrapper<3> > Ezfield_parser;
+
+#ifdef WARPX_MAG_LLG
     // ParserWrapper for M_external on the grid
     std::unique_ptr<ParserWrapper<3> > Mxfield_parser;
     std::unique_ptr<ParserWrapper<3> > Myfield_parser;
@@ -146,6 +157,7 @@ public:
     std::unique_ptr<ParserWrapper<3> > Hx_biasfield_parser;
     std::unique_ptr<ParserWrapper<3> > Hy_biasfield_parser;
     std::unique_ptr<ParserWrapper<3> > Hz_biasfield_parser;
+#endif
 
     // Algorithms
     static long current_deposition_algo;
