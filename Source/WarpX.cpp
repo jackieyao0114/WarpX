@@ -48,7 +48,7 @@ std::string WarpX::authors = "";
 std::string WarpX::B_ext_grid_s = "default";
 std::string WarpX::E_ext_grid_s = "default";
 
-#ifdef
+#ifdef WARPX_MAG_LLG
 std::string WarpX::M_ext_grid_s = "default";
 std::string WarpX::H_bias_ext_grid_s = "default";
 // "default" sets M to zero but will be overwritten by user defined input file
