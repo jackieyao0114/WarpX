@@ -83,7 +83,7 @@ public:
          iv_in is the input field index type, iv_out is the target index type
      */
 
-     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE // jordan_second_bug
      static amrex::Real face_avg_to_face (int i, int j, int k, int n, 
                                            amrex::IntVect iv_in, amrex::IntVect iv_out, 
                                            amrex::Array4<amrex::Real> const& Fieldcomp) {
@@ -91,11 +91,11 @@ public:
          return ( 0.125_rt * ( Fieldcomp(i                   , j                   , k                   , n)
                              + Fieldcomp(i+iv_in[0]-iv_out[0], j                   , k                   , n)
                              + Fieldcomp(i                   , j+iv_in[1]-iv_out[1], k                   , n)
-                             + Fieldcomp(i                   , j                   , k+iv_in[1]-iv_out[1], n)
+                             + Fieldcomp(i                   , j                   , k+iv_in[2]-iv_out[2], n)
                              + Fieldcomp(i+iv_in[0]-iv_out[0], j+iv_in[1]-iv_out[1], k                   , n)
-                             + Fieldcomp(i+iv_in[0]-iv_out[0], j                   , k+iv_in[1]-iv_out[1], n)
-                             + Fieldcomp(i                   , j+iv_in[1]-iv_out[1], k+iv_in[1]-iv_out[1], n)
-                             + Fieldcomp(i+iv_in[0]-iv_out[0], j+iv_in[1]-iv_out[1], k+iv_in[1]-iv_out[1], n)
+                             + Fieldcomp(i+iv_in[0]-iv_out[0], j                   , k+iv_in[2]-iv_out[2], n)
+                             + Fieldcomp(i                   , j+iv_in[1]-iv_out[1], k+iv_in[2]-iv_out[2], n)
+                             + Fieldcomp(i+iv_in[0]-iv_out[0], j+iv_in[1]-iv_out[1], k+iv_in[2]-iv_out[2], n)
                              )); 
      };
 

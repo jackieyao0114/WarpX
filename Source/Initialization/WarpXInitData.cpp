@@ -446,6 +446,7 @@ WarpX::InitLevelData (int lev, Real /*time*/)
     // provided in the input file.
     if (H_bias_ext_grid_s == "parse_h_bias_ext_grid_function") {
 
+	    amrex::Print() << "Get H_bias from the parser " << std::endl;
 #ifdef WARPX_DIM_RZ
        amrex::Abort("H bias parser for external fields does not work with RZ -- TO DO");
 #endif
@@ -582,11 +583,16 @@ WarpX::InitializeExternalFieldsOnGridUsingParser (
     amrex::IntVect x_nodal_flag = mfx->ixType().toIntVect();
     amrex::IntVect y_nodal_flag = mfy->ixType().toIntVect();
     amrex::IntVect z_nodal_flag = mfz->ixType().toIntVect();
+
+    amrex::IntVect x_tile_box_flag = mfx->ixType().toIntVect()+amrex::IntVect(mfx->nGrow());//jordan_third_bug
+    amrex::IntVect y_tile_box_flag = mfy->ixType().toIntVect()+amrex::IntVect(mfy->nGrow());
+    amrex::IntVect z_tile_box_flag = mfz->ixType().toIntVect()+amrex::IntVect(mfz->nGrow());
+
     for ( MFIter mfi(*mfx, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
-       const Box& tbx = mfi.growntilebox(x_nodal_flag);
-       const Box& tby = mfi.growntilebox(y_nodal_flag);
-       const Box& tbz = mfi.growntilebox(z_nodal_flag);
+       const Box& tbx = mfi.growntilebox(x_tile_box_flag);//jordan_third_bug
+       const Box& tby = mfi.growntilebox(y_tile_box_flag);
+       const Box& tbz = mfi.growntilebox(z_tile_box_flag);
 
        auto const& mfxfab = mfx->array(mfi);
        auto const& mfyfab = mfy->array(mfi);
