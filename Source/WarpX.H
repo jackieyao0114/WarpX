@@ -367,9 +367,11 @@ public:
     void EvolveB (int lev, PatchType patch_type, amrex::Real dt);
     void EvolveE (int lev, PatchType patch_type, amrex::Real dt);
     void EvolveF (int lev, PatchType patch_type, amrex::Real dt, DtType dt_type);
+
     void MacroscopicEvolveE (         amrex::Real dt);
     void MacroscopicEvolveE (int lev, amrex::Real dt);
     void MacroscopicEvolveE (int lev, PatchType patch_type, amrex::Real dt);
+<<<<<<< HEAD
 #ifdef WARPX_MAG_LLG
     void EvolveM (         amrex::Real dt);
     void EvolveM (int lev, amrex::Real dt);
@@ -379,6 +381,8 @@ public:
     void MacroscopicEvolveM (int lev, PatchType patch_type, amrex::Real dt);
 #endif
     void FieldGather ();
+=======
+>>>>>>> 2a3e4cfa741b1d25531d18093df6a0de18121061
 
     /** \brief apply QED correction on electric field
      * \param dt vector of time steps (for all levels)
@@ -432,6 +436,22 @@ public:
     void CopyJPML ();
 
     PML* GetPML (int lev);
+
+    /** Run the ionization module on all species */
+    void doFieldIonization ();
+    /** Run the ionization module on all species at level lev
+     * \param lev level
+     */
+    void doFieldIonization (int lev);
+
+#ifdef WARPX_QED
+    /** Run the QED module on all species */
+    void doQEDEvents ();
+    /** Run the QED module on all species at level lev
+     * \param lev level
+     */
+    void doQEDEvents (int lev);
+#endif
 
     void PushParticlesandDepose (int lev, amrex::Real cur_time, DtType a_dt_type=DtType::Full);
     void PushParticlesandDepose (         amrex::Real cur_time);
@@ -495,6 +515,11 @@ public:
                                                   std::array<amrex::Real,3> galilean_shift, int lev);
     static std::array<amrex::Real,3> UpperCorner (const amrex::Box& bx, int lev);
 
+    /*
+      /brief This computes the lower of the problem domain, taking into account any shift when using the Galilean algorithm.
+     */
+    std::array<amrex::Real,3> LowerCornerWithGalilean (const amrex::Box& bx, const amrex::Array<amrex::Real,3>& v_galilean, int lev);
+
     static amrex::IntVect RefRatio (int lev);
 
     static const amrex::iMultiFab* CurrentBufferMasks (int lev);
@@ -545,8 +570,17 @@ public:
      * This function initializes the E and B fields on each level
      * using the parser and the user-defined function for the external fields.
      * The subroutine will parse the x_/y_z_external_grid_function and
-     * then, the B or E multifab is initialized based on the (x,y,z) position
-     * on the staggered yee-grid or cell-centered grid.
+     * then, the field multifab is initialized based on the (x,y,z) position
+     * on the staggered yee-grid or cell-centered grid, in the interior cells
+     * and guard cells.
+     *
+     * \param[in] mfx, x-component of the field to be initialized
+     * \param[in] mfy, y-component of the field to be initialized
+     * \param[in] mfz, z-component of the field to be initialized
+     * \param[in] xfield_parser, parser function to initialize x-field
+     * \param[in] yfield_parser, parser function to initialize y-field
+     * \param[in] zfield_parser, parser function to initialize z-field
+     * \param[in] lev, level of the Multifabs that is initialized
      */
     void InitializeExternalFieldsOnGridUsingParser (
         amrex::MultiFab *mfx, amrex::MultiFab *mfy, amrex::MultiFab *mfz,
