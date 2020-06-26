@@ -371,7 +371,6 @@ public:
     void MacroscopicEvolveE (         amrex::Real dt);
     void MacroscopicEvolveE (int lev, amrex::Real dt);
     void MacroscopicEvolveE (int lev, PatchType patch_type, amrex::Real dt);
-<<<<<<< HEAD
 #ifdef WARPX_MAG_LLG
     void EvolveM (         amrex::Real dt);
     void EvolveM (int lev, amrex::Real dt);
@@ -381,8 +380,6 @@ public:
     void MacroscopicEvolveM (int lev, PatchType patch_type, amrex::Real dt);
 #endif
     void FieldGather ();
-=======
->>>>>>> 2a3e4cfa741b1d25531d18093df6a0de18121061
 
     /** \brief apply QED correction on electric field
      * \param dt vector of time steps (for all levels)
