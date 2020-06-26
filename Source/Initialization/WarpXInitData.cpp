@@ -577,7 +577,6 @@ WarpX::InitializeExternalFieldsOnGridUsingParser (
        ParserWrapper<3> *xfield_parser, ParserWrapper<3> *yfield_parser,
        ParserWrapper<3> *zfield_parser, const int lev)
 {
-
     const auto dx_lev = geom[lev].CellSizeArray();
     const RealBox& real_box = geom[lev].ProbDomain();
     amrex::IntVect x_nodal_flag = mfx->ixType().toIntVect();
@@ -587,14 +586,13 @@ WarpX::InitializeExternalFieldsOnGridUsingParser (
     for ( MFIter mfi(*mfx, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
 
-       const Box& tbx = mfi.tilebox(x_nodal_flag,mfx->nGrowVect());
-       const Box& tby = mfi.tilebox(y_nodal_flag,mfy->nGrowVect());
-       const Box& tbz = mfi.tilebox(z_nodal_flag,mfz->nGrowVect());
+       const amrex::Box& tbx = mfi.tilebox( x_nodal_flag, mfx->nGrowVect() );
+       const amrex::Box& tby = mfi.tilebox( y_nodal_flag, mfy->nGrowVect() );
+       const amrex::Box& tbz = mfi.tilebox( z_nodal_flag, mfz->nGrowVect() );
 
        auto const& mfxfab = mfx->array(mfi);
        auto const& mfyfab = mfy->array(mfi);
        auto const& mfzfab = mfz->array(mfi);
-
        amrex::ParallelFor (tbx, tby, tbz,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) {
                 // Shift required in the x-, y-, or z- position
