@@ -119,7 +119,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
               // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
               // keep the interpolation
               Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_gamma_arr); 
-              Real Gil_damp = PhysConst::mu0 * mag_gamma_interp
+              Real Gil_damp = - PhysConst::mu0 * mag_gamma_interp
                               * MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_alpha_arr)
                               / MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr);
               
