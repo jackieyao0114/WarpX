@@ -587,7 +587,7 @@ WarpX::InitializeExternalFieldsOnGridUsingParser (
     for ( MFIter mfi(*mfx, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
 
-       const Box& tbx = mfi.tilebox(x_nodal_flag,mfx->nGrowVect());//jordan_third_bug
+       const Box& tbx = mfi.tilebox(x_nodal_flag,mfx->nGrowVect());
        const Box& tby = mfi.tilebox(y_nodal_flag,mfy->nGrowVect());
        const Box& tbz = mfi.tilebox(z_nodal_flag,mfz->nGrowVect());
 
