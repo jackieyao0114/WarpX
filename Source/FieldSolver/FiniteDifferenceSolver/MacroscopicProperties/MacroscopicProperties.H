@@ -91,11 +91,11 @@ public:
          return ( 0.125_rt * ( Fieldcomp(i                   , j                   , k                   , n)
                              + Fieldcomp(i+iv_in[0]-iv_out[0], j                   , k                   , n)
                              + Fieldcomp(i                   , j+iv_in[1]-iv_out[1], k                   , n)
-                             + Fieldcomp(i                   , j                   , k+iv_in[1]-iv_out[1], n)
+                             + Fieldcomp(i                   , j                   , k+iv_in[2]-iv_out[2], n)
                              + Fieldcomp(i+iv_in[0]-iv_out[0], j+iv_in[1]-iv_out[1], k                   , n)
-                             + Fieldcomp(i+iv_in[0]-iv_out[0], j                   , k+iv_in[1]-iv_out[1], n)
-                             + Fieldcomp(i                   , j+iv_in[1]-iv_out[1], k+iv_in[1]-iv_out[1], n)
-                             + Fieldcomp(i+iv_in[0]-iv_out[0], j+iv_in[1]-iv_out[1], k+iv_in[1]-iv_out[1], n)
+                             + Fieldcomp(i+iv_in[0]-iv_out[0], j                   , k+iv_in[2]-iv_out[2], n)
+                             + Fieldcomp(i                   , j+iv_in[1]-iv_out[1], k+iv_in[2]-iv_out[2], n)
+                             + Fieldcomp(i+iv_in[0]-iv_out[0], j+iv_in[1]-iv_out[1], k+iv_in[2]-iv_out[2], n)
                              )); 
      };
 
