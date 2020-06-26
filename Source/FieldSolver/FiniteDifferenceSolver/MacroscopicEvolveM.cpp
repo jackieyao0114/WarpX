@@ -62,8 +62,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
         // static constexpr amrex::Real Ms = 1e4;
         // Real constexpr cons1 = -mag_gamma_interp; // should be mu0*gamma, mu0 is absorbed by B used in this case
         // Real constexpr cons2 = -cons1*alpha/Ms; // factor of the second term in scalar LLG
-           
-	amrex::Print() << "In the MacroscopicEvolveMCartesian " <<std::endl;
 
         for (MFIter mfi(*Mfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi) /* remember to FIX */
         {
@@ -125,7 +123,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
                               * MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_alpha_arr)
                               / MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr);
 
-	       
               // now you have access to use M_xface(i,j,k,0) M_xface(i,j,k,1), M_xface(i,j,k,2), Hx(i,j,k), Hy, Hz on the RHS of these update lines below
 	      // x component on x-faces of grid
               M_xface(i, j, k, 0) += dt * (-PhysConst::mu0 * mag_gamma_interp) * ( M_xface(i, j, k, 1) * Hz_eff - M_xface(i, j, k, 2) * Hy_eff)
@@ -142,7 +139,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
                 + dt * Gil_damp * ( M_xface(i, j, k, 0) * ( M_xface(i, j, k, 2) * Hx_eff - M_xface(i, j, k, 0) * Hz_eff)
                 - M_xface(i, j, k, 1) * ( M_xface(i, j, k, 1) * Hz_eff - M_xface(i, j, k, 2) * Hy_eff));
  
-           },
+              },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
 
@@ -183,7 +180,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
                 + dt * Gil_damp * ( M_yface(i, j, k, 0) * ( M_yface(i, j, k, 2) * Hx_eff - M_yface(i, j, k, 0) * Hz_eff)
                 - M_yface(i, j, k, 1) * ( M_yface(i, j, k, 1) * Hz_eff - M_yface(i, j, k, 2) * Hy_eff));
  
-            },
+              },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
 
@@ -222,8 +219,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
               // z component on z-faces of grid
               M_zface(i, j, k, 2) += dt * (-PhysConst::mu0 * mag_gamma_interp) * ( M_zface(i, j, k, 0) * Hy_eff - M_zface(i, j, k, 1) * Hx_eff)
                 + dt * Gil_damp * ( M_zface(i, j, k, 0) * ( M_zface(i, j, k, 2) * Hx_eff - M_zface(i, j, k, 0) * Hz_eff)
-                - M_zface(i, j, k, 1) * ( M_zface(i, j, k, 1) * Hz_eff - M_yface(i, j, k, 2) * Hy_eff));
- 
+                - M_zface(i, j, k, 1) * ( M_zface(i, j, k, 1) * Hz_eff - M_yface(i, j, k, 2) * Hy_eff)); 
               }
             );
         }

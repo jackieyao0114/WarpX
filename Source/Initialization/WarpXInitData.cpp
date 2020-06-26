@@ -446,7 +446,6 @@ WarpX::InitLevelData (int lev, Real /*time*/)
     // provided in the input file.
     if (H_bias_ext_grid_s == "parse_h_bias_ext_grid_function") {
 
-	    amrex::Print() << "Get H_bias from the parser " << std::endl;
 #ifdef WARPX_DIM_RZ
        amrex::Abort("H bias parser for external fields does not work with RZ -- TO DO");
 #endif

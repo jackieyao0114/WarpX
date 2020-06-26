@@ -83,7 +83,7 @@ public:
          iv_in is the input field index type, iv_out is the target index type
      */
 
-     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE // jordan_second_bug
+     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
      static amrex::Real face_avg_to_face (int i, int j, int k, int n, 
                                            amrex::IntVect iv_in, amrex::IntVect iv_out, 
                                            amrex::Array4<amrex::Real> const& Fieldcomp) {

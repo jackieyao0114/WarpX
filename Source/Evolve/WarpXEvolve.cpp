@@ -365,7 +365,6 @@ WarpX::OneStep_nosub (Real cur_time)
 
 #ifdef WARPX_MAG_LLG
         if (WarpX::em_solver_medium == MediumForEM::Macroscopic) { //evolveM is not applicable to vacuum
-            FillBoundaryM(guard_cells.ng_FieldSolver, IntVect::TheZeroVector()); // jordan_second_bug
             MacroscopicEvolveM(0.5*dt[0]); // we now have M^{n+1/2}
             FillBoundaryM(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
         } else {
@@ -386,8 +385,6 @@ WarpX::OneStep_nosub (Real cur_time)
         EvolveF(0.5*dt[0], DtType::SecondHalf);
 
         EvolveB(0.5*dt[0]); // We now have B^{n+1}
-        // FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra); //jordan_second_bug? 
- 
         //why not implementing FillBoundary here? possibly: implemented in if{safe_guard_cells} Line 452
         if (do_pml) {
             FillBoundaryF(guard_cells.ng_alloc_F);
@@ -404,7 +401,6 @@ WarpX::OneStep_nosub (Real cur_time)
 #ifdef WARPX_MAG_LLG
         if (WarpX::em_solver_medium == MediumForEM::Macroscopic) {
             MacroscopicEvolveM(0.5*dt[0]); // we now have M^{n+1}
-            // FillBoundaryM(guard_cells.ng_FieldSolver, IntVect::TheZeroVector()); // jordan_second_bug?
             if ( safe_guard_cells ){
                 FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             }  
