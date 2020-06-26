@@ -220,8 +220,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
               M_zface(i, j, k, 2) += dt * (-PhysConst::mu0 * mag_gamma_interp) * ( M_zface(i, j, k, 0) * Hy_eff - M_zface(i, j, k, 1) * Hx_eff)
                 + dt * Gil_damp * ( M_zface(i, j, k, 0) * ( M_zface(i, j, k, 2) * Hx_eff - M_zface(i, j, k, 0) * Hz_eff)
                 - M_zface(i, j, k, 1) * ( M_zface(i, j, k, 1) * Hz_eff - M_yface(i, j, k, 2) * Hy_eff)); 
-              }
-            );
+              });
         }
     }
 #endif
