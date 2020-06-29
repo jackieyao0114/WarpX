@@ -385,7 +385,7 @@ WarpX::OneStep_nosub (Real cur_time)
         EvolveF(0.5*dt[0], DtType::SecondHalf);
 
         EvolveB(0.5*dt[0]); // We now have B^{n+1}
-        
+
         //why not implementing FillBoundary here? possibly: implemented in if{safe_guard_cells} Line 452
         if (do_pml) {
             FillBoundaryF(guard_cells.ng_alloc_F);
@@ -404,12 +404,12 @@ WarpX::OneStep_nosub (Real cur_time)
             MacroscopicEvolveM(0.5*dt[0]); // we now have M^{n+1}
             if ( safe_guard_cells ){
                 FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
-            }  
+            }
         }
         else {
                 amrex::Abort("unsupported em_solver_medium for M field");
         }
-#endif // 
+#endif //
 #endif // end for PSATD
     }
 }

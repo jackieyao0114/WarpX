@@ -179,7 +179,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
                          + T_Algo::DownwardDy(Bz, coefs_y, n_coefs_y, i, j, k, 0))/PhysConst::mu0
                  - T_Algo::DownwardDz(M_yface, coefs_z, n_coefs_z, i, j, k, 1)
                          + T_Algo::DownwardDy(M_zface, coefs_y, n_coefs_y, i, j, k, 2));
-#else     
+#else
             Ex(i, j, k) = alpha * Ex(i, j, k) + (beta/mu)
                      * ( - T_Algo::DownwardDz(By, coefs_z, n_coefs_z, i, j, k)
                          + T_Algo::DownwardDy(Bz, coefs_y, n_coefs_y, i, j, k));

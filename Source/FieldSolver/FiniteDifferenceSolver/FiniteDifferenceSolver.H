@@ -210,7 +210,7 @@ class FiniteDifferenceSolver
             std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Bfield,
             amrex::Real const dt,
             std::unique_ptr<MacroscopicProperties> const& macroscopic_properties );
-#endif            
+#endif
 
         template< typename T_Algo >
         void EvolveBPMLCartesian (
