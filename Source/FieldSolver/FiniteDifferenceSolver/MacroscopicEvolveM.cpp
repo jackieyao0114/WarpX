@@ -62,6 +62,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
         // static constexpr amrex::Real Ms = 1e4;
         // Real constexpr cons1 = -mag_gamma_interp; // should be mu0*gamma, mu0 is absorbed by B used in this case
         // Real constexpr cons2 = -cons1*alpha/Ms; // factor of the second term in scalar LLG
+        Real M_normalized_error = 0.1; // normalization error of M field for checking
 
         for (MFIter mfi(*Mfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi) /* remember to FIX */
         {
@@ -138,7 +139,23 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
               M_xface(i, j, k, 2) += dt * (-PhysConst::mu0 * mag_gamma_interp) * ( M_xface(i, j, k, 0) * Hy_eff - M_xface(i, j, k, 1) * Hx_eff)
                 + dt * Gil_damp * ( M_xface(i, j, k, 0) * ( M_xface(i, j, k, 2) * Hx_eff - M_xface(i, j, k, 0) * Hz_eff)
                 - M_xface(i, j, k, 1) * ( M_xface(i, j, k, 1) * Hz_eff - M_xface(i, j, k, 2) * Hy_eff));
- 
+
+              // temporary normalized magnitude of M_xface field at the fixed point
+              // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
+              Real M_normalized = sqrt( pow(M_xface(i, j, k, 0),2.0) + pow(M_xface(i, j, k, 1),2.0) + pow(M_xface(i, j, k, 2),2.0) ) /
+                                  MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr);
+
+#ifdef AMREX_DEBUG
+              // check the normalized error
+              if ( std::abs(1.-M_normalized) > M_normalized_error ){
+                  printf("i = %d, j=%d, k=%d\n", i, j, k);
+                  amrex::Abort("Exceed the normalized error of the M_xface field");
+              }
+#endif
+              // normalize the M_xface field
+              M_xface(i,j,k,0) = M_xface(i,j,k,0)/M_normalized;
+              M_xface(i,j,k,1) = M_xface(i,j,k,1)/M_normalized;
+              M_xface(i,j,k,2) = M_xface(i,j,k,2)/M_normalized; 
               },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
@@ -179,7 +196,23 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
               M_yface(i, j, k, 2) += dt * (-PhysConst::mu0 * mag_gamma_interp) * ( M_yface(i, j, k, 0) * Hy_eff - M_yface(i, j, k, 1) * Hx_eff)
                 + dt * Gil_damp * ( M_yface(i, j, k, 0) * ( M_yface(i, j, k, 2) * Hx_eff - M_yface(i, j, k, 0) * Hz_eff)
                 - M_yface(i, j, k, 1) * ( M_yface(i, j, k, 1) * Hz_eff - M_yface(i, j, k, 2) * Hy_eff));
- 
+
+              // temporary normalized magnitude of M_yface field at the fixed point
+              // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
+              Real M_normalized = sqrt( pow(M_yface(i, j, k, 0),2.0) + pow(M_yface(i, j, k, 1),2.0) + pow(M_yface(i, j, k, 2),2.0) ) /
+                                  MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_Ms_arr);
+
+#ifdef AMREX_DEBUG
+              // check the normalized error
+              if ( std::abs(1.-M_normalized) > M_normalized_error ){
+                 printf("i = %d, j=%d, k=%d\n", i, j, k);
+                 amrex::Abort("Exceed the normalized error of the M_yface field");
+              }
+#endif
+              // normalize the M_yface field
+              M_yface(i,j,k,0) = M_yface(i,j,k,0)/M_normalized;
+              M_yface(i,j,k,1) = M_yface(i,j,k,1)/M_normalized;
+              M_yface(i,j,k,2) = M_yface(i,j,k,2)/M_normalized; 
               },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
@@ -220,7 +253,23 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
               M_zface(i, j, k, 2) += dt * (-PhysConst::mu0 * mag_gamma_interp) * ( M_zface(i, j, k, 0) * Hy_eff - M_zface(i, j, k, 1) * Hx_eff)
                 + dt * Gil_damp * ( M_zface(i, j, k, 0) * ( M_zface(i, j, k, 2) * Hx_eff - M_zface(i, j, k, 0) * Hz_eff)
                 - M_zface(i, j, k, 1) * ( M_zface(i, j, k, 1) * Hz_eff - M_yface(i, j, k, 2) * Hy_eff)); 
-              });
+
+              // temporary normalized magnitude of M_zface field at the fixed point
+              // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
+              Real M_normalized = sqrt( pow(M_zface(i, j, k, 0),2.0) + pow(M_zface(i, j, k, 1),2.0) + pow(M_zface(i, j, k, 2),2.0) ) /
+                                  MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_Ms_arr);
+
+#ifdef AMREX_DEBUG
+              // check the normalized error
+              if ( std::abs(1.-M_normalized) > M_normalized_error ){
+                 printf("i = %d, j=%d, k=%d\n", i, j, k);
+                 amrex::Abort("Exceed the normalized error of the M_zface field");
+              }
+#endif
+              // normalize the M_zface field
+              M_zface(i,j,k,0) = M_zface(i,j,k,0)/M_normalized;
+              M_zface(i,j,k,1) = M_zface(i,j,k,1)/M_normalized;
+              M_zface(i,j,k,2) = M_zface(i,j,k,2)/M_normalized;});
         }
     }
 #endif
