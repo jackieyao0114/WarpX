@@ -38,6 +38,8 @@ void FiniteDifferenceSolver::EvolveM (
         amrex::Abort("Unknown algorithm");
     } */
 
+    amrex::Abort("The function EvolveM should not be used for macroscopic materials");
+
     if (m_fdtd_algo == MaxwellSolverAlgo::Yee) {
 
         EvolveMCartesian <CartesianYeeAlgorithm> (Mfield, Bfield, dt);
@@ -58,7 +60,7 @@ void FiniteDifferenceSolver::EvolveM (
     {
         static constexpr amrex::Real mag_alpha = 1e-4;
         static constexpr amrex::Real Ms = 8e5;
-        static constexpr amrex::Real mag_gamma = 1.759e-11; // gyromagnetic ratio
+        static constexpr amrex::Real mag_gamma = 1.759e11; // gyromagnetic ratio
 
         Real constexpr cons1 = -mag_gamma; // should be mu0*mag_gamma, mu0 is absorbed by B used in this case
         Real constexpr cons2 = -cons1*mag_alpha/Ms; // factor of the second term in scalar LLG
