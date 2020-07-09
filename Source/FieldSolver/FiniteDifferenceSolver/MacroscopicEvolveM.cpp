@@ -23,23 +23,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
     amrex::Real const dt,
     std::unique_ptr<MacroscopicProperties> const& macroscopic_properties) {
 
-    /* if (m_do_nodal) {
-
-        EvolveMCartesian <CartesianNodalAlgorithm> ( Mfield, Bfield, dt );
-
-    } else if (m_fdtd_algo == MaxwellSolverAlgo::Yee) {
-
-        EvolveMCartesian <CartesianYeeAlgorithm> ( Mfield, Bfield, dt );
-
-    } else if (m_fdtd_algo == MaxwellSolverAlgo::CKC) {
-
-        EvolveMCartesian <CartesianCKCAlgorithm> ( Mfield, Bfield, dt );
-    }
-    else
-    {
-        amrex::Abort("Unknown algorithm");
-    } */
-
     if (m_fdtd_algo == MaxwellSolverAlgo::Yee)
     {
         MacroscopicEvolveMCartesian <CartesianYeeAlgorithm> (Mfield, H_biasfield, Bfield, dt, macroscopic_properties);
