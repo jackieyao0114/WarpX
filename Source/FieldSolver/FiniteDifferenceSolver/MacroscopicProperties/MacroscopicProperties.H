@@ -94,11 +94,15 @@ public:
                              )); 
      };
 
-     /** 
-     calculate local H_maxwell
-     note Bcomp always has n=0 because it is a 3d matrix
+     /*
+     calculate local H_maxwell = B / mu - M
+     n is the component of the H field we are interested in
+     iv_in is the nodality of the input B field, Bcomp
+     iv_out is the nodality of the output
+     note we wall face_avg_to_face on the B field with n=0 (B has only 1 component)
      while Mcomp has n=0,1,2, indicating x,y,z components
-     **/
+     note Mcomp has the same nodality as the final output H_maxwell
+     */
      AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
      static amrex::Real getH_Maxwell (int i, int j, int k, int n,
                                    amrex::IntVect iv_in, amrex::IntVect iv_out, 
