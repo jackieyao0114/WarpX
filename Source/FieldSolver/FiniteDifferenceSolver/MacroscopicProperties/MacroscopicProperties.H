@@ -65,24 +65,18 @@ public:
          ));
      };
      
-     /*  Hy (0,1,0) components (in) to Hx face (1,0,0) (out)
-         Hz (0,0,1) components to Hx face (1,0,0)
-         Real Hy_xtemp = 0.25*(Hy(i,j,k)+Hy(i,j+1,k)+Hy(i-1,j,k)+Hy(i-1,j+1,k));
-         Real Hz_xtemp = 0.25*(Hz(i,j,k)+Hz(i-1,j,k)+Hz(i,j,k+1)+Hz(i-1,j,k+1));
-
-         Hx (1,0,0) components to Hy face (0,1,0)
-         Hz (0,0,1) components to Hy face (0,1,0)
-         Real Hx_ytemp = 0.25*(Hx(i,j,k)+Hx(i+1,j,k)+Hx(i,j-1,k)+Hx(i+1,j-1,k));
-         Real Hz_ytemp = 0.25*(Hz(i,j,k)+Hz(i,j,k+1)+Hz(i,j-1,k)+Hz(i,j-1,k+1));
-       
-         Hx (1,0,0) components to Hz face (0,0,1)
-         Hy (0,1,0) components to Hz face (0,0,1)
-
-         Real Hx_ztemp = 0.25*(Hx(i,j,k)+Hx(i+1,j,k)+Hx(i+1,j,k-1)+Hx(i,j,k-1));
-         Real Hy_ztemp = 0.25*(Hy(i,j,k)+Hy(i,j,k-1)+Hy(i,j+1,k)+Hy(i,j+1,k-1));
-
+     /*  
+         This routine averages a face-centered field onto a (possibly different nodality) face.
          i,j,k are the spatial indices, n is the component index
-         iv_in is the input field index type, iv_out is the target index type
+         iv_in is the nodality of the input field, iv_out is the nodality of the output.
+         Thus, if iv_in is the same as iv_out the value on the face is returned.
+         Some other examples when iv_in is different from iv_out:
+         
+         Hy (0,1,0) components (in) to Hx face (1,0,0) (out)
+         return 0.25*(Hy(i,j,k)+Hy(i,j+1,k)+Hy(i-1,j,k)+Hy(i-1,j+1,k));
+
+         Hz (0,0,1) components to Hx face (1,0,0)
+         return 0.25*(Hz(i,j,k)+Hz(i-1,j,k)+Hz(i,j,k+1)+Hz(i-1,j,k+1));
      */
      AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
      static amrex::Real face_avg_to_face (int i, int j, int k, int n, 
