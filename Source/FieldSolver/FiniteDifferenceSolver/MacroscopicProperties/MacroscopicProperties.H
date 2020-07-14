@@ -50,6 +50,7 @@ public:
      // interpolate the magnetic properties to B locations
      // magnetic properties are cell nodal
      // B locations are face centered
+     // iv is an IntVect with a 1 in the face direction of interest, and 0 in the others
      AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
      static amrex::Real macro_avg_to_face (int i, int j, int k, amrex::IntVect iv, amrex::Array4<amrex::Real> const& macro_mag_prop){
          using namespace amrex;
