@@ -96,9 +96,7 @@ WarpX::Evolve (int numsteps)
             FillBoundaryE(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
 #ifdef WARPX_MAG_LLG
-            if (WarpX::em_solver_medium == MediumForEM::Macroscopic) {
-                FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
-            }
+            FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
 #endif
             UpdateAuxilaryData();
             // on first step, push p by -0.5*dt
