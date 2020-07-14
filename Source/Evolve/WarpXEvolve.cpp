@@ -115,9 +115,7 @@ WarpX::Evolve (int numsteps)
             FillBoundaryE(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
             FillBoundaryB(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
 #ifdef WARPX_MAG_LLG
-            if (WarpX::em_solver_medium == MediumForEM::Macroscopic) {
-                FillBoundaryM(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
-            }
+            FillBoundaryM(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
 #endif
             // E and B: enough guard cells to update Aux or call Field Gather in fp and cp
             // Need to update Aux on lower levels, to interpolate to higher levels.
