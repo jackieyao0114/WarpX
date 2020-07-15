@@ -146,7 +146,7 @@ private:
      std::unique_ptr<amrex::MultiFab> m_mag_Ms_mf;
      /** Multifab storing spatially varying Gilbert damping */
      std::unique_ptr<amrex::MultiFab> m_mag_alpha_mf;
-     /** Multifab for m_mag_gamma */
+     /** Multifab storing spatially varying gyromagnetic ratio */
      std::unique_ptr<amrex::MultiFab> m_mag_gamma_mf;
 #endif
 
