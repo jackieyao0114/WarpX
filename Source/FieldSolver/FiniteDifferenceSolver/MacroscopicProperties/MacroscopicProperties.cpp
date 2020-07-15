@@ -93,6 +93,7 @@ MacroscopicProperties::InitData ()
     m_mu_mf = std::make_unique<MultiFab>(amrex::convert(ba,amrex::IntVect::TheUnitVector()), dmap, 1, ng);
 
 #ifdef WARPX_MAG_LLG
+    // all magnetic macroparameters are stored on cell nodes
     m_mag_Ms_mf = std::make_unique<MultiFab>(amrex::convert(ba,amrex::IntVect::TheUnitVector()), dmap, 1, ng);
     m_mag_alpha_mf = std::make_unique<MultiFab>(amrex::convert(ba,amrex::IntVect::TheUnitVector()), dmap, 1, ng);
     m_mag_gamma_mf = std::make_unique<MultiFab>(amrex::convert(ba,amrex::IntVect::TheUnitVector()), dmap, 1, ng);
@@ -197,4 +198,3 @@ MacroscopicProperties::InitializeMacroMultiFabUsingParser (
 
 
 }
-
