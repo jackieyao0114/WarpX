@@ -157,7 +157,7 @@ MacroscopicProperties::InitData ()
         InitializeMacroMultiFabUsingParser(m_mag_gamma_mf.get(), m_mag_gamma_parser.get(), lev);
     }
     if (m_mag_gamma_mf->max(0,m_mag_gamma_mf->nGrow()) > 0) {
-        Abort("gamma should be negative, but the user input has positive values");
+        amrex::Abort("gamma should be negative, but the user input has positive values");
     }
 #endif
 }
