@@ -46,14 +46,14 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
 
         for (MFIter mfi(*Mfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi) /* remember to FIX */
         {
-          auto& mag_Ms_mf = macroscopic_properties->getmag_Ms_mf();
-          auto& mag_alpha_mf = macroscopic_properties->getmag_alpha_mf();
-          auto& mag_gamma_mf = macroscopic_properties->getmag_gamma_mf();
-          // extract material properties
-          Array4<Real> const& mag_Ms_arr = mag_Ms_mf.array(mfi);
-          Array4<Real> const& mag_alpha_arr = mag_alpha_mf.array(mfi);
-          Array4<Real> const& mag_gamma_arr = mag_gamma_mf.array(mfi);
-
+            auto& mag_Ms_mf = macroscopic_properties->getmag_Ms_mf();
+            auto& mag_alpha_mf = macroscopic_properties->getmag_alpha_mf();
+            auto& mag_gamma_mf = macroscopic_properties->getmag_gamma_mf();
+            // extract material properties
+            Array4<Real> const& mag_Ms_arr = mag_Ms_mf.array(mfi);
+            Array4<Real> const& mag_alpha_arr = mag_alpha_mf.array(mfi);
+            Array4<Real> const& mag_gamma_arr = mag_gamma_mf.array(mfi);
+            
             // extract field data
             Array4<Real> const& M_xface = Mfield[0]->array(mfi); // note M_xface include x,y,z components at |_x faces
             Array4<Real> const& M_yface = Mfield[1]->array(mfi); // note M_yface include x,y,z components at |_y faces
