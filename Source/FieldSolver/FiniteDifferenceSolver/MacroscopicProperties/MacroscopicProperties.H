@@ -142,7 +142,7 @@ private:
      /** Multifab for m_mu */
      std::unique_ptr<amrex::MultiFab> m_mu_mf;
 #ifdef WARPX_MAG_LLG
-     /** Multifab for m_mag_Ms */
+     /** Multifab storing spatially varying saturation magnetization */
      std::unique_ptr<amrex::MultiFab> m_mag_Ms_mf;
      /** Multifab for m_mag_alpha */
      std::unique_ptr<amrex::MultiFab> m_mag_alpha_mf;
