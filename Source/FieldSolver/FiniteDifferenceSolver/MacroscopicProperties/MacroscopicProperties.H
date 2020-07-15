@@ -104,7 +104,7 @@ public:
      n is the component of the H field we are interested in
      iv_in is the nodality of the input B field, Bcomp
      iv_out is the nodality of the output
-     note we wall face_avg_to_face on the B field with n=0 (B has only 1 component)
+     Note, we call face_avg_to_face on the B field with n=0 (B has only 1 component)
      while Mcomp has n=0,1,2, indicating x,y,z components
      note Mcomp has the same nodality as the final output H_maxwell
      */
