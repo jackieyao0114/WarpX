@@ -76,7 +76,12 @@ public:
          return 0.25*(Hy(i,j,k)+Hy(i,j+1,k)+Hy(i-1,j,k)+Hy(i-1,j+1,k));
 
          Hz (0,0,1) components to Hx face (1,0,0)
-         return 0.25*(Hz(i,j,k)+Hz(i-1,j,k)+Hz(i,j,k+1)+Hz(i-1,j,k+1));
+         \param[in] Fieldcomp  floating point data to be interpolated from one staggering location to another.
+         \param[in] iv_in           nodality of the input field, Fieldcomp
+         \param[in] iv_out         nodality of the output
+         \param[in] i                index along x of the Array4 Fieldcomp
+         \param[in] j                index along y of the Array4 Fieldcomp
+         \param[in] k                index along z of the Array4 Fieldcomp
      */
      AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
      static amrex::Real face_avg_to_face (int i, int j, int k, int n, 
