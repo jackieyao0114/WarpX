@@ -100,7 +100,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
               // Real Hz_eff = Hz_xface + Hz_bias_xface;
 
               // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
-              // keep the interpolation
+              // keep the interpolation. The IntVect is (1,0,0) to interpolate values to the x-face.
               Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_gamma_arr); 
               Real Gil_damp = PhysConst::mu0 * mag_gamma_interp
                               * MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_alpha_arr)
