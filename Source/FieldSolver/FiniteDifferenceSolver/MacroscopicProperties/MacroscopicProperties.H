@@ -144,7 +144,7 @@ private:
 #ifdef WARPX_MAG_LLG
      /** Multifab storing spatially varying saturation magnetization */
      std::unique_ptr<amrex::MultiFab> m_mag_Ms_mf;
-     /** Multifab for m_mag_alpha */
+     /** Multifab storing spatially varying Gilbert damping */
      std::unique_ptr<amrex::MultiFab> m_mag_alpha_mf;
      /** Multifab for m_mag_gamma */
      std::unique_ptr<amrex::MultiFab> m_mag_gamma_mf;
