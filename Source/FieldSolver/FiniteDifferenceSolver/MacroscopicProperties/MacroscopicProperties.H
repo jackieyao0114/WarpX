@@ -66,7 +66,7 @@ public:
      };
      
      /** \brief
-         This routine averages a face-centered field onto a (possibly different nodality) face.
+         This GPU kernel averages a face-centered field onto a (possibly different nodality) face.
          i,j,k are the spatial indices, n is the component index
          iv_in is the nodality of the input field, iv_out is the nodality of the output.
          Thus, if iv_in is the same as iv_out the value on the face is returned.
