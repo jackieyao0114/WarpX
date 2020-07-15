@@ -65,7 +65,7 @@ public:
          ));
      };
      
-     /*  
+     /** \brief
          This routine averages a face-centered field onto a (possibly different nodality) face.
          i,j,k are the spatial indices, n is the component index
          iv_in is the nodality of the input field, iv_out is the nodality of the output.
