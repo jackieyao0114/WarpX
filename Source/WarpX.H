@@ -107,7 +107,6 @@ public:
 #ifdef WARPX_MAG_LLG
     static amrex::Vector<amrex::Real> M_external_grid;
     static amrex::Vector<amrex::Real> H_bias_external_grid;
-    //static std::array<amrex::Vector<amrex::Real>, 3 > M_external_grid; // define M initial value
 #endif
 
     // Initialization Type for External E and B on grid
