@@ -97,6 +97,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
               Real Hy_eff = Hy_bias_xface;
               Real Hz_eff = Hz_bias_xface;
 
+              // keep in mind to ADD H_Maxwell back to H_eff as shown below
               // Real Hx_eff = Hx_xface + Hx_bias_xface;
               // Real Hy_eff = Hy_xface + Hy_bias_xface;
               // Real Hz_eff = Hz_xface + Hz_bias_xface;
