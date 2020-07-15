@@ -75,6 +75,20 @@ class FiniteDifferenceSolver
                             std::unique_ptr<MacroscopicProperties> const& macroscopic_properties);
 
 #ifdef WARPX_MAG_LLG
+        /**
+          * \brief Macroscopic M-update for non-vacuum medium using finite-difference algorithm 
+          * solving Landau-Lifshitz-Gilbert (LLG) equation,
+          * only Yee's algorithm is applicable for M calculation
+          * This function has first-order accuracy with forward-Euler method 
+          * \param[out] Mfield  vector of magnetization MultiFabs updated at a given level; each MultiFab locates
+          * on the face centers of the spatial cell; and each MultiFab contains three four-dimensional FabArrays
+          * indicating the x, y, z locations and the field component
+          * \param[in] H_biasfield   vector of user-defined DC magnetic bias field MultiFabs at a given level
+          * \param[in] Bfield   vector of magnetic field MultiFabs at a given level
+          * \param[in] dt       timestep of the simulation
+          * \param[in] macroscopic_properties contains user-defined properties of the medium.
+          */
+          
         void MacroscopicEvolveM ( std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Mfield,
                        std::array< std::unique_ptr<amrex::MultiFab>, 3 >& H_biasfield,
                        std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Bfield,
