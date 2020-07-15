@@ -41,10 +41,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
         amrex::Real const dt,
         std::unique_ptr<MacroscopicProperties> const& macroscopic_properties )
     {
-        // static constexpr amrex::Real alpha = 1e-4;
-        // static constexpr amrex::Real Ms = 1e4;
-        // Real constexpr cons1 = -mag_gamma_interp; // should be mu0*gamma, mu0 is absorbed by B used in this case
-        // Real constexpr cons2 = -cons1*alpha/Ms; // factor of the second term in scalar LLG
 
         for (MFIter mfi(*Mfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi) /* remember to FIX */
         {
