@@ -56,7 +56,7 @@ MacroscopicProperties::ReadParameters ()
 
     pp.get("mag_alpha_init_style", m_mag_alpha_s);
     if (m_mag_alpha_s == "constant") pp.get("mag_alpha", m_mag_alpha); 
-    // _mag_ such that it's clear the Ms variable is only meaningful for magnetic materials
+    // _mag_ such that it's clear the alpha variable is only meaningful for magnetic materials
     //initialization with parser
     if (m_mag_alpha_s == "parse_mag_alpha_function") {
         Store_parserString(pp, "mag_alpha_function(x,y,z)", m_str_mag_alpha_function);
@@ -197,6 +197,5 @@ MacroscopicProperties::InitializeMacroMultiFabUsingParser (
 
 
 }
-
 
 
