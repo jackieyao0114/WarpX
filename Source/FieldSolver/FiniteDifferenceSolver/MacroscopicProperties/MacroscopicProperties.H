@@ -99,7 +99,7 @@ public:
                              )); 
      };
 
-     /*
+     /** \brief
      Calculate local H_maxwell = B / mu_o - M
      n is the component of the H field we are interested in
      iv_in is the nodality of the input B field, Bcomp
