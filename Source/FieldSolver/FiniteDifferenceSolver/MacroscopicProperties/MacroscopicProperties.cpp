@@ -145,7 +145,7 @@ MacroscopicProperties::InitData ()
         InitializeMacroMultiFabUsingParser(m_mag_alpha_mf.get(), m_mag_alpha_parser.get(), lev);
     }
     if (m_mag_alpha_mf->min(0,m_mag_alpha_mf->nGrow()) < 0) {
-        Abort("alpha should be positive, but the user input has negative values");
+        amrex::Abort("alpha should be positive, but the user input has negative values");
     }
 
     // mag_gamma - defined at node
