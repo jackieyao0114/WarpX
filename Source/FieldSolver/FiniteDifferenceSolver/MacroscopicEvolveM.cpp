@@ -47,7 +47,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
           auto& mag_Ms_mf = macroscopic_properties->getmag_Ms_mf();
           auto& mag_alpha_mf = macroscopic_properties->getmag_alpha_mf();
           auto& mag_gamma_mf = macroscopic_properties->getmag_gamma_mf();
-          // exctract material properties
+          // extract material properties
           Array4<Real> const& mag_Ms_arr = mag_Ms_mf.array(mfi);
           Array4<Real> const& mag_alpha_arr = mag_alpha_mf.array(mfi);
           Array4<Real> const& mag_gamma_arr = mag_gamma_mf.array(mfi);
