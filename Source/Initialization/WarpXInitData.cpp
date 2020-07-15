@@ -495,56 +495,6 @@ WarpX::InitLevelData (int lev, Real /*time*/)
         Abort("WarpXInitData: M field initialization parser not implemented yet");
     }
 
-    /*
-    // if the input string for the M-field is "parse_m_ext_grid_function",
-    // then the analytical expression or function must be
-    // provided in the input file.
-    if (M_ext_grid_s == "parse_m_ext_grid_function") {
-
-#ifdef WARPX_DIM_RZ
-       amrex::Abort("M parser for external fields does not work with RZ -- TO DO");
-#endif
-       Store_parserString(pp, "Mx_external_grid_function(x,y,z)",
-                                                    str_Mx_ext_grid_function);
-       Store_parserString(pp, "My_external_grid_function(x,y,z)",
-                                                    str_My_ext_grid_function);
-       Store_parserString(pp, "Mz_external_grid_function(x,y,z)",
-                                                    str_Mz_ext_grid_function);
-
-       Mxfield_parser.reset(new ParserWrapper<3>(
-                                makeParser(str_Mx_ext_grid_function,{"x","y","z"})));
-       Myfield_parser.reset(new ParserWrapper<3>(
-                                makeParser(str_My_ext_grid_function,{"x","y","z"})));
-       Mzfield_parser.reset(new ParserWrapper<3>(
-                                makeParser(str_Mz_ext_grid_function,{"x","y","z"})));
-
-       // Initialize Mfield_fp with external function
-       InitializeExternalFieldsOnGridUsingParser(Mfield_fp[lev][0].get(),
-                                                 Mfield_fp[lev][1].get(),
-                                                 Mfield_fp[lev][2].get(),
-                                                 Mxfield_parser.get(),
-                                                 Myfield_parser.get(),
-                                                 Mzfield_parser.get(),
-                                                 lev);
-       if (lev > 0) {
-          InitializeExternalFieldsOnGridUsingParser(Mfield_aux[lev][0].get(),
-                                                    Mfield_aux[lev][1].get(),
-                                                    Mfield_aux[lev][2].get(),
-                                                    Mxfield_parser.get(),
-                                                    Myfield_parser.get(),
-                                                    Mzfield_parser.get(),
-                                                    lev);
-
-          InitializeExternalFieldsOnGridUsingParser(Mfield_cp[lev][0].get(),
-                                                    Mfield_cp[lev][1].get(),
-                                                    Mfield_cp[lev][2].get(),
-                                                    Mxfield_parser.get(),
-                                                    Myfield_parser.get(),
-                                                    Mzfield_parser.get(),
-                                                    lev);
-       }
-    }
-    */
 #endif //closes #ifdef WARPX_MAG_LLG
 
     if (F_fp[lev]) {

@@ -66,22 +66,21 @@ public:
      };
      
      /** \brief
-         This GPU kernel averages a face-centered field onto a (possibly different nodality) face.
-         i,j,k are the spatial indices, n is the component index
-         iv_in is the nodality of the input field, iv_out is the nodality of the output.
-         Thus, if iv_in is the same as iv_out the value on the face is returned.
-         Some other examples when iv_in is different from iv_out:
+         * This GPU kernel averages a face-centered field onto a (possibly different nodality) face.
+         * i,j,k are the spatial indices, n is the component index
+         * iv_in is the nodality of the input field, iv_out is the nodality of the output.
+         * Thus, if iv_in is the same as iv_out the value on the face is returned.
+         * Some other examples when iv_in is different from iv_out:
          
-         Hy (0,1,0) components (in) to Hx face (1,0,0) (out)
-         return 0.25*(Hy(i,j,k)+Hy(i,j+1,k)+Hy(i-1,j,k)+Hy(i-1,j+1,k));
-
-         Hz (0,0,1) components to Hx face (1,0,0)
-         \param[in] Fieldcomp  floating point data to be interpolated from one staggering location to another.
-         \param[in] iv_in           nodality of the input field, Fieldcomp
-         \param[in] iv_out         nodality of the output
-         \param[in] i                index along x of the Array4 Fieldcomp
-         \param[in] j                index along y of the Array4 Fieldcomp
-         \param[in] k                index along z of the Array4 Fieldcomp
+         * Hy (0,1,0) components (in) to Hx face (1,0,0) (out)
+         * return 0.25*(Hy(i,j,k)+Hy(i,j+1,k)+Hy(i-1,j,k)+Hy(i-1,j+1,k));
+         * 
+         * \param[in] Fieldcomp  floating point data to be interpolated from one staggering location to another.
+         * \param[in] iv_in           nodality of the input field, Fieldcomp
+         * \param[in] iv_out         nodality of the output
+         * \param[in] i                index along x of the Array4 Fieldcomp
+         * \param[in] j                index along y of the Array4 Fieldcomp
+         * \param[in] k                index along z of the Array4 Fieldcomp
      */
      AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
      static amrex::Real face_avg_to_face (int i, int j, int k, int n, 
@@ -100,13 +99,18 @@ public:
      };
 
      /** \brief
-     Calculate local H_maxwell = B / mu_o - M
-     n is the component of the H field we are interested in
-     iv_in is the nodality of the input B field, Bcomp
-     iv_out is the nodality of the output
-     Note, we call face_avg_to_face on the B field with n=0 (B has only 1 component)
-     while Mcomp has n=0,1,2, indicating x,y,z components
-     note Mcomp has the same nodality as the final output H_maxwell
+     * Calculate local H_maxwell = B / mu_o - M
+     * \param[out] H_Maxwell local H_Maxwell field calculated using the magnetic constitutive relation
+     * H_Maxwell is a scalar
+     * \param[in] i x-index of the location under consideration
+     * \param[in] j y-index of the location under consideration
+     * \param[in] k z-index of the location under consideration
+     * \param[in] n x, y, and z component of the H field we are interested in
+     * \param[in] iv_in nodality of the input B field, Bcomp
+     * \param[in] iv_out nodality of the output H_Maxwell
+     * Note, we call face_avg_to_face on the B field with n=0 (B has only 1 component)
+     * while Mcomp has n=0,1,2, indicating x,y,z components
+     * note Mcomp has the same nodality as the final output H_maxwell
      */
      AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
      static amrex::Real getH_Maxwell (int i, int j, int k, int n,
@@ -131,7 +135,7 @@ private:
      amrex::Real m_mag_Ms;
      /** Gilbert damping, only applies for magnetic materials */
      amrex::Real m_mag_alpha;
-     /** gyromagnetic ratio, only applies for magnetic materials */
+     /** gyromagnetic ratio, should be a negative value, only applies for magnetic materials */
      amrex::Real m_mag_gamma;
 #endif
 

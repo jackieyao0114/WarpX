@@ -376,7 +376,6 @@ public:
     void MacroscopicEvolveM (int lev, amrex::Real dt);
     void MacroscopicEvolveM (int lev, PatchType patch_type, amrex::Real dt);
 #endif
-    void FieldGather ();
 
     /** \brief apply QED correction on electric field
      * \param dt vector of time steps (for all levels)
