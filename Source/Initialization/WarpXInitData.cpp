@@ -491,11 +491,12 @@ WarpX::InitLevelData (int lev, Real /*time*/)
     }
 
 
+    /*
     if (M_ext_grid_s == "parse_m_ext_grid_function") {
         Abort("WarpXInitData: M field initialization parser not implemented yet");
     }
+    */
 
-    /*
     // if the input string for the M-field is "parse_m_ext_grid_function",
     // then the analytical expression or function must be
     // provided in the input file.
@@ -544,7 +545,7 @@ WarpX::InitLevelData (int lev, Real /*time*/)
                                                     lev);
        }
     }
-    */
+
 #endif //closes #ifdef WARPX_MAG_LLG
 
     if (F_fp[lev]) {
@@ -610,6 +611,11 @@ WarpX::InitializeExternalFieldsOnGridUsingParser (
 #endif
                 // Initialize the x-component of the field.
                 mfxfab(i,j,k) = (*xfield_parser)(x,y,z);
+#ifdef WARPX_MAG_LLG
+                mfxfab(i,j,k,0) = (*xfield_parser)(x,y,z);
+                mfxfab(i,j,k,1) = (*yfield_parser)(x,y,z);
+                mfxfab(i,j,k,2) = (*zfield_parser)(x,y,z);
+#endif
  	    },
             [=] AMREX_GPU_DEVICE (int i, int j, int k) {
                 amrex::Real fac_x = (1._rt - y_nodal_flag[0]) * dx_lev[0] * 0.5_rt;
@@ -626,6 +632,11 @@ WarpX::InitializeExternalFieldsOnGridUsingParser (
 #endif
                 // Initialize the y-component of the field.
                 mfyfab(i,j,k)  = (*yfield_parser)(x,y,z);
+#ifdef WARPX_MAG_LLG
+                mfyfab(i,j,k,0)  = (*xfield_parser)(x,y,z);
+                mfyfab(i,j,k,1)  = (*yfield_parser)(x,y,z);
+                mfyfab(i,j,k,2)  = (*zfield_parser)(x,y,z);
+#endif
             },
             [=] AMREX_GPU_DEVICE (int i, int j, int k) {
                 amrex::Real fac_x = (1._rt - z_nodal_flag[0]) * dx_lev[0] * 0.5_rt;
@@ -642,6 +653,11 @@ WarpX::InitializeExternalFieldsOnGridUsingParser (
 #endif
                 // Initialize the z-component of the field.
                 mfzfab(i,j,k) = (*zfield_parser)(x,y,z);
+#ifdef WARPX_MAG_LLG
+                mfzfab(i,j,k,0) = (*xfield_parser)(x,y,z);
+                mfzfab(i,j,k,1) = (*yfield_parser)(x,y,z);
+                mfzfab(i,j,k,2) = (*zfield_parser)(x,y,z);
+#endif
             }
         );
     }
