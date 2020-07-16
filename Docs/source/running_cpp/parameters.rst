@@ -1793,9 +1793,9 @@ Solving magnetization using LLG equation
     If ``algo.em_solver_medium`` is set to macroscopic, and ``USE_LLG = TRUE``, 
     then this input parameter must be provided.
 
-* ``warpx.M_external_grid`` & ``warpx.H_bias_external_grid`` (list of `int`)
-    required when ``warpx.M_ext_grid_init_style="parse_M_ext_grid_function"``
-    and when ``warpx.H_bias_ext_grid_init_style="parse_H_bias_ext_grid_function"``, respectively.
+* ``warpx.M_external_grid`` & ``warpx.H_bias_external_grid`` (list of `double`)
+    required when ``warpx.M_ext_grid_init_style="constant"``
+    and when ``warpx.H_bias_ext_grid_init_style="constant"``, respectively.
     External uniform and constant magnetization and magnetostatic bias field added
     to the grid at initialization. Use with caution as these fields are used for
     the field solver. In particular, do not use any other boundary condition
@@ -1829,13 +1829,13 @@ Solving magnetization using LLG equation
 
 * ``macroscopic.mag_gamma_init_style`` (string) optional (default is "default")
     This parameter determines the type of initialization for the gyromagnetic ratio
-    of the material. The "default" style initializes the gyromagnetic ratio mag_alpha to 0.0.
+    of the material. The "default" style initializes the gyromagnetic ratio mag_gamma to 0.0.
     The string can be set to "constant" if a constant gyromagnetic ratio is
     required to be set at initialization. If set to "constant", then an
-    additional parameter, namely, ``macroscopic.mag_alpha`` must be specified.
-    If set to ``parse_mag_alpha_function``, then a mathematical expression can
+    additional parameter, namely, ``macroscopic.mag_gamma`` must be specified.
+    If set to ``parse_mag_gamma_function``, then a mathematical expression can
     be used to initialize the gyromagnetic ratio on the grid. It
     requires additional parameters in the input file, namely,
-    ``macroscopic.mag_alpha_function(x,y,z)`` to initialize the gyromagnetic ratio.
+    ``macroscopic.mag_gamma_function(x,y,z)`` to initialize the gyromagnetic ratio.
     If ``algo.em_solver_medium`` is set to macroscopic, and ``USE_LLG = TRUE``, 
     then this input property must be provided.
