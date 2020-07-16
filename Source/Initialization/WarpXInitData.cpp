@@ -632,6 +632,7 @@ WarpX::InitializeExternalFieldsOnGridUsingParser (
 #endif
                 // Initialize the y-component of the field.
                 mfyfab(i,j,k)  = (*yfield_parser)(x,y,z);
+                // This part needs FIX!!
 #ifdef WARPX_MAG_LLG
                 mfyfab(i,j,k,0)  = (*xfield_parser)(x,y,z);
                 mfyfab(i,j,k,1)  = (*yfield_parser)(x,y,z);
@@ -653,6 +654,7 @@ WarpX::InitializeExternalFieldsOnGridUsingParser (
 #endif
                 // Initialize the z-component of the field.
                 mfzfab(i,j,k) = (*zfield_parser)(x,y,z);
+                // This part needs FIX!!
 #ifdef WARPX_MAG_LLG
                 mfzfab(i,j,k,0) = (*xfield_parser)(x,y,z);
                 mfzfab(i,j,k,1) = (*yfield_parser)(x,y,z);
