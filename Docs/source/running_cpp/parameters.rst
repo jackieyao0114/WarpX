@@ -1763,7 +1763,8 @@ Solving magnetization using LLG equation
     For example, if ``warpx.Mx_external_grid_function(x,y,z)=Mo*x + delta*(y + z)``
     then the constants `Mo` and `delta` required in the above equation
     can be set using ``my_constants.Mo=`` and ``my_constants.delta=`` in the
-    input file. For a two-dimensional simulation, it is assumed that the first dimension     is `x` and the second dimension in `z`, and the value of `y` is set to zero.
+    input file. For a two-dimensional simulation, it is assumed that the first dimension
+    is `x` and the second dimension in `z`, and the value of `y` is set to zero.
     Note that the current implementation of the parser for M-field
     does not work with RZ and the code will abort with an error message.
     If ``algo.em_solver_medium`` is set to macroscopic, and ``USE_LLG = TRUE``, 
@@ -1787,7 +1788,8 @@ Solving magnetization using LLG equation
     For example, if ``warpx.Hx_bias_external_grid_function(x,y,z)=Ho_bias*x + delta*(y + z)``
     then the constants `Ho_bias` and `delta` required in the above equation
     can be set using ``my_constants.Ho_bias=`` and ``my_constants.delta=`` in the
-    input file. For a two-dimensional simulation, it is assumed that the first dimension     is `x` and the second dimension in `z`, and the value of `y` is set to zero.
+    input file. For a two-dimensional simulation, it is assumed that the first dimension
+    is `x` and the second dimension in `z`, and the value of `y` is set to zero.
     Note that the current implementation of the parser for H_bias-field
     does not work with RZ and the code will abort with an error message.
     If ``algo.em_solver_medium`` is set to macroscopic, and ``USE_LLG = TRUE``, 
