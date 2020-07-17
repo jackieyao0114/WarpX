@@ -64,17 +64,17 @@ public:
                              + macro_mag_prop(i-iv[0]+1,j-iv[1]+1,k-iv[2]+1)
          ));
      };
-     
+
      /** \brief
          * This GPU kernel averages a face-centered field onto a (possibly different nodality) face.
          * i,j,k are the spatial indices, n is the component index
          * iv_in is the nodality of the input field, iv_out is the nodality of the output.
          * Thus, if iv_in is the same as iv_out the value on the face is returned.
          * Some other examples when iv_in is different from iv_out:
-         
+
          * Hy (0,1,0) components (in) to Hx face (1,0,0) (out)
          * return 0.25*(Hy(i,j,k)+Hy(i,j+1,k)+Hy(i-1,j,k)+Hy(i-1,j+1,k));
-         * 
+         *
          * \param[in] Fieldcomp  floating point data to be interpolated from one staggering location to another.
          * \param[in] iv_in           nodality of the input field, Fieldcomp
          * \param[in] iv_out         nodality of the output
@@ -83,8 +83,8 @@ public:
          * \param[in] k                index along z of the Array4 Fieldcomp
      */
      AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-     static amrex::Real face_avg_to_face (int i, int j, int k, int n, 
-                                           amrex::IntVect iv_in, amrex::IntVect iv_out, 
+     static amrex::Real face_avg_to_face (int i, int j, int k, int n,
+                                           amrex::IntVect iv_in, amrex::IntVect iv_out,
                                            amrex::Array4<amrex::Real> const& Fieldcomp) {
          using namespace amrex;
          return ( 0.125_rt * ( Fieldcomp(i                   , j                   , k                   , n)
@@ -95,7 +95,7 @@ public:
                              + Fieldcomp(i+iv_in[0]-iv_out[0], j                   , k+iv_in[2]-iv_out[2], n)
                              + Fieldcomp(i                   , j+iv_in[1]-iv_out[1], k+iv_in[2]-iv_out[2], n)
                              + Fieldcomp(i+iv_in[0]-iv_out[0], j+iv_in[1]-iv_out[1], k+iv_in[2]-iv_out[2], n)
-                             )); 
+                             ));
      };
 
      /** \brief
@@ -114,11 +114,11 @@ public:
      */
      AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
      static amrex::Real getH_Maxwell (int i, int j, int k, int n,
-                                   amrex::IntVect iv_in, amrex::IntVect iv_out, 
+                                   amrex::IntVect iv_in, amrex::IntVect iv_out,
                                    amrex::Array4<amrex::Real> const& Bcomp, amrex::Array4<amrex::Real> const& Mcomp) {
          using namespace amrex;
          amrex::Real H_Maxwell = face_avg_to_face(i, j, k, 0, iv_in, iv_out, Bcomp)/PhysConst::mu0
-                                 - Mcomp(i, j, k, n); //magnetic constitutive relation 
+                                 - Mcomp(i, j, k, n); //magnetic constitutive relation
          return H_Maxwell;
      };
 #endif //closes ifdef MAG_LLG

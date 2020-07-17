@@ -337,7 +337,7 @@ WarpX::InitLevelData (int lev, Real /*time*/)
               H_biasfield_cp[lev][i]->setVal(H_bias_external_grid[i]);
            }
         }
-    
+
 #endif
 
    }

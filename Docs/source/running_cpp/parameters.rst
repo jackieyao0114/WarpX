@@ -1746,7 +1746,7 @@ Solving magnetization using LLG equation
 ----------------------------------------
 
 * ``warpx.M_ext_grid_init_style`` (string) optional (default is "default")
-    This parameter determines the type of initialization for the 
+    This parameter determines the type of initialization for the
     magnetization of the material. The "default" style initializes the
     magnetization (Mx,My,Mz) to (0.0, 0.0, 0.0).
     The string can be set to "constant" if a constant magnetization is
@@ -1757,7 +1757,7 @@ Solving magnetization using LLG equation
     requires additional parameters in the input file, namely,
     ``warpx.Mx_external_grid_function(x,y,z)``,
     ``warpx.My_external_grid_function(x,y,z)``,
-    ``warpx.Mz_external_grid_function(x,y,z)`` to initialize the 
+    ``warpx.Mz_external_grid_function(x,y,z)`` to initialize the
     magnetization for each of the three components on the grid.
     Constants required in the expression can be set using ``my_constants``.
     For example, if ``warpx.Mx_external_grid_function(x,y,z)=Mo*x + delta*(y + z)``
@@ -1767,7 +1767,7 @@ Solving magnetization using LLG equation
     is `x` and the second dimension in `z`, and the value of `y` is set to zero.
     Note that the current implementation of the parser for M-field
     does not work with RZ and the code will abort with an error message.
-    If ``algo.em_solver_medium`` is set to macroscopic, and ``USE_LLG = TRUE``, 
+    If ``algo.em_solver_medium`` is set to macroscopic, and ``USE_LLG = TRUE``,
     then this input parameter must be provided.
 
 * ``warpx.H_bias_ext_grid_init_style`` (string) optional (default is "default")
@@ -1792,7 +1792,7 @@ Solving magnetization using LLG equation
     is `x` and the second dimension in `z`, and the value of `y` is set to zero.
     Note that the current implementation of the parser for H_bias-field
     does not work with RZ and the code will abort with an error message.
-    If ``algo.em_solver_medium`` is set to macroscopic, and ``USE_LLG = TRUE``, 
+    If ``algo.em_solver_medium`` is set to macroscopic, and ``USE_LLG = TRUE``,
     then this input parameter must be provided.
 
 * ``warpx.M_external_grid`` & ``warpx.H_bias_external_grid`` (list of `double`)
@@ -1813,7 +1813,7 @@ Solving magnetization using LLG equation
     be used to initialize the saturation magnetization on the grid. It
     requires additional parameters in the input file, namely,
     ``macroscopic.mag_Ms_function(x,y,z)`` to initialize the saturation magnetization.
-    If ``algo.em_solver_medium`` is set to macroscopic, and ``USE_LLG = TRUE``, 
+    If ``algo.em_solver_medium`` is set to macroscopic, and ``USE_LLG = TRUE``,
     then this input property must be provided.
 
 * ``macroscopic.mag_alpha_init_style`` (string) optional (default is "default")
@@ -1827,13 +1827,13 @@ Solving magnetization using LLG equation
     be used to initialize the Gilbert damping factor on the grid. It
     requires additional parameters in the input file, namely,
     ``macroscopic.mag_alpha_function(x,y,z)`` to initialize the Gilbert damping factor.
-    If ``algo.em_solver_medium`` is set to macroscopic, and ``USE_LLG = TRUE``, 
+    If ``algo.em_solver_medium`` is set to macroscopic, and ``USE_LLG = TRUE``,
     then this input property must be provided.
 
 * ``macroscopic.mag_gamma_init_style`` (string) optional (default is "default")
     This parameter determines the type of initialization for the gyromagnetic ratio
     of the material. The "default" style initializes the gyromagnetic ratio mag_gamma to 0.0.
-    Note that only negative values for gyromagnetic ratio ``mag_gamma`` are allowed in the simulations and positive values for ``mag_alpha`` are allowed. 
+    Note that only negative values for gyromagnetic ratio ``mag_gamma`` are allowed in the simulations and positive values for ``mag_alpha`` are allowed.
     The value of ``mag_gamma`` depends on the type of spins under consideration. For electrons, ``mag_gamma`` is a constant value -1.759e11 Coulomb/kilogram.
     The string can be set to "constant" if a constant gyromagnetic ratio is
     required to be set at initialization. If set to "constant", then an
@@ -1842,5 +1842,5 @@ Solving magnetization using LLG equation
     be used to initialize the gyromagnetic ratio on the grid. It
     requires additional parameters in the input file, namely,
     ``macroscopic.mag_gamma_function(x,y,z)`` to initialize the gyromagnetic ratio.
-    If ``algo.em_solver_medium`` is set to macroscopic, and ``USE_LLG = TRUE``, 
+    If ``algo.em_solver_medium`` is set to macroscopic, and ``USE_LLG = TRUE``,
     then this input property must be provided.

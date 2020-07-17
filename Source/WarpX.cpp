@@ -937,7 +937,7 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
 #ifdef WARPX_MAG_LLG
     Mfield_fp[lev][0].reset( new MultiFab(amrex::convert(ba,Mx_nodal_flag),dm,3     ,ngE+ngextra));
     Mfield_fp[lev][1].reset( new MultiFab(amrex::convert(ba,My_nodal_flag),dm,3     ,ngE+ngextra));
-    Mfield_fp[lev][2].reset( new MultiFab(amrex::convert(ba,Mz_nodal_flag),dm,3     ,ngE+ngextra)); 
+    Mfield_fp[lev][2].reset( new MultiFab(amrex::convert(ba,Mz_nodal_flag),dm,3     ,ngE+ngextra));
     // each Mfield[] is three components
 
     H_biasfield_fp[lev][0].reset( new MultiFab(amrex::convert(ba,Hx_bias_nodal_flag),dm,ncomps,ngE+ngextra));
@@ -1171,7 +1171,7 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
                 Mfield_cax[lev][0].reset( new MultiFab(amrex::convert(cba,Mx_nodal_flag),dm,3     ,ngE));
                 Mfield_cax[lev][1].reset( new MultiFab(amrex::convert(cba,My_nodal_flag),dm,3     ,ngE));
                 Mfield_cax[lev][2].reset( new MultiFab(amrex::convert(cba,Mz_nodal_flag),dm,3     ,ngE));
-            
+
                 // Create the MultiFabs for H
                 H_biasfield_cax[lev][0].reset( new MultiFab(amrex::convert(cba,Hx_bias_nodal_flag),dm,ncomps,ngE));
                 H_biasfield_cax[lev][1].reset( new MultiFab(amrex::convert(cba,Hy_bias_nodal_flag),dm,ncomps,ngE));

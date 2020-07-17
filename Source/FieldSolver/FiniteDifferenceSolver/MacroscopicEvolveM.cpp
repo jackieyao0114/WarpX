@@ -17,10 +17,10 @@ using namespace amrex;
 // update M field over one timestep
 
 void FiniteDifferenceSolver::MacroscopicEvolveM (
-    // The MField here is a vector of three multifabs, with M on each face, and each multifab is a three-component multifab. 
+    // The MField here is a vector of three multifabs, with M on each face, and each multifab is a three-component multifab.
     // Each M-multifab has three components, one for each component in x, y, z. (All multifabs are four dimensional, (i,j,k,n)), where, n=1 for E, B, but, n=3 for M_xface, M_yface, M_zface
-    std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Mfield, 
-    std::array< std::unique_ptr<amrex::MultiFab>, 3 >& H_biasfield, // H bias 
+    std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Mfield,
+    std::array< std::unique_ptr<amrex::MultiFab>, 3 >& H_biasfield, // H bias
     std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Bfield,
     amrex::Real const dt,
     std::unique_ptr<MacroscopicProperties> const& macroscopic_properties) {
@@ -53,7 +53,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
             Array4<Real> const& mag_Ms_arr = mag_Ms_mf.array(mfi);
             Array4<Real> const& mag_alpha_arr = mag_alpha_mf.array(mfi);
             Array4<Real> const& mag_gamma_arr = mag_gamma_mf.array(mfi);
-            
+
             // extract field data
             Array4<Real> const& M_xface = Mfield[0]->array(mfi); // note M_xface include x,y,z components at |_x faces
             Array4<Real> const& M_yface = Mfield[1]->array(mfi); // note M_yface include x,y,z components at |_y faces
@@ -104,7 +104,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
 
               // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
               // keep the interpolation. The IntVect is (1,0,0) to interpolate values to the x-face.
-              Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_gamma_arr); 
+              Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_gamma_arr);
               Real Gil_damp = PhysConst::mu0 * mag_gamma_interp
                               * MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_alpha_arr)
                               / MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr);
@@ -150,16 +150,16 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
 
               // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
               // keep the interpolation. The IntVect is (0,1,0) to interpolate values to the y-face.
-              Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_gamma_arr); 
+              Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_gamma_arr);
               Real Gil_damp = PhysConst::mu0 * mag_gamma_interp
                               * MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_alpha_arr)
                               / MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_Ms_arr);
- 
+
               // x component on y-faces of grid
               M_yface(i, j, k, 0) += dt * (PhysConst::mu0 * mag_gamma_interp) * ( M_yface(i, j, k, 1) * Hz_eff - M_yface(i, j, k, 2) * Hy_eff)
                 + dt * Gil_damp * ( M_yface(i, j, k, 1) * (M_yface(i, j, k, 0) * Hy_eff - M_yface(i, j, k, 1) * Hx_eff)
                 - M_yface(i, j, k, 2) * ( M_yface(i, j, k, 2) * Hx_eff - M_yface(i, j, k, 0) * Hz_eff));
-          
+
               // y component on y-faces of grid
               M_yface(i, j, k, 1) += dt * (PhysConst::mu0 * mag_gamma_interp) * ( M_yface(i, j, k, 2) * Hx_eff - M_yface(i, j, k, 0) * Hz_eff)
                 + dt * Gil_damp * ( M_yface(i, j, k, 2) * (M_yface(i, j, k, 1) * Hz_eff - M_yface(i, j, k, 2) * Hy_eff)
@@ -169,7 +169,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
               M_yface(i, j, k, 2) += dt * (PhysConst::mu0 * mag_gamma_interp) * ( M_yface(i, j, k, 0) * Hy_eff - M_yface(i, j, k, 1) * Hx_eff)
                 + dt * Gil_damp * ( M_yface(i, j, k, 0) * ( M_yface(i, j, k, 2) * Hx_eff - M_yface(i, j, k, 0) * Hz_eff)
                 - M_yface(i, j, k, 1) * ( M_yface(i, j, k, 1) * Hz_eff - M_yface(i, j, k, 2) * Hy_eff));
- 
+
               },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
@@ -195,11 +195,11 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
 
               // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
               // keep the interpolation. The IntVect is (0,0,1) to interpolate values to the z-face.
-              Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_gamma_arr); 
+              Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_gamma_arr);
               Real Gil_damp = PhysConst::mu0 * mag_gamma_interp
                               * MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_alpha_arr)
                               / MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_Ms_arr);
-             
+
               // x component on z-faces of grid
               M_zface(i, j, k, 0) += dt * (PhysConst::mu0 * mag_gamma_interp) * ( M_zface(i, j, k, 1) * Hz_eff - M_zface(i, j, k, 2) * Hy_eff)
                 + dt * Gil_damp * ( M_zface(i, j, k, 1) * (M_zface(i, j, k, 0) * Hy_eff - M_zface(i, j, k, 1) * Hx_eff)
@@ -213,7 +213,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
               // z component on z-faces of grid
               M_zface(i, j, k, 2) += dt * (PhysConst::mu0 * mag_gamma_interp) * ( M_zface(i, j, k, 0) * Hy_eff - M_zface(i, j, k, 1) * Hx_eff)
                 + dt * Gil_damp * ( M_zface(i, j, k, 0) * ( M_zface(i, j, k, 2) * Hx_eff - M_zface(i, j, k, 0) * Hz_eff)
-                - M_zface(i, j, k, 1) * ( M_zface(i, j, k, 1) * Hz_eff - M_yface(i, j, k, 2) * Hy_eff)); 
+                - M_zface(i, j, k, 1) * ( M_zface(i, j, k, 1) * Hz_eff - M_yface(i, j, k, 2) * Hy_eff));
               });
         }
     }
