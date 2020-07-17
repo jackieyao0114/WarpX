@@ -1816,7 +1816,8 @@ Solving magnetization using LLG equation
 
 * ``macroscopic.mag_alpha_init_style`` (string) optional (default is "default")
     This parameter determines the type of initialization for the Gilbert damping factor
-    of the material. The "default" style initializes the Gilbert damping factor mag_alpha to 0.0.
+    of the material. The "default" style initializes the Gilbert damping factor ``mag_alpha`` to 0.0.
+    Note that only positive values for Gilbert damping factor ``mag_alpha`` are allowed in the simulation.
     The string can be set to "constant" if a constant Gilbert damping factor is
     required to be set at initialization. If set to "constant", then an
     additional parameter, namely, ``macroscopic.mag_alpha`` must be specified.
