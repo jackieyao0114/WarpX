@@ -1831,6 +1831,8 @@ Solving magnetization using LLG equation
 * ``macroscopic.mag_gamma_init_style`` (string) optional (default is "default")
     This parameter determines the type of initialization for the gyromagnetic ratio
     of the material. The "default" style initializes the gyromagnetic ratio mag_gamma to 0.0.
+    Note that only negative values for gyromagnetic ratio ``mag_gamma`` are allowed in the simulations and positive values for ``mag_alpha`` are allowed. 
+    The value of ``mag_gamma`` depends on the type of spins under consideration. For electrons, ``mag_gamma`` is a constant value -1.759e11 Coulomb/kilogram.
     The string can be set to "constant" if a constant gyromagnetic ratio is
     required to be set at initialization. If set to "constant", then an
     additional parameter, namely, ``macroscopic.mag_gamma`` must be specified.
