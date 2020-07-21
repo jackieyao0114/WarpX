@@ -1,0 +1,68 @@
+# Maximum number of time steps
+max_step = 400
+# number of grid points
+amr.n_cell =  64 64 512
+# Maximum allowable size of each subdomain in the problem domain;
+#    this is used to decompose the domain for parallel calculations.
+amr.max_grid_size = 32
+# Maximum level in hierarchy (for now must be 0, i.e., one level in total)
+amr.max_level = 0
+
+# Geometry
+geometry.coord_sys   = 0                     # 0: Cartesian
+#geometry.is_periodic = 0     1      1         # Is periodic?
+geometry.is_periodic = 1     1    0         # Is periodic?
+geometry.prob_lo     =  -32.e-6 -32.e-6 -256.e-6
+geometry.prob_hi     =   32.e-6  32.e-6  256.e-6
+amr.max_level = 0
+warpx.serialize_ics = 1
+
+# Verbosity
+warpx.verbose = 1
+# Algorithms
+algo.current_deposition = esirkepov
+algo.em_solver_medium = vacuum # vacuum/macroscopic
+my_constants.zo = -128.e-6
+my_constants.z1 = 0.e-6
+# CFL
+warpx.cfl = 0.9
+my_constants.pi = 3.14159265359
+my_constants.L = 32.0e-6
+my_constants.c = 299792458.
+my_constants.wavelength = 32.e-6
+
+# Material
+#algo.em_solver_medium = vacuum # vacuum/macroscopic
+algo.em_solver_medium = macroscopic # vacuum/macroscopic
+algo.macroscopic_sigma_method = laxwendroff # laxwendroff or backwardeuler
+macroscopic.sigma_init_style = "parse_sigma_function" # parse or "constant"
+macroscopic.sigma_function(x,y,z) = "0.0"
+#macroscopic.sigma = 0.0
+macroscopic.epsilon_init_style = "parse_epsilon_function" # parse or "constant"
+macroscopic.epsilon_function(x,y,z) = "8.8541878128e-12"
+#macroscopic.epsilon = 8.8541878128e-12
+macroscopic.mu_init_style = "parse_mu_function" # parse or "constant"
+macroscopic.mu_function(x,y,z) = "1.25663706212e-06"
+#macroscopic.mu = 1.25663706212e-06
+
+warpx.E_ext_grid_init_style = parse_E_ext_grid_function
+warpx.Ez_external_grid_function(x,y,z) = 0.
+warpx.Ex_external_grid_function(x,y,z) = 0.
+warpx.Ey_external_grid_function(x,y,z) = "((1.e5*exp(-(z-zo)**2/L**2)*cos(2*pi*(z)/wavelength))*(z<=z1))"
+warpx.B_ext_grid_init_style = parse_B_ext_grid_function
+warpx.Bx_external_grid_function(x,y,z)= "((-1.e5*exp(-(z-zo)**2/L**2)*cos(2*pi*(z)/wavelength)/c)*(z<=z1)) "
+warpx.By_external_grid_function(x,y,z)= 0.
+warpx.Bz_external_grid_function(x,y,z) = 0.
+
+# Diagnostics
+diagnostics.diags_names = diag1
+diag1.period = 5
+diag1.diag_type = Full
+warpx.do_pml = 1
+## Moving window
+#warpx.do_moving_window = 1
+#warpx.moving_window_dir = x
+#warpx.moving_window_v = 1.0 # in units of the speed of light
+# Remove species
+particles.nspecies = 0
+
