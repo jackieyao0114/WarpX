@@ -1,5 +1,5 @@
 /* copyright
-blank 
+blank
 */
 
 #include "Utils/WarpXAlgorithmSelection.H"
