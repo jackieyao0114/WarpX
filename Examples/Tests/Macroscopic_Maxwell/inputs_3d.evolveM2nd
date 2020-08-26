@@ -1,7 +1,7 @@
 ################################
 ####### GENERAL PARAMETERS ######
 #################################
-max_step = 1000
+max_step = 1000000
 amr.n_cell = 8 8 8 # number of cells spanning the domain in each coordinate direction at level 0
 amr.max_grid_size = 512 # maximum size of each AMReX box, used to decompose the domain
 amr.blocking_factor = 8
@@ -37,7 +37,7 @@ macroscopic.mag_Ms_function(x,y,z) = "1.4e5"
 #unit conversion: 1 Gauss = (1000/4pi) A/m
 macroscopic.mag_alpha_init_style = "parse_mag_alpha_function"
 macroscopic.mag_alpha_function(x,y,z) = "5e-01"
-#macroscopic.mag_alpha = 5e-02 # alpha is unitless, typical values range from 1e-3 ~ 1e-5
+#macroscopic.mag_alpha = 1e-01 # alpha is unitless, typical values range from 1e-3 ~ 1e-5
 macroscopic.mag_gamma_init_style = "parse_mag_gamma_function"
 macroscopic.mag_gamma_function(x,y,z) = "-1.759e11"
 #macroscopic.mag_gamma = 1.759e11 # gyromagnetic ratio is constant for electrons in all materials
@@ -55,7 +55,7 @@ my_constants.c = 299792458.
 my_constants.wavelength = 1.2e-1
 warpx.E_ext_grid_init_style = parse_E_ext_grid_function
 warpx.Ez_external_grid_function(x,y,z) = 0.
-warpx.Ex_external_grid_function(x,y,z) = 0.
+warpx.Ex_external_grid_function(x,y,z) = 1.
 warpx.Ey_external_grid_function(x,y,z) = 0.
 #warpx.Ey_external_grid_function(x,y,z) = "1.e5exp(-z2/L2)cos(2piz/wavelength)"
 warpx.B_ext_grid_init_style = parse_B_ext_grid_function
@@ -84,7 +84,7 @@ warpx.M_external_grid = 140000. 0. 0.
 
 #Diagnostics
 diagnostics.diags_names = plt
-plt.period = 1000
+plt.period = 10000
 plt.diag_type = Full
 #plt.fields_to_plot = Mx_xface My_xface Mz_xface Mx_yface My_yface Mz_yface Mx_zface My_zface Mz_zface
 plt.fields_to_plot = Mx_xface My_xface Mz_xface
