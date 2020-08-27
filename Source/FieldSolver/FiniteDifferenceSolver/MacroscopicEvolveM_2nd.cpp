@@ -129,9 +129,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveM_2nd (
               Real Hy_bias_xface = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(1,0,0), Hy_bias);
               Real Hz_bias_xface = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(1,0,0), Hz_bias);
               // H_eff = H_maxwell + H_bias + H_exchange + H_anisotropy ... (only the first two terms are considered here)
-              Real Hx_eff = Hx_xface + Hx_bias_xface;
-              Real Hy_eff = Hy_xface + Hy_bias_xface;
-              Real Hz_eff = Hz_xface + Hz_bias_xface;
+              // Real Hx_eff = Hx_xface + Hx_bias_xface;
+              // Real Hy_eff = Hy_xface + Hy_bias_xface;
+              // Real Hz_eff = Hz_xface + Hz_bias_xface;
+
+              Real Hx_eff = Hx_bias_xface;
+              Real Hy_eff = Hy_bias_xface;
+              Real Hz_eff = Hz_bias_xface;
 
               // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
               // keep the interpolation
@@ -180,9 +184,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveM_2nd (
               Real Hz_bias_yface = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(0,1,0), Hz_bias);
               // H_eff = H_maxwell + H_bias + H_exchange + H_anisotropy ... (only the first two terms are considered here)
 
-              Real Hx_eff = Hx_yface + Hx_bias_yface;
-              Real Hy_eff = Hy_yface + Hy_bias_yface;
-              Real Hz_eff = Hz_yface + Hz_bias_yface;
+              // Real Hx_eff = Hx_yface + Hx_bias_yface;
+              // Real Hy_eff = Hy_yface + Hy_bias_yface;
+              // Real Hz_eff = Hz_yface + Hz_bias_yface;
+
+              Real Hx_eff = Hx_bias_yface;
+              Real Hy_eff = Hy_bias_yface;
+              Real Hz_eff = Hz_bias_yface;
 
               // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
               // keep the interpolation
@@ -230,9 +238,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveM_2nd (
               Real Hy_bias_zface = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(0,0,1), Hy_bias);
               Real Hz_bias_zface = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(0,0,1), Hz_bias);
               // H_eff = H_maxwell + H_bias + H_exchange + H_anisotropy ... (only the first two terms are considered here)
-              Real Hx_eff = Hx_zface + Hx_bias_zface;
-              Real Hy_eff = Hy_zface + Hy_bias_zface;
-              Real Hz_eff = Hz_zface + Hz_bias_zface;
+              // Real Hx_eff = Hx_zface + Hx_bias_zface;
+              // Real Hy_eff = Hy_zface + Hy_bias_zface;
+              // Real Hz_eff = Hz_zface + Hz_bias_zface;
+
+              Real Hx_eff = Hx_bias_zface;
+              Real Hy_eff = Hy_bias_zface;
+              Real Hz_eff = Hz_bias_zface;
 
               // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
               // keep the interpolation
@@ -354,13 +366,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveM_2nd (
               Real Hy_bias_xface = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(1,0,0), Hy_bias);
               Real Hz_bias_xface = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(1,0,0), Hz_bias);
               // H_eff = H_maxwell + H_bias + H_exchange + H_anisotropy ... (only the first two terms are considered here)
-              Real Hx_eff = Hx_xface + Hx_bias_xface;
-              Real Hy_eff = Hy_xface + Hy_bias_xface;
-              Real Hz_eff = Hz_xface + Hz_bias_xface;
+              // Real Hx_eff = Hx_xface + Hx_bias_xface;
+              // Real Hy_eff = Hy_xface + Hy_bias_xface;
+              // Real Hz_eff = Hz_xface + Hz_bias_xface;
 
-              // Real Hx_eff = Hx_bias_xface;
-              // Real Hy_eff = Hy_bias_xface;
-              // Real Hz_eff = Hz_bias_xface;
+              Real Hx_eff = Hx_bias_xface;
+              Real Hy_eff = Hy_bias_xface;
+              Real Hz_eff = Hz_bias_xface;
 
               // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
               // keep the interpolation
@@ -433,13 +445,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveM_2nd (
               Real Hy_bias_yface = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(0,1,0), Hy_bias);
               Real Hz_bias_yface = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(0,1,0), Hz_bias);
               // H_eff = H_maxwell + H_bias + H_exchange + H_anisotropy ... (only the first two terms are considered here)
-              Real Hx_eff = Hx_yface + Hx_bias_yface;
-              Real Hy_eff = Hy_yface + Hy_bias_yface;
-              Real Hz_eff = Hz_yface + Hz_bias_yface;
+              // Real Hx_eff = Hx_yface + Hx_bias_yface;
+              // Real Hy_eff = Hy_yface + Hy_bias_yface;
+              // Real Hz_eff = Hz_yface + Hz_bias_yface;
 
-              // Real Hx_eff = Hx_bias_yface;
-              // Real Hy_eff = Hy_bias_yface;
-              // Real Hz_eff = Hz_bias_yface;
+              Real Hx_eff = Hx_bias_yface;
+              Real Hy_eff = Hy_bias_yface;
+              Real Hz_eff = Hz_bias_yface;
 
               // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
               // keep the interpolation
@@ -511,13 +523,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveM_2nd (
               Real Hy_bias_zface = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(0,0,1), Hy_bias);
               Real Hz_bias_zface = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(0,0,1), Hz_bias);
               // H_eff = H_maxwell + H_bias + H_exchange + H_anisotropy ... (only the first two terms are considered here)
-              Real Hx_eff = Hx_zface + Hx_bias_zface;
-              Real Hy_eff = Hy_zface + Hy_bias_zface;
-              Real Hz_eff = Hz_zface + Hz_bias_zface;
+              // Real Hx_eff = Hx_zface + Hx_bias_zface;
+              // Real Hy_eff = Hy_zface + Hy_bias_zface;
+              // Real Hz_eff = Hz_zface + Hz_bias_zface;
 
-              // Real Hx_eff = Hx_bias_zface;
-              // Real Hy_eff = Hy_bias_zface;
-              // Real Hz_eff = Hz_bias_zface;
+              Real Hx_eff = Hx_bias_zface;
+              Real Hy_eff = Hy_bias_zface;
+              Real Hz_eff = Hz_bias_zface;
 
               // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
               // keep the interpolation
