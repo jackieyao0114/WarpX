@@ -1683,9 +1683,9 @@ WarpX::PicsarVersion ()
             Array4<Real> const& M_xface = Mfield[0]->array(mfi); // note M_xface include x,y,z components at |_x faces
             Array4<Real> const& M_yface = Mfield[1]->array(mfi); // note M_yface include x,y,z components at |_y faces
             Array4<Real> const& M_zface = Mfield[2]->array(mfi); // note M_zface include x,y,z components at |_z faces
-            Array4<Real> const& Ex = Efield[0]->array(mfi); 
-            Array4<Real> const& Ey = Efield[1]->array(mfi); 
-            Array4<Real> const& Ez = Efield[2]->array(mfi); 
+            Array4<Real> const& Ex = Efield[0]->array(mfi);
+            Array4<Real> const& Ey = Efield[1]->array(mfi);
+            Array4<Real> const& Ez = Efield[2]->array(mfi);
             Array4<Real> const& Bx = Bfield[0]->array(mfi); // Bx is the x component at |_x faces
             Array4<Real> const& By = Bfield[1]->array(mfi); // By is the y component at |_y faces
             Array4<Real> const& Bz = Bfield[2]->array(mfi); // Bz is the z component at |_z faces
@@ -1708,7 +1708,7 @@ WarpX::PicsarVersion ()
             std::ofstream ofs1_3("./Efield_xface_left.txt", std::ofstream::app);
             amrex::Print(ofs1_3).SetPrecision(16) << time << " " << Ex(i,j,k) << " " << Ey(i,j,k) << " " << Ez(i,j,k) << " " << std::endl;
             ofs1_3.close();
-            } 
+            }
             if(i==6 && j==4 && k==4){
             std::ofstream ofs2("./Mfield_xface_right.txt", std::ofstream::app);
             amrex::Print(ofs2).SetPrecision(16) << time << " " << M_xface(i,j,k,0) << " " << M_xface(i,j,k,1) << " " << M_xface(i,j,k,2) << " "
@@ -1718,7 +1718,7 @@ WarpX::PicsarVersion ()
             std::ofstream ofs2_2("./Bfield_xface_right.txt", std::ofstream::app);
             amrex::Print(ofs2_2).SetPrecision(16) << time << " " << Bx(i,j,k) << " " << By(i,j,k) << " " << Bz(i,j,k) << " " << std::endl;
             ofs2_2.close();
- 
+
             std::ofstream ofs2_3("./Efield_xface_right.txt", std::ofstream::app);
             amrex::Print(ofs2_3).SetPrecision(16) << time << " " << Ex(i,j,k) << " " << Ey(i,j,k) << " " << Ez(i,j,k) << " " << std::endl;
             ofs2_3.close();
