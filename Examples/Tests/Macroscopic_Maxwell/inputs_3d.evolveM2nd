@@ -20,8 +20,8 @@ warpx.verbose = 0
 warpx.use_filter = 0
 warpx.cfl = 4000
 warpx.do_pml = 0
-warpx.mag_time_scheme_order = 1 # default 1
-warpx.mag_M_normalization = 2
+warpx.mag_time_scheme_order = 2 # default 1
+warpx.mag_M_normalization = 0
 warpx.mag_LLG_coupling = 0
 particles.nspecies = 0
 
@@ -101,7 +101,8 @@ warpx.Hz_bias_external_grid_function(x,y,z)= 3e4 # in A/m, equal to 382 Oersted
 #warpx.Mz_external_grid_function(x,y,z) = 0.
 
 warpx.M_ext_grid_init_style = constant
-warpx.M_external_grid = 140000. 0. 0.
+#warpx.M_external_grid = 140000. 0. 0.
+warpx.M_external_grid = 10000. 0. 0.
 
 #Diagnostics
 diagnostics.diags_names = plt
