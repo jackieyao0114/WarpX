@@ -1070,8 +1070,12 @@ Numerics and algorithms
 * ``warpx.mag_time_scheme_order`` (`1` or `2`; default: `1`)
     The value of the time advancement scheme of M field. `mag_time_scheme_order==1` is the 1st-order Eulerian scheme and `mag_time_scheme_order==2` is the 2nd-order trapezoidal scheme for the LLG equation. This requires `USE_LLG=TRUE` in the GNUMakefile.
 
-* ``warpx.mag_secondorder_normalization`` (`1` or `2`; default: `1`)
-    When to apply normalization in the second-order magnetization scheme. `mag_secondorder_normalization==1` applies it after each iteration; `mag_secondorder_normalization==2` applies it after the iterations have converged. This requires `USE_LLG=TRUE` in the GNUMakefile.
+* ``warpx.mag_M_normalization`` (`0` or `1` or `2`; default: `1`)
+    The strategy of normalizating M magnitude. `mag_M_normalization==0` indicates unsaturated materials, i.e. `M_magnitude` is no larger than the saturation magnetization `mag_Ms`. 
+    Therefore, no normalization of M magnitude is applied. `mag_M_normalization>0` indicates saturated materials, i.e. `M_magnitude` is equal the saturation magnetization `mag_Ms`.
+    In this case, the value of `mag_M_normalization` indicates when to apply normalization in the second-order magnetization scheme. `mag_M_normalization==1` applies it after each iteration; `mag_M_normalization==2` applies it after the iterations have converged. 
+    In the first-order magnetization scheme, `mag_M_normalization==1` is equivalent to `mag_M_normalization==2`, and both normalize `M_magnitude` by `mag_Ms`.
+    This requires `USE_LLG=TRUE` in the GNUMakefile.
 
 * ``warpx.mag_LLG_coupling`` (`0` or `1`; default: `1`)
     Turn on coupling of Maxwell solution to the LLG updates. `mag_LLG_coupling==1` enables, `mag_LLG_coupling=0` diables. This requires `USE_LLG=TRUE` in the GNUMakefile.

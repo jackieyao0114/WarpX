@@ -20,9 +20,9 @@ warpx.verbose = 0
 warpx.use_filter = 0
 warpx.cfl = 0.9
 warpx.do_pml = 0
-warpx.mag_time_scheme_order = 2 # default 1
-warpx.mag_secondorder_normalization = 1
-warpx.mag_LLG_coupling = 1
+warpx.mag_time_scheme_order = 1 # default 1
+warpx.mag_M_normalization = 1
+warpx.mag_LLG_coupling = 0
 particles.nspecies = 0
 
 algo.em_solver_medium = macroscopic # vacuum/macroscopic
@@ -105,7 +105,7 @@ warpx.M_external_grid = 140000. 0. 0.
 
 #Diagnostics
 diagnostics.diags_names = plt
-plt.period = 100
+plt.period = 10
 plt.diag_type = Full
 plt.fields_to_plot = Ex Ey Ez Bx By Bz Mx_xface My_xface Mz_xface Mx_yface My_yface Mz_yface Mx_zface My_zface Mz_zface
 plt.plot_raw_fields = 0
