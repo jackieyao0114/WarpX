@@ -401,7 +401,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM_2nd (
 
               // temporary normalized magnitude of M_xface field at the fixed point
               // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
-              amrex::Real M_magnitude_normalized = std::sqrt( std::pow(M_xface(i, j, k, 0),2.0) + std::pow(M_xface(i, j, k, 1),2.0) + 
+              amrex::Real M_magnitude_normalized = std::sqrt( std::pow(M_xface(i, j, k, 0),2.0) + std::pow(M_xface(i, j, k, 1),2.0) +
                       std::pow(M_xface(i, j, k, 2),2.0) ) / MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr);
 
               if (M_normalization == 1) {
@@ -420,7 +420,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM_2nd (
                   // check the normalized error
                   if (M_magnitude_normalized > 1._rt + mag_normalized_error){
                       printf("i = %d, j=%d, k=%d\n", i, j, k);
-                      printf("M_magnitude_normalized = %f, Ms = %f\n", M_magnitude_normalized, 
+                      printf("M_magnitude_normalized = %f, Ms = %f\n", M_magnitude_normalized,
                           MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr));
                       amrex::Abort("Caution: Unsaturated material has M_xface exceeding the saturation magnetization");
                   }
@@ -495,7 +495,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM_2nd (
               // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
               amrex::Real M_magnitude_normalized = std::sqrt( std::pow(M_yface(i, j, k, 0),2.0) + std::pow(M_yface(i, j, k, 1),2.0) +
                       std::pow(M_yface(i, j, k, 2),2.0) ) / MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_Ms_arr);
-              
+
               if (M_normalization == 1) {
                   // check the normalized error
                   if ( amrex::Math::abs(1._rt-M_magnitude_normalized) > mag_normalized_error ){
@@ -512,7 +512,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM_2nd (
                   // check the normalized error
                   if (M_magnitude_normalized > 1._rt + mag_normalized_error){
                       printf("i = %d, j=%d, k=%d\n", i, j, k);
-                      printf("M_magnitude_normalized = %f, Ms = %f\n", M_magnitude_normalized, 
+                      printf("M_magnitude_normalized = %f, Ms = %f\n", M_magnitude_normalized,
                           MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_Ms_arr));
                       amrex::Abort("Caution: Unsaturated material has M_yface exceeding the saturation magnetization");
                   }
@@ -603,7 +603,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM_2nd (
                   // check the normalized error
                   if (M_magnitude_normalized > 1._rt + mag_normalized_error){
                       printf("i = %d, j=%d, k=%d\n", i, j, k);
-                      printf("M_magnitude_normalized = %f, Ms = %f\n", M_magnitude_normalized, 
+                      printf("M_magnitude_normalized = %f, Ms = %f\n", M_magnitude_normalized,
                           MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_Ms_arr));
                       amrex::Abort("Caution: Unsaturated material has M_zface exceeding the saturation magnetization");
                   }
