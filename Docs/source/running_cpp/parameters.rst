@@ -1059,7 +1059,9 @@ Numerics and algorithms
     If ``algo.em_solver_medium`` is set to macroscopic, then these properties must be provided.
 
 * ``macroscopic.mag_normalized_error`` (`double`; default: `0.1`)
-    The maximum relative amount we let M deviate from Ms before aborting for the LLG equation. This requires `USE_LLG=TRUE` in the GNUMakefile.
+    The maximum relative amount we let M deviate from Ms before aborting for the LLG equation for saturated cases, i.e., `mag_M_normalization>0`.
+    For the unsaturated case, i.e., `mag_M_normalization=0`, this is the maximum relative amount we let M overshoot Ms and renormalize to Ms before aborting.
+    This requires `USE_LLG=TRUE` in the GNUMakefile.
 
 * ``macroscopic.mag_max_iter`` (`int`; default: `100`)
     The maximum number of iterations allowed of the 2nd-order trapezoidal scheme for the LLG equation. This requires `USE_LLG=TRUE` in the GNUMakefile.
