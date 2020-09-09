@@ -141,16 +141,11 @@ void FiniteDifferenceSolver::MacroscopicEvolveM_2nd (
               // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
               // keep the interpolation
               Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_gamma_arr);
-              Real a_temp_static_coeff = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_alpha_arr)
-                              / MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr);
-              if (M_normalization == 0){
-                  a_temp_static_coeff *= MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr)
-                              / std::sqrt( std::pow(M_xface(i, j, k, 0),2.0) + std::pow(M_xface(i, j, k, 1),2.0) + std::pow(M_xface(i, j, k, 2),2.0) );
-              }
-              else if (M_normalization < 0) {
-                  printf("M_normalization = %d \n", M_normalization);
-                  amrex::Abort("Caution: mag_M_normalization must be a non-negative number !");
-              }
+
+              Real M_magnitude = (M_normalization == 0) ?
+                  std::sqrt( std::pow(M_xface(i, j, k, 0),2.0) + std::pow(M_xface(i, j, k, 1),2.0) + std::pow(M_xface(i, j, k, 2),2.0) ) :
+                  MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr);
+              Real a_temp_static_coeff = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_alpha_arr) / M_magnitude;
 
               // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
               Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_interp *
@@ -199,16 +194,11 @@ void FiniteDifferenceSolver::MacroscopicEvolveM_2nd (
               // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
               // keep the interpolation
               Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_gamma_arr);
-              Real a_temp_static_coeff = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_alpha_arr)
-                              / MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_Ms_arr);
-              if (M_normalization == 0){
-                  a_temp_static_coeff *= MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_Ms_arr)
-                              / std::sqrt( std::pow(M_yface(i, j, k, 0),2.0) + std::pow(M_yface(i, j, k, 1),2.0) + std::pow(M_yface(i, j, k, 2),2.0) );
-              }
-              else if (M_normalization < 0){
-                  printf("M_normalization = %d \n", M_normalization);
-                  amrex::Abort("Caution: mag_M_normalization must be a non-negative number !");
-              }
+
+              Real M_magnitude = (M_normalization == 0) ?
+                  std::sqrt( std::pow(M_yface(i, j, k, 0),2.0) + std::pow(M_yface(i, j, k, 1),2.0) + std::pow(M_yface(i, j, k, 2),2.0) ) :
+                  MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_Ms_arr);
+              Real a_temp_static_coeff = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_alpha_arr) / M_magnitude;
 
               // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
               Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_interp *
@@ -257,16 +247,11 @@ void FiniteDifferenceSolver::MacroscopicEvolveM_2nd (
               // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
               // keep the interpolation
               Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_gamma_arr);
-              Real a_temp_static_coeff = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_alpha_arr)
-                              / MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_Ms_arr);
-              if (M_normalization == 0){
-                  a_temp_static_coeff *= MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_Ms_arr)
-                              / std::sqrt( std::pow(M_zface(i, j, k, 0),2.0_rt) + std::pow(M_zface(i, j, k, 1),2.0_rt) + std::pow(M_zface(i, j, k, 2),2.0_rt) );
-              }
-              else if (M_normalization < 0){
-                  printf("M_normalization = %d \n", M_normalization);
-                  amrex::Abort("Caution: mag_M_normalization must be a non-negative number !");
-              }
+
+              Real M_magnitude = (M_normalization == 0) ?
+                  std::sqrt( std::pow(M_zface(i, j, k, 0),2.0_rt) + std::pow(M_zface(i, j, k, 1),2.0_rt) + std::pow(M_zface(i, j, k, 2),2.0_rt) ) :
+                  MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_Ms_arr);
+              Real a_temp_static_coeff = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_alpha_arr) / M_magnitude;
 
               // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
               Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_interp *
@@ -432,12 +417,18 @@ void FiniteDifferenceSolver::MacroscopicEvolveM_2nd (
                   M_xface(i,j,k,2) /= M_magnitude_normalized;
               }
               else if (M_normalization == 0){
-                  // check if M magnitude is below Ms for unsaturated material
-                  if (M_magnitude_normalized > 1._rt){
+                  // check the normalized error
+                  if (M_magnitude_normalized > 1._rt + mag_normalized_error){
                       printf("i = %d, j=%d, k=%d\n", i, j, k);
-                      printf("M_magnitude_normalized = %f, Ms = %f \n", M_magnitude_normalized, 
+                      printf("M_magnitude_normalized = %f, Ms = %f\n", M_magnitude_normalized, 
                           MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr));
                       amrex::Abort("Caution: Unsaturated material has M_xface exceeding the saturation magnetization");
+                  }
+                  else if (M_magnitude_normalized > 1._rt && M_magnitude_normalized <= 1._rt + mag_normalized_error){
+                      // normalize the M_xface field
+                      M_xface(i, j, k, 0) /= M_magnitude_normalized;
+                      M_xface(i, j, k, 1) /= M_magnitude_normalized;
+                      M_xface(i, j, k, 2) /= M_magnitude_normalized;
                   }
               }
 
@@ -518,12 +509,18 @@ void FiniteDifferenceSolver::MacroscopicEvolveM_2nd (
                   M_yface(i,j,k,2) /= M_magnitude_normalized;
               }
               else if (M_normalization == 0){
-                  // check if M magnitude is below Ms for unsaturated material
-                  if (M_magnitude_normalized > 1._rt){
+                  // check the normalized error
+                  if (M_magnitude_normalized > 1._rt + mag_normalized_error){
                       printf("i = %d, j=%d, k=%d\n", i, j, k);
-                      printf("M_magnitude_normalized = %f, Ms = %f \n", M_magnitude_normalized, 
+                      printf("M_magnitude_normalized = %f, Ms = %f\n", M_magnitude_normalized, 
                           MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_Ms_arr));
                       amrex::Abort("Caution: Unsaturated material has M_yface exceeding the saturation magnetization");
+                  }
+                  else if (M_magnitude_normalized > 1._rt && M_magnitude_normalized <= 1._rt + mag_normalized_error){
+                      // normalize the M_yface field
+                      M_yface(i, j, k, 0) /= M_magnitude_normalized;
+                      M_yface(i, j, k, 1) /= M_magnitude_normalized;
+                      M_yface(i, j, k, 2) /= M_magnitude_normalized;
                   }
               }
 
@@ -603,12 +600,18 @@ void FiniteDifferenceSolver::MacroscopicEvolveM_2nd (
                   M_zface(i,j,k,2) /= M_magnitude_normalized;
               }
               else if (M_normalization == 0){
-                  // check if M magnitude is below Ms for unsaturated material
-                  if (M_magnitude_normalized > 1._rt){
+                  // check the normalized error
+                  if (M_magnitude_normalized > 1._rt + mag_normalized_error){
                       printf("i = %d, j=%d, k=%d\n", i, j, k);
-                      printf("M_magnitude_normalized = %f, Ms = %f \n", M_magnitude_normalized, 
+                      printf("M_magnitude_normalized = %f, Ms = %f\n", M_magnitude_normalized, 
                           MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_Ms_arr));
                       amrex::Abort("Caution: Unsaturated material has M_zface exceeding the saturation magnetization");
+                  }
+                  else if (M_magnitude_normalized > 1._rt && M_magnitude_normalized <= 1._rt + mag_normalized_error){
+                      // normalize the M_zface field
+                      M_zface(i, j, k, 0) /= M_magnitude_normalized;
+                      M_zface(i, j, k, 1) /= M_magnitude_normalized;
+                      M_zface(i, j, k, 2) /= M_magnitude_normalized;
                   }
               }
 
