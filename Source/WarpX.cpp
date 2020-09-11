@@ -560,6 +560,10 @@ WarpX::ReadParameters ()
         pp.query("mag_LLG_coupling",mag_LLG_coupling);
         // magnetization M magnitude normalization strategy
         pp.get("mag_M_normalization", mag_M_normalization);
+        if (mag_M_normalization < 0){
+            printf("mag_M_normalization = %d \n", mag_M_normalization);
+            amrex::Abort("Caution: mag_M_normalization must be a non-negative number !");
+        }
 
 #endif
 
