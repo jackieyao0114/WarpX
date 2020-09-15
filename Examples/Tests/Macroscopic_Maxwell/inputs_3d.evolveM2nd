@@ -1,3 +1,32 @@
+####################################################################################################
+## This input file include an uncoupled system to test the M evolution driven by an H_bias field. ##
+## The coupling between the LLG equation and Maxwell equations is turned off by setting the value ##
+## warpx.mag_LLG_coupling = 0.                                                                    ##
+## The CFL factor warpx.cfl is set to be 4000 (much larger than 1),   because there is no wave    ##
+## propagating in these demo cases, thus the size of the time step is constrained by the Nyquist  ##
+## rate only.                                                                                     ##
+## The user can select the first-order or second-order algorithm for the time scheme of LLG, by   ##
+## setting the value of warpx.mag_time_scheme_order to be 1 or 2, respectively.                   ##
+## The user can also change the strategy of normalizing M amplitude by changing the value of      ##
+## warpx.mag_M_normalization. Select the value with reference to the following list:              ##
+## mag_M_normalization==0                    unsaturated materials, i.e. M_magnitude <= mag_Ms.   ##
+## mag_M_normalization==1                    saturated materials, i.e. M_magnitude = mag_Ms.      ##
+##                                           in the second-order algorithm, normalize M_magnitude ##
+##                                           after each iteration in the middle of one time step. ##
+## mag_M_normalization==2                    saturated materials, i.e. M_magnitude = mag_Ms.      ##
+##                                           in the second-order algorithm, normalize M_magnitude ##
+##                                           after all the iterations converge at the end of each ##
+##                                           time step.                                           ##
+## mag_M_normalization==1 is equivalent to mag_M_normalization==2 in the first-order algorithm.   ##
+## The initial B field is set up such that   B = mu0 * M.  Alternatively, initial B field can be  ##
+## the default value 0, as the evolution of M automatically drives B to be M * mu0 after a few    ##
+## time steps.                                                                                    ##
+## In the current setup, warpx.Bx_external_grid_function(x,y,z) = mu0 * warpx.M_external_grid (1) ##
+## If warpx.M_external_grid (1) is set to be macroscopic.mag_Ms_function(x,y,z), i.e. saturated   ##
+## materials, warpx.Bx_external_grid_function(x,y,z) = mu0 * macroscopic.mag_Ms_function(x,y,z)   ##
+## This input file requires USE_LLG=TRUE in the GNUMakefile.                                      ##
+####################################################################################################
+
 ################################
 ####### GENERAL PARAMETERS ######
 #################################
@@ -101,8 +130,7 @@ warpx.Hz_bias_external_grid_function(x,y,z)= 3e4 # in A/m, equal to 382 Oersted
 #warpx.Mz_external_grid_function(x,y,z) = 0.
 
 warpx.M_ext_grid_init_style = constant
-#warpx.M_external_grid = 140000. 0. 0.
-warpx.M_external_grid = 10000. 0. 0.
+warpx.M_external_grid = 140000. 0. 0.
 
 #Diagnostics
 diagnostics.diags_names = plt
