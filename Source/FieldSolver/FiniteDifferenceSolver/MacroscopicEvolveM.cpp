@@ -21,8 +21,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
     // The MField here is a vector of three multifabs, with M on each face, and each multifab is a three-component multifab.
     // Each M-multifab has three components, one for each component in x, y, z. (All multifabs are four dimensional, (i,j,k,n)), where, n=1 for E, B, but, n=3 for M_xface, M_yface, M_zface
     std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Mfield,
-    std::array< std::unique_ptr<amrex::MultiFab>, 3 >& H_biasfield, // H bias
-    std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Bfield,
+    std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& H_biasfield, // H bias
+    std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Bfield,
     amrex::Real const dt,
     std::unique_ptr<MacroscopicProperties> const& macroscopic_properties) {
 
@@ -39,8 +39,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
     template<typename T_Algo>
     void FiniteDifferenceSolver::MacroscopicEvolveMCartesian (
         std::array< std::unique_ptr<amrex::MultiFab>, 3 > & Mfield,
-        std::array< std::unique_ptr<amrex::MultiFab>, 3 >& H_biasfield, // H bias
-        std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Bfield,
+        std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& H_biasfield, // H bias
+        std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Bfield,
         amrex::Real const dt,
         std::unique_ptr<MacroscopicProperties> const& macroscopic_properties )
     {
@@ -51,9 +51,12 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
 
         // build temporary vector<multifab,3> Mfield_prev
         std::array< std::unique_ptr<amrex::MultiFab>, 3 > Mfield_prev; // Mfield data in previous step
+        std::array< std::unique_ptr<amrex::MultiFab>, 3 > H_Maxwellfield; // Hfield
         for (int i = 0; i < 3; i++){
             Mfield_prev[i].reset( new MultiFab(Mfield[i]->boxArray(),Mfield[i]->DistributionMap(),3,Mfield[i]->nGrow()));
             MultiFab::Copy(*Mfield_prev[i],*Mfield[i],0,0,3,Mfield[i]->nGrow());
+
+            H_Maxwellfield[i].reset( new MultiFab(Bfield[i]->boxArray(), Bfield[i]->DistributionMap(), 1, Bfield[i]->nGrow()));
         }
 
         // obtain the maximum relative amount we let M deviate from Ms before aborting
@@ -82,6 +85,9 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
             Array4<Real> const& Bx = Bfield[0]->array(mfi); // Bx is the x component at |_x faces
             Array4<Real> const& By = Bfield[1]->array(mfi); // By is the y component at |_y faces
             Array4<Real> const& Bz = Bfield[2]->array(mfi); // Bz is the z component at |_z faces
+            Array4<Real> const& Hx_Maxwell = H_Maxwellfield[0]->array(mfi); // Bx is the x component at |_x faces
+            Array4<Real> const& Hy_Maxwell = H_Maxwellfield[1]->array(mfi); // By is the y component at |_y faces
+            Array4<Real> const& Hz_Maxwell = H_Maxwellfield[2]->array(mfi); // Bz is the z component at |_z faces
 
             // extract stencil coefficients
             Real const * const AMREX_RESTRICT coefs_x = m_stencil_coefs_x.dataPtr();
@@ -107,11 +113,14 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
               Real Hx_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(1,0,0), Hx_bias);
               Real Hy_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(1,0,0), Hy_bias);
               Real Hz_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(1,0,0), Hz_bias);
+
+              Hx_Maxwell(i, j, k) = MacroscopicProperties::getH_Maxwell(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(1,0,0), Bx, M_xface);
+
               if (coupling == 1) {
                   // H_eff = H_maxwell + H_bias + H_exchange + H_anisotropy ... (only the first two terms are considered here)
 
                   // H_maxwell
-                  Hx_eff += MacroscopicProperties::getH_Maxwell(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(1,0,0), Bx, M_xface);
+                  Hx_eff += Hx_Maxwell(i, j, k);
                   Hy_eff += MacroscopicProperties::getH_Maxwell(i, j, k, 1, amrex::IntVect(0,1,0), amrex::IntVect(1,0,0), By, M_xface);
                   Hz_eff += MacroscopicProperties::getH_Maxwell(i, j, k, 2, amrex::IntVect(0,0,1), amrex::IntVect(1,0,0), Bz, M_xface);
               }
@@ -203,12 +212,15 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
               Real Hx_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(0,1,0), Hx_bias);
               Real Hy_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(0,1,0), Hy_bias);
               Real Hz_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(0,1,0), Hz_bias);
+
+              Hy_Maxwell(i, j, k) = MacroscopicProperties::getH_Maxwell(i, j, k, 1, amrex::IntVect(0,1,0), amrex::IntVect(0,1,0), By, M_yface);
+
               if (coupling == 1) {
                   // H_eff = H_maxwell + H_bias + H_exchange + H_anisotropy ... (only the first two terms are considered here)
 
                   // H_maxwell
                   Hx_eff += MacroscopicProperties::getH_Maxwell(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(0,1,0), Bx, M_yface);
-                  Hy_eff += MacroscopicProperties::getH_Maxwell(i, j, k, 1, amrex::IntVect(0,1,0), amrex::IntVect(0,1,0), By, M_yface);
+                  Hy_eff += Hy_Maxwell(i, j, k);
                   Hz_eff += MacroscopicProperties::getH_Maxwell(i, j, k, 2, amrex::IntVect(0,0,1), amrex::IntVect(0,1,0), Bz, M_yface);
               }
 
@@ -283,13 +295,15 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
               Real Hy_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(0,0,1), Hy_bias);
               Real Hz_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(0,0,1), Hz_bias);
 
+              Hz_Maxwell(i, j, k) = MacroscopicProperties::getH_Maxwell(i, j, k, 2, amrex::IntVect(0,0,1), amrex::IntVect(0,0,1), Bz, M_zface);
+
               if (coupling == 1) {
                   // H_eff = H_maxwell + H_bias + H_exchange + H_anisotropy ... (only the first two terms are considered here)
 
                   // H_maxwell
                   Hx_eff += MacroscopicProperties::getH_Maxwell(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(0,0,1), Bx, M_zface);
                   Hy_eff += MacroscopicProperties::getH_Maxwell(i, j, k, 1, amrex::IntVect(0,1,0), amrex::IntVect(0,0,1), By, M_zface);
-                  Hz_eff += MacroscopicProperties::getH_Maxwell(i, j, k, 2, amrex::IntVect(0,0,1), amrex::IntVect(0,0,1), Bz, M_zface);
+                  Hz_eff += Hz_Maxwell(i, j, k);
               }
 
               // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
@@ -350,7 +364,19 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
                   }
               }
               
-              });
+            });
+        for (MFIter mfi(*Mfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi){
+            amrex::ParallelFor(tbx, tby, tbz,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k){
+                Bx(i, j, k) = PhysConst::mu0 * (Hx_Maxwell(i, j, k) + M_xface(i, j, k, 0));
+            },
+            [=] AMREX_GPU_DEVICE (int i, int j, int k){
+                By(i, j, k) = PhysConst::mu0 * (Hy_Maxwell(i, j, k) + M_yface(i, j, k, 1));
+            },
+            [=] AMREX_GPU_DEVICE (int i, int j, int k){
+                Bz(i, j, k) = PhysConst::mu0 * (Hz_Maxwell(i, j, k) + M_zface(i, j, k, 2));
+            });
+        }
         }
     }
 #endif

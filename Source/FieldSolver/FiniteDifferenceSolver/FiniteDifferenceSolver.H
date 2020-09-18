@@ -93,13 +93,13 @@ class FiniteDifferenceSolver
           */
 
         void MacroscopicEvolveM ( std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Mfield,
-                       std::array< std::unique_ptr<amrex::MultiFab>, 3 >& H_biasfield,
-                       std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Bfield,
+                       std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& H_biasfield,
+                       std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Bfield,
                        amrex::Real const dt,
                        std::unique_ptr<MacroscopicProperties> const& macroscopic_properties);
 
         void MacroscopicEvolveM_2nd ( std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Mfield,
-                       std::array< std::unique_ptr<amrex::MultiFab>, 3 >& H_biasfield,
+                       std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& H_biasfield,
                        std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Bfield,
                        std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Bfield_old,
                        amrex::Real const dt,
@@ -212,15 +212,15 @@ class FiniteDifferenceSolver
         template< typename T_Algo >
         void MacroscopicEvolveMCartesian (
             std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Mfield,
-            std::array< std::unique_ptr<amrex::MultiFab>, 3 >& H_biasfield,
-            std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Bfield,
+            std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& H_biasfield,
+            std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Bfield,
             amrex::Real const dt,
             std::unique_ptr<MacroscopicProperties> const& macroscopic_properties );
 
         template< typename T_Algo >
         void MacroscopicEvolveMCartesian_2nd (
             std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Mfield,
-            std::array< std::unique_ptr<amrex::MultiFab>, 3 >& H_biasfield,
+            std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& H_biasfield,
             std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Bfield,
             std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Bfield_old,
             amrex::Real const dt,
