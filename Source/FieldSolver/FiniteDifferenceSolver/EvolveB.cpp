@@ -95,16 +95,25 @@ void FiniteDifferenceSolver::EvolveBCartesian (
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
                 Bx(i, j, k) += dt * T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k)
                              - dt * T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k);
+                if (i == 4 && j == 4 && k == 4){
+                    printf("right after EvolveB, Bx = %f \n", Bx(i,j,k));
+                }
             },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
                 By(i, j, k) += dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k)
                              - dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k);
+                if (i == 4 && j == 4 && k == 4){
+                printf("By = %f \n", By(i,j,k));
+              }
             },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
                 Bz(i, j, k) += dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k)
                              - dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k);
+                if (i == 4 && j == 4 && k == 4){
+                printf("Bz = %f \n", Bz(i,j,k));
+              }
             }
 
         );

@@ -115,6 +115,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
               Real Hz_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(1,0,0), Hz_bias);
 
               Hx_Maxwell(i, j, k) = MacroscopicProperties::getH_Maxwell(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(1,0,0), Bx, M_xface);
+              Hy_Maxwell(i, j, k) = MacroscopicProperties::getH_Maxwell(i, j, k, 1, amrex::IntVect(0,1,0), amrex::IntVect(1,0,0), By, M_xface);
+              Hz_Maxwell(i, j, k) = MacroscopicProperties::getH_Maxwell(i, j, k, 2, amrex::IntVect(0,0,1), amrex::IntVect(1,0,0), Bz, M_xface);
 
               if (coupling == 1) {
                   // H_eff = H_maxwell + H_bias + H_exchange + H_anisotropy ... (only the first two terms are considered here)
@@ -156,10 +158,12 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
                       std::pow(M_xface(i, j, k, 2),2.0) ) / MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr);
 
               /* for debugging*/
-              if (i == 0 && j == 0 && k == 0){
-                  printf("i = %d, j=%d, k=%d\n", i, j, k);
+              if (i == 4 && j == 4 && k == 4){
+                  printf("x face, i = %d, j=%d, k=%d\n", i, j, k);
                   printf("Mx = %f, My = %f, Mz = %f \n", M_xface(i, j, k, 0), M_xface(i, j, k, 1), M_xface(i, j, k, 2));
                   printf("Hx_eff = %f, Hy_eff = %f, Hz_eff = %f \n", Hx_eff, Hy_eff, Hz_eff);
+                  printf("Hx_Maxwell = %f, Hy_Maxwell = %f, Hz_Maxwell = %f \n", Hx_Maxwell(i,j,k), Hy_Maxwell(i,j,k), Hz_Maxwell(i,j,k));
+                  printf("before accounting M, Bx = %f, By = %f, Bz = %f \n", Bx(i,j,k), By(i,j,k), Bz(i,j,k));
                   printf("torque x = %f, damping x = %f \n", dt * (PhysConst::mu0 * mag_gamma_interp) * ( M_xface_prev(i, j, k, 1) * Hz_eff - M_xface_prev(i, j, k, 2) * Hy_eff), 
                       dt * Gil_damp * ( M_xface_prev(i, j, k, 1) * (M_xface_prev(i, j, k, 0) * Hy_eff - M_xface_prev(i, j, k, 1) * Hx_eff)
                       - M_xface_prev(i, j, k, 2) * ( M_xface_prev(i, j, k, 2) * Hx_eff - M_xface_prev(i, j, k, 0) * Hz_eff)));
@@ -254,6 +258,24 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
               amrex::Real M_magnitude_normalized = std::sqrt( std::pow(M_yface(i, j, k, 0),2.0) + std::pow(M_yface(i, j, k, 1),2.0) +
                       std::pow(M_yface(i, j, k, 2),2.0) ) / MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_Ms_arr);
 
+              /* for debugging*/
+              if (i == 4 && j == 4 && k == 4){
+                  printf("y face, i = %d, j=%d, k=%d\n", i, j, k);
+                  printf("Mx = %f, My = %f, Mz = %f \n", M_yface(i, j, k, 0), M_yface(i, j, k, 1), M_yface(i, j, k, 2));
+                  printf("Hx_eff = %f, Hy_eff = %f, Hz_eff = %f \n", Hx_eff, Hy_eff, Hz_eff);
+                  printf("Hx_Maxwell = %f, Hy_Maxwell = %f, Hz_Maxwell = %f \n", Hx_Maxwell(i,j,k), Hy_Maxwell(i,j,k), Hz_Maxwell(i,j,k));
+                  printf("before accounting M, Bx = %f, By = %f, Bz = %f \n", Bx(i,j,k), By(i,j,k), Bz(i,j,k));
+                  printf("torque x = %f, damping x = %f \n", dt * (PhysConst::mu0 * mag_gamma_interp) * ( M_yface_prev(i, j, k, 1) * Hz_eff - M_yface_prev(i, j, k, 2) * Hy_eff), 
+                      dt * Gil_damp * ( M_yface_prev(i, j, k, 1) * (M_yface_prev(i, j, k, 0) * Hy_eff - M_yface_prev(i, j, k, 1) * Hx_eff)
+                      - M_yface_prev(i, j, k, 2) * ( M_yface_prev(i, j, k, 2) * Hx_eff - M_yface_prev(i, j, k, 0) * Hz_eff)));
+                  printf("torque y = %f, damping y = %f \n", dt * (PhysConst::mu0 * mag_gamma_interp) * ( M_yface_prev(i, j, k, 2) * Hx_eff - M_yface_prev(i, j, k, 0) * Hz_eff), 
+                      dt * Gil_damp * ( M_yface_prev(i, j, k, 2) * (M_yface_prev(i, j, k, 1) * Hz_eff - M_yface_prev(i, j, k, 2) * Hy_eff)
+                      - M_yface_prev(i, j, k, 0) * ( M_yface_prev(i, j, k, 0) * Hy_eff - M_yface_prev(i, j, k, 1) * Hx_eff)));
+                  printf("torque z = %f, damping z = %f \n", dt * (PhysConst::mu0 * mag_gamma_interp) * ( M_yface_prev(i, j, k, 0) * Hy_eff - M_yface_prev(i, j, k, 1) * Hx_eff), 
+                      dt * Gil_damp * ( M_yface_prev(i, j, k, 0) * (M_yface_prev(i, j, k, 2) * Hx_eff - M_yface_prev(i, j, k, 0) * Hz_eff)
+                      - M_yface_prev(i, j, k, 1) * ( M_yface_prev(i, j, k, 1) * Hz_eff - M_yface_prev(i, j, k, 2) * Hy_eff)));
+
+              }
               
               if (M_normalization > 0){
                   // check the normalized error
@@ -335,7 +357,25 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
               amrex::Real M_magnitude_normalized = std::sqrt( std::pow(M_zface(i, j, k, 0),2.0_rt) + std::pow(M_zface(i, j, k, 1),2.0_rt) +
                       std::pow(M_zface(i, j, k, 2),2.0_rt) ) / MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_Ms_arr);
 
-              
+              /* for debugging*/
+              if (i == 4 && j == 4 && k == 4){
+                  printf("z face, i = %d, j=%d, k=%d\n", i, j, k);
+                  printf("Mx = %f, My = %f, Mz = %f \n", M_zface(i, j, k, 0), M_zface(i, j, k, 1), M_zface(i, j, k, 2));
+                  printf("Hx_eff = %f, Hy_eff = %f, Hz_eff = %f \n", Hx_eff, Hy_eff, Hz_eff);
+                  printf("Hx_Maxwell = %f, Hy_Maxwell = %f, Hz_Maxwell = %f \n", Hx_Maxwell(i,j,k), Hy_Maxwell(i,j,k), Hz_Maxwell(i,j,k));
+                  printf("before accounting M, Bx = %f, By = %f, Bz = %f \n", Bx(i,j,k), By(i,j,k), Bz(i,j,k));
+                  printf("torque x = %f, damping x = %f \n", dt * (PhysConst::mu0 * mag_gamma_interp) * ( M_zface_prev(i, j, k, 1) * Hz_eff - M_zface_prev(i, j, k, 2) * Hy_eff), 
+                      dt * Gil_damp * ( M_zface_prev(i, j, k, 1) * (M_zface_prev(i, j, k, 0) * Hy_eff - M_zface_prev(i, j, k, 1) * Hx_eff)
+                      - M_zface_prev(i, j, k, 2) * ( M_zface_prev(i, j, k, 2) * Hx_eff - M_zface_prev(i, j, k, 0) * Hz_eff)));
+                  printf("torque y = %f, damping y = %f \n", dt * (PhysConst::mu0 * mag_gamma_interp) * ( M_zface_prev(i, j, k, 2) * Hx_eff - M_zface_prev(i, j, k, 0) * Hz_eff), 
+                      dt * Gil_damp * ( M_zface_prev(i, j, k, 0) * (M_zface_prev(i, j, k, 2) * Hx_eff - M_zface_prev(i, j, k, 0) * Hz_eff)
+                      - M_zface_prev(i, j, k, 1) * ( M_zface_prev(i, j, k, 1) * Hz_eff - M_yface_prev(i, j, k, 2) * Hy_eff)));
+                  printf("torque z = %f, damping z = %f \n", dt * (PhysConst::mu0 * mag_gamma_interp) * ( M_zface_prev(i, j, k, 0) * Hy_eff - M_zface_prev(i, j, k, 1) * Hx_eff), 
+                      dt * Gil_damp * ( M_zface_prev(i, j, k, 0) * (M_zface_prev(i, j, k, 2) * Hx_eff - M_zface_prev(i, j, k, 0) * Hz_eff)
+                      - M_zface_prev(i, j, k, 1) * ( M_zface_prev(i, j, k, 1) * Hz_eff - M_yface_prev(i, j, k, 2) * Hy_eff)));
+
+              }
+
               if (M_normalization > 0){
                   // check the normalized error
                   if (amrex::Math::abs(1._rt - M_magnitude_normalized) > mag_normalized_error){
@@ -365,16 +405,34 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
               }
               
             });
-        for (MFIter mfi(*Mfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi){
+        for (MFIter mfi(*Bfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi){
+            // extract tileboxes for which to loop
+            Box const& tbx = mfi.tilebox(Bfield[0]->ixType().toIntVect()); /* just define which grid type */
+            Box const& tby = mfi.tilebox(Bfield[1]->ixType().toIntVect());
+            Box const& tbz = mfi.tilebox(Bfield[2]->ixType().toIntVect());
+
             amrex::ParallelFor(tbx, tby, tbz,
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
                 Bx(i, j, k) = PhysConst::mu0 * (Hx_Maxwell(i, j, k) + M_xface(i, j, k, 0));
+                /* for debugging*/
+                if (i == 4){
+                printf("i = %d, j=%d, k=%d\n", i, j, k);
+                printf("after accounting M, Bx = %f \n", Bx(i,j,k));
+                }
             },
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
                 By(i, j, k) = PhysConst::mu0 * (Hy_Maxwell(i, j, k) + M_yface(i, j, k, 1));
+                if (i == 4){
+                printf("i = %d, j=%d, k=%d\n", i, j, k);
+                printf("By = %f \n", By(i,j,k));
+                }
             },
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
                 Bz(i, j, k) = PhysConst::mu0 * (Hz_Maxwell(i, j, k) + M_zface(i, j, k, 2));
+                if (i == 4){
+                printf("i = %d, j=%d, k=%d\n", i, j, k);
+                printf("Bz = %f \n", Bz(i,j,k));
+                }
             });
         }
         }

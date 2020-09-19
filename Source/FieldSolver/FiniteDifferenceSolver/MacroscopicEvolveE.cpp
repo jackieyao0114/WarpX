@@ -177,6 +177,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
                          + T_Algo::DownwardDy(Bz, coefs_y, n_coefs_y, i, j, k, 0))/PhysConst::mu0
                          + T_Algo::DownwardDz(M_yface, coefs_z, n_coefs_z, i, j, k, 1)
                          - T_Algo::DownwardDy(M_zface, coefs_y, n_coefs_y, i, j, k, 2));
+                if (i == 4 && j == 4 && k == 4){
+                printf("Ex = %f \n", Ex(i,j,k));
+                printf("term 1= %f \n", T_Algo::DownwardDz(By, coefs_z, n_coefs_z, i, j, k, 0)/PhysConst::mu0);
+                printf("term 2= %f \n", T_Algo::DownwardDy(Bz, coefs_y, n_coefs_y, i, j, k, 0)/PhysConst::mu0);
+                printf("term 3= %f \n", T_Algo::DownwardDz(M_yface, coefs_z, n_coefs_z, i, j, k, 1));
+                printf("term 4= %f \n", T_Algo::DownwardDy(M_zface, coefs_y, n_coefs_y, i, j, k, 2));
+              }
 #else
                 Ex(i, j, k) = alpha * Ex(i, j, k) + (beta/mu)
                      * ( - T_Algo::DownwardDz(By, coefs_z, n_coefs_z, i, j, k)
@@ -197,6 +204,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
                          + T_Algo::DownwardDz(Bx, coefs_z, n_coefs_z, i, j, k, 0))/PhysConst::mu0
                          + T_Algo::DownwardDx(M_zface, coefs_x, n_coefs_x, i, j, k, 2)
                          - T_Algo::DownwardDz(M_xface, coefs_z, n_coefs_z, i, j, k, 0));
+                if (i == 4 && j == 4 && k == 4){
+                printf("Ey = %f \n", Ey(i,j,k));
+                printf("term 1= %f \n", T_Algo::DownwardDx(Bz, coefs_x, n_coefs_x, i, j, k, 0)/PhysConst::mu0);
+                printf("term 2= %f \n", T_Algo::DownwardDz(Bx, coefs_z, n_coefs_z, i, j, k, 0)/PhysConst::mu0);
+                printf("term 3= %f \n", T_Algo::DownwardDx(M_zface, coefs_x, n_coefs_x, i, j, k, 2));
+                printf("term 4= %f \n", T_Algo::DownwardDz(M_xface, coefs_z, n_coefs_z, i, j, k, 0));
+              }
 #else
                 Ey(i, j, k) = alpha * Ey(i, j, k) + (beta/mu)
                      * ( - T_Algo::DownwardDx(Bz, coefs_x, n_coefs_x, i, j, k)
@@ -217,6 +231,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
                          + T_Algo::DownwardDx(By, coefs_x, n_coefs_x, i, j, k, 0))/PhysConst::mu0
                          + T_Algo::DownwardDy(M_xface, coefs_y, n_coefs_y, i, j, k, 0)
                          - T_Algo::DownwardDx(M_yface, coefs_x, n_coefs_x, i, j, k, 1));
+                if (i == 4 && j == 4 && k == 4){
+                printf("Ez = %f \n", Ez(i,j,k));
+                printf("term 1= %f \n", T_Algo::DownwardDy(Bx, coefs_y, n_coefs_y, i, j, k, 0)/PhysConst::mu0);
+                printf("term 2= %f \n", T_Algo::DownwardDx(By, coefs_x, n_coefs_x, i, j, k, 0)/PhysConst::mu0);
+                printf("term 3= %f \n", T_Algo::DownwardDy(M_xface, coefs_y, n_coefs_y, i, j, k, 0));
+                printf("term 4= %f \n", T_Algo::DownwardDx(M_yface, coefs_x, n_coefs_x, i, j, k, 1));
+              }
 #else
                 Ez(i, j, k) = alpha * Ez(i, j, k) + (beta/mu)
                      * ( - T_Algo::DownwardDy(Bx, coefs_y, n_coefs_y, i, j, k)
