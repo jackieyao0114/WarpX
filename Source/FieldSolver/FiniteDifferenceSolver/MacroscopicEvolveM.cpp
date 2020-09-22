@@ -408,6 +408,18 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
         
         
         for (MFIter mfi(*Bfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi){
+
+            // extract field data
+            Array4<Real> const& M_xface = Mfield[0]->array(mfi); // note M_xface include x,y,z components at |_x faces
+            Array4<Real> const& M_yface = Mfield[1]->array(mfi); // note M_yface include x,y,z components at |_y faces
+            Array4<Real> const& M_zface = Mfield[2]->array(mfi); // note M_zface include x,y,z components at |_z faces
+            Array4<Real> const& Bx = Bfield[0]->array(mfi); // Bx is the x component at |_x faces
+            Array4<Real> const& By = Bfield[1]->array(mfi); // By is the y component at |_y faces
+            Array4<Real> const& Bz = Bfield[2]->array(mfi); // Bz is the z component at |_z faces
+            Array4<Real> const& Hx_Maxwell = H_Maxwellfield[0]->array(mfi); // Bx is the x component at |_x faces
+            Array4<Real> const& Hy_Maxwell = H_Maxwellfield[1]->array(mfi); // By is the y component at |_y faces
+            Array4<Real> const& Hz_Maxwell = H_Maxwellfield[2]->array(mfi); // Bz is the z component at |_z faces
+
             // extract tileboxes for which to loop
             Box const& tbx = mfi.tilebox(Bfield[0]->ixType().toIntVect()); // just define which grid type 
             Box const& tby = mfi.tilebox(Bfield[1]->ixType().toIntVect());
