@@ -405,36 +405,40 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
               }
               
             });
+        
+        
         for (MFIter mfi(*Bfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi){
             // extract tileboxes for which to loop
-            Box const& tbx = mfi.tilebox(Bfield[0]->ixType().toIntVect()); /* just define which grid type */
+            Box const& tbx = mfi.tilebox(Bfield[0]->ixType().toIntVect()); // just define which grid type 
             Box const& tby = mfi.tilebox(Bfield[1]->ixType().toIntVect());
             Box const& tbz = mfi.tilebox(Bfield[2]->ixType().toIntVect());
 
             amrex::ParallelFor(tbx, tby, tbz,
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
                 Bx(i, j, k) = PhysConst::mu0 * (Hx_Maxwell(i, j, k) + M_xface(i, j, k, 0));
-                /* for debugging*/
-                if (i == 4){
-                printf("i = %d, j=%d, k=%d\n", i, j, k);
-                printf("after accounting M, Bx = %f \n", Bx(i,j,k));
-                }
+                // for debugging
+                // if (i == 4){
+                // printf("i = %d, j=%d, k=%d\n", i, j, k);
+                // printf("after accounting M, Bx = %f \n", Bx(i,j,k));
+                // }
             },
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
                 By(i, j, k) = PhysConst::mu0 * (Hy_Maxwell(i, j, k) + M_yface(i, j, k, 1));
-                if (i == 4){
-                printf("i = %d, j=%d, k=%d\n", i, j, k);
-                printf("By = %f \n", By(i,j,k));
-                }
+                // if (i == 4){
+                // printf("i = %d, j=%d, k=%d\n", i, j, k);
+                // printf("By = %f \n", By(i,j,k));
+                // }
             },
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
                 Bz(i, j, k) = PhysConst::mu0 * (Hz_Maxwell(i, j, k) + M_zface(i, j, k, 2));
-                if (i == 4){
-                printf("i = %d, j=%d, k=%d\n", i, j, k);
-                printf("Bz = %f \n", Bz(i,j,k));
-                }
+                // if (i == 4){
+                // printf("i = %d, j=%d, k=%d\n", i, j, k);
+                // printf("Bz = %f \n", Bz(i,j,k));
+                // }
             });
+        
         }
+        
         }
     }
 #endif

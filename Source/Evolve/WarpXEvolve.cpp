@@ -370,6 +370,7 @@ WarpX::OneStep_nosub (Real cur_time)
                 amrex::Abort("unsupported mag_time_scheme_order for M field");
             }
             FillBoundaryM(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
+            FillBoundaryB(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
         } else {
             amrex::Abort("unsupported em_solver_medium for M field");
         }
@@ -413,6 +414,7 @@ WarpX::OneStep_nosub (Real cur_time)
             }
             if ( safe_guard_cells ){
                 FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
+                FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             }
         }
         else {

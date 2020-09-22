@@ -1,7 +1,7 @@
 ################################
 ####### GENERAL PARAMETERS ######
 #################################
-max_step = 100000
+max_step = 1000
 amr.n_cell = 8 8 8 # number of cells spanning the domain in each coordinate direction at level 0
 amr.max_grid_size = 512 # maximum size of each AMReX box, used to decompose the domain
 amr.blocking_factor = 8
@@ -18,7 +18,7 @@ amr.max_level = 0
 #################################
 warpx.verbose = 0
 warpx.use_filter = 0
-warpx.cfl = 1
+warpx.cfl = 4000
 warpx.do_pml = 0
 warpx.mag_time_scheme_order = 1 # default 1
 warpx.mag_M_normalization = 2
@@ -55,7 +55,7 @@ macroscopic.mag_gamma_function(x,y,z) = "-1.759e11"
 
 macroscopic.mag_max_iter = 100 # maximum number of M iteration in each time step
 macroscopic.mag_tol = 1.e-6 # M magnitude relative error tolerance compared to previous iteration
-macroscopic.mag_normalized_error = 1e6 # if M magnitude relatively changes more than this value, raise a red flag
+macroscopic.mag_normalized_error = 0.1 # if M magnitude relatively changes more than this value, raise a red flag
 
 #################################
 ############ FIELDS #############
@@ -68,7 +68,7 @@ my_constants.wavelength = 1.2e-1
 warpx.E_ext_grid_init_style = parse_E_ext_grid_function
 
 warpx.Ex_external_grid_function(x,y,z) = 0.
-warpx.Ey_external_grid_function(x,y,z) = 0.1
+warpx.Ey_external_grid_function(x,y,z) = 0
 #warpx.Ey_external_grid_function(x,y,z) = "1.e5*exp(-z**2/L**2)*cos(2*pi*z/wavelength)"
 warpx.Ez_external_grid_function(x,y,z) = 0.
 
@@ -105,7 +105,7 @@ warpx.M_external_grid = 140000. 0. 0.
 
 #Diagnostics
 diagnostics.diags_names = plt
-plt.period = 50
+plt.period = 10
 plt.diag_type = Full
 plt.fields_to_plot = Ex Ey Ez Bx By Bz Mx_xface My_xface Mz_xface Mx_yface My_yface Mz_yface Mx_zface My_zface Mz_zface
 plt.plot_raw_fields = 0
