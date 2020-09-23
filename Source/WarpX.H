@@ -654,7 +654,7 @@ public:
     /** \brief adds the contribution of user-defined external field-excitation
      *   to Efield_fp and Bfield_fp.
      */
-    void ApplyExternalFieldExcitationOnGrid();
+    void ApplyExternalFieldExcitationOnGrid ();
     void ApplyExternalFieldExcitationOnGrid ( amrex::MultiFab *mfx,
          amrex::MultiFab *mfy, amrex::MultiFab *mfz,
          HostDeviceParser<4> const& xfield_parser,
