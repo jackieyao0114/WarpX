@@ -19,7 +19,7 @@ WarpX::ApplyExternalFieldExcitationOnGrid ()
                                                getParser(Eyfield_xt_grid_parser),
                                                getParser(Ezfield_xt_grid_parser),
                                                lev );
-        } 
+        }
         if (B_excitation_grid_s == "parse_b_excitation_grid_function")
         {
             ApplyExternalFieldExcitationOnGrid(Bfield_fp[lev][0].get(),
@@ -29,7 +29,7 @@ WarpX::ApplyExternalFieldExcitationOnGrid ()
                                                getParser(Byfield_xt_grid_parser),
                                                getParser(Bzfield_xt_grid_parser),
                                                lev );
-        } 
+        }
     } // for loop over level
 }
 
@@ -47,7 +47,7 @@ WarpX::ApplyExternalFieldExcitationOnGrid (
         mfx_stag[idim] = mfx->ixType()[idim];
         mfy_stag[idim] = mfy->ixType()[idim];
         mfz_stag[idim] = mfz->ixType()[idim];
-    } 
+    }
     amrex::Real cur_time = gett_new(lev);
     const auto problo = Geom(lev).ProbLoArray();
     const auto dx = Geom(lev).CellSizeArray();
@@ -84,7 +84,7 @@ WarpX::ApplyExternalFieldExcitationOnGrid (
                 WarpXUtilAlgo::getCellCoordinates(i, j, k, mfz_stag,
                                                   problo, dx, x, y, z);
                 Fz(i, j, k) += zfield_parser(x, y, z, cur_time);
-            }           
+            }
         );
     }
 

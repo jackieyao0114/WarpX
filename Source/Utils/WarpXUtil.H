@@ -153,8 +153,8 @@ T trilinear_interp(T x0, T x1,T y0, T y1, T z0, T z1,
 }
 
 /** \brief Compute physical coordinates (x,y,z) that correspond to a given (i,j,k) and
- *  the corresponding staggering, mf_type. 
- * 
+ *  the corresponding staggering, mf_type.
+ *
  * \param[in] i    index along x
  * \param[in] j    index along y
  * \param[in] k    index along z

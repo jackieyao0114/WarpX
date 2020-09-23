@@ -643,7 +643,7 @@ public:
      * to correct number of boxes and boxes per level
      */
     void ComputeCostsHeuristic (amrex::Vector<std::unique_ptr<amrex::LayoutData<amrex::Real> > >& costs);
- 
+
     /** \brief adds the contribution of user-defined external field-excitation
      *   to Efield_fp and Bfield_fp.
      */
