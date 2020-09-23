@@ -348,11 +348,11 @@ WarpX::InitLevelData (int lev, Real /*time*/)
 #ifdef WARPX_DIM_RZ
        amrex::Abort("E and B parser for external fields does not work with RZ -- TO DO");
 #endif
-       Store_parserString(pp, "Bx_excitation_grid_function(x,y,z)",
+       Store_parserString(pp, "Bx_excitation_grid_function(x,y,z,t)",
                                                     str_Bx_excitation_grid_function);
-       Store_parserString(pp, "By_excitation_grid_function(x,y,z)",
+       Store_parserString(pp, "By_excitation_grid_function(x,y,z,t)",
                                                     str_By_excitation_grid_function);
-       Store_parserString(pp, "Bz_excitation_grid_function(x,y,z)",
+       Store_parserString(pp, "Bz_excitation_grid_function(x,y,z,t)",
                                                     str_Bz_excitation_grid_function);
        Bxfield_xt_grid_parser.reset(new ParserWrapper<4>(
                    makeParser(str_Bx_excitation_grid_function,{"x","y","z","t"})));
@@ -367,11 +367,11 @@ WarpX::InitLevelData (int lev, Real /*time*/)
 #ifdef WARPX_DIM_RZ
        amrex::Abort("E and B parser for external fields does not work with RZ -- TO DO");
 #endif
-       Store_parserString(pp, "Ex_excitation_grid_function(x,y,z)",
+       Store_parserString(pp, "Ex_excitation_grid_function(x,y,z,t)",
                                                     str_Ex_excitation_grid_function);
-       Store_parserString(pp, "Ey_excitation_grid_function(x,y,z)",
+       Store_parserString(pp, "Ey_excitation_grid_function(x,y,z,t)",
                                                     str_Ey_excitation_grid_function);
-       Store_parserString(pp, "Ez_excitation_grid_function(x,y,z)",
+       Store_parserString(pp, "Ez_excitation_grid_function(x,y,z,t)",
                                                     str_Ez_excitation_grid_function);
        Exfield_xt_grid_parser.reset(new ParserWrapper<4>(
                    makeParser(str_Ex_excitation_grid_function,{"x","y","z","t"})));
