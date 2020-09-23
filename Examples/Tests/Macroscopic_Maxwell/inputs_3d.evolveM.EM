@@ -78,7 +78,7 @@ warpx.Ez_external_grid_function(x,y,z) = 0.
 warpx.B_ext_grid_init_style = parse_B_ext_grid_function
 #warpx.Bx_external_grid_function(x,y,z)= 0.1759 # = mu0*M
 #warpx.Bx_external_grid_function(x,y,z)= 0.
-warpx.Bx_external_grid_function(x,y,z)= "0.1*((-sin(2*pi*(z)/wavelength)/c)*(z<=z1)*(z>=zo)) "
+warpx.Bx_external_grid_function(x,y,z)= "0.1759+0.1*((-sin(2*pi*(z)/wavelength)/c)*(z<=z1)*(z>=zo)) "
 warpx.By_external_grid_function(x,y,z)= 0.
 warpx.Bz_external_grid_function(x,y,z) = 0.
 
