@@ -643,6 +643,16 @@ public:
      * to correct number of boxes and boxes per level
      */
     void ComputeCostsHeuristic (amrex::Vector<std::unique_ptr<amrex::LayoutData<amrex::Real> > >& costs);
+ 
+    /** \brief adds the contribution of user-defined external field-excitation
+     *   to Efield_fp and Bfield_fp.
+     */
+    void ApplyExternalFieldExcitationOnGrid();
+    void ApplyExternalFieldExcitationOnGrid ( amrex::MultiFab *mfx,
+         amrex::MultiFab *mfy, amrex::MultiFab *mfz,
+         HostDeviceParser<4> const& xfield_parser,
+         HostDeviceParser<4> const& yfield_parser,
+         HostDeviceParser<4> const& zfield_parser, const int lev );
 
 protected:
 

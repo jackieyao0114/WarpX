@@ -335,6 +335,9 @@ WarpX::OneStep_nosub (Real cur_time)
     // For extended PML: copy J from regular grid to PML, and damp J in PML
     if (do_pml && pml_has_particles) CopyJPML();
     if (do_pml && do_pml_j_damping) DampJPML();
+ 
+    // ApplyExternalFieldExcitation
+    ApplyExternalFieldExcitationOnGrid();
 
     if (!do_electrostatic) {
     // Electromagnetic solver:

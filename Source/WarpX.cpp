@@ -52,8 +52,8 @@ std::string WarpX::B_ext_grid_s = "default";
 std::string WarpX::E_ext_grid_s = "default";
 
 // default type is constant
-std::string WarpX::B_excitation_grid_s = "constant";
-std::string WarpX::E_excitation_grid_s = "constant";
+std::string WarpX::B_excitation_grid_s = "default";
+std::string WarpX::E_excitation_grid_s = "default";
 
 #ifdef WARPX_MAG_LLG
 std::string WarpX::M_ext_grid_s = "default";
