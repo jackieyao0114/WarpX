@@ -38,9 +38,6 @@ using namespace amrex;
 Vector<Real> WarpX::E_external_grid(3, 0.0); // this is fill constructor
 Vector<Real> WarpX::B_external_grid(3, 0.0);
 
-Vector<Real> WarpX::E_excitation_grid(3, 0.0); // this is fill constructor
-Vector<Real> WarpX::B_excitation_grid(3, 0.0);
-
 #ifdef WARPX_MAG_LLG
 Vector<Real> WarpX::M_external_grid(3, 0.0);
 Vector<Real> WarpX::H_bias_external_grid(3, 0.0);

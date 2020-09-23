@@ -105,10 +105,6 @@ public:
     static amrex::Vector<amrex::Real> E_external_grid;
     static amrex::Vector<amrex::Real> B_external_grid;
 
-    // Initial field on the grid.
-    static amrex::Vector<amrex::Real> E_excitation_grid;
-    static amrex::Vector<amrex::Real> B_excitation_grid;
-
 #ifdef WARPX_MAG_LLG
     static amrex::Vector<amrex::Real> M_external_grid;
     static amrex::Vector<amrex::Real> H_bias_external_grid;

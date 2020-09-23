@@ -333,16 +333,6 @@ WarpX::InitLevelData (int lev, Real /*time*/)
     if (E_ext_grid_s == "constant")
         pp.getarr("E_external_grid", E_external_grid);
 
-    // if the input for the external B-excitation is constant, the values
-    // for the field components must be provided in the input.
-    if (B_excitation_grid_s == "constant")
-        pp.getarr("B_excitation_grid", B_excitation_grid);
-
-    // if the input for the external E-excitation is constant, the values
-    // for the field components must be provided in the input.
-    if (E_excitation_grid_s == "constant")
-        pp.getarr("E_excitation_grid", E_excitation_grid);
-
     // make parser for the external B-excitation in space-time
     if (B_excitation_grid_s == "parse_b_excitation_grid_function") {
 #ifdef WARPX_DIM_RZ
