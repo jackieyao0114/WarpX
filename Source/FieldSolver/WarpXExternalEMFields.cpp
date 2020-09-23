@@ -48,7 +48,7 @@ WarpX::ApplyExternalFieldExcitationOnGrid (
         mfy_stag[idim] = mfy->ixType()[idim];
         mfz_stag[idim] = mfz->ixType()[idim];
     }
-    amrex::Real cur_time = gett_new(lev);
+    amrex::Real t = gett_new(lev);
     const auto problo = Geom(lev).ProbLoArray();
     const auto dx = Geom(lev).CellSizeArray();
 #ifdef _OPENMP
@@ -71,19 +71,19 @@ WarpX::ApplyExternalFieldExcitationOnGrid (
                 amrex::Real x, y, z;
                 WarpXUtilAlgo::getCellCoordinates(i, j, k, mfx_stag,
                                                   problo, dx, x, y, z);
-                Fx(i, j, k) += xfield_parser(x, y, z, cur_time);
+                Fx(i, j, k) += xfield_parser(x, y, z, t);
             },
             [=] AMREX_GPU_DEVICE (int i, int j, int k) {
                 amrex::Real x, y, z;
                 WarpXUtilAlgo::getCellCoordinates(i, j, k, mfy_stag,
                                                   problo, dx, x, y, z);
-                Fy(i, j, k) += yfield_parser(x, y, z, cur_time);
+                Fy(i, j, k) += yfield_parser(x, y, z, t);
             },
             [=] AMREX_GPU_DEVICE (int i, int j, int k) {
                 amrex::Real x, y, z;
                 WarpXUtilAlgo::getCellCoordinates(i, j, k, mfz_stag,
                                                   problo, dx, x, y, z);
-                Fz(i, j, k) += zfield_parser(x, y, z, cur_time);
+                Fz(i, j, k) += zfield_parser(x, y, z, t);
             }
         );
     }
