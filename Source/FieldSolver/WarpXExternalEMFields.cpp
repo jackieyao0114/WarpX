@@ -4,8 +4,8 @@
 #include "Parser/WarpXParserWrapper.H"
 #include "Parser/GpuParser.H"
 
+
 using namespace amrex;
-using namespace amrex::literals;
 
 void
 WarpX::ApplyExternalFieldExcitationOnGrid ()
