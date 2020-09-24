@@ -4,7 +4,6 @@
 #include "Parser/WarpXParserWrapper.H"
 #include "Parser/GpuParser.H"
 
-
 using namespace amrex;
 
 void
