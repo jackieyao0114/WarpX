@@ -302,6 +302,20 @@ WarpX::InitLevelData (int lev, Real /*time*/)
                    H_bias_ext_grid_s.begin(),
                    ::tolower);
 #endif
+
+    // Query for type of external space-time (xt) varying excitation
+    pp.query("B_excitation_on_grid_style", B_excitation_grid_s);
+    std::transform(B_excitation_grid_s.begin(),
+                   B_excitation_grid_s.end(),
+                   B_excitation_grid_s.begin(),
+                   ::tolower);
+
+    pp.query("E_excitation_on_grid_style", E_excitation_grid_s);
+    std::transform(E_excitation_grid_s.begin(),
+                   E_excitation_grid_s.end(),
+                   E_excitation_grid_s.begin(),
+                   ::tolower);
+
     // * Functions with the string "arr" in their names get an Array of
     //   values from the given entry in the table.  The array argument is
     //   resized (if necessary) to hold all the values requested.
@@ -318,6 +332,45 @@ WarpX::InitLevelData (int lev, Real /*time*/)
     // external grid must be provided in the input.
     if (E_ext_grid_s == "constant")
         pp.getarr("E_external_grid", E_external_grid);
+
+    // make parser for the external B-excitation in space-time
+    if (B_excitation_grid_s == "parse_b_excitation_grid_function") {
+#ifdef WARPX_DIM_RZ
+       amrex::Abort("E and B parser for external fields does not work with RZ -- TO DO");
+#endif
+       Store_parserString(pp, "Bx_excitation_grid_function(x,y,z,t)",
+                                                    str_Bx_excitation_grid_function);
+       Store_parserString(pp, "By_excitation_grid_function(x,y,z,t)",
+                                                    str_By_excitation_grid_function);
+       Store_parserString(pp, "Bz_excitation_grid_function(x,y,z,t)",
+                                                    str_Bz_excitation_grid_function);
+       Bxfield_xt_grid_parser.reset(new ParserWrapper<4>(
+                   makeParser(str_Bx_excitation_grid_function,{"x","y","z","t"})));
+       Byfield_xt_grid_parser.reset(new ParserWrapper<4>(
+                   makeParser(str_By_excitation_grid_function,{"x","y","z","t"})));
+       Bzfield_xt_grid_parser.reset(new ParserWrapper<4>(
+                   makeParser(str_Bz_excitation_grid_function,{"x","y","z","t"})));
+    }
+
+    // make parser for the external E-excitation in space-time
+    if (E_excitation_grid_s == "parse_e_excitation_grid_function") {
+#ifdef WARPX_DIM_RZ
+       amrex::Abort("E and B parser for external fields does not work with RZ -- TO DO");
+#endif
+       Store_parserString(pp, "Ex_excitation_grid_function(x,y,z,t)",
+                                                    str_Ex_excitation_grid_function);
+       Store_parserString(pp, "Ey_excitation_grid_function(x,y,z,t)",
+                                                    str_Ey_excitation_grid_function);
+       Store_parserString(pp, "Ez_excitation_grid_function(x,y,z,t)",
+                                                    str_Ez_excitation_grid_function);
+       Exfield_xt_grid_parser.reset(new ParserWrapper<4>(
+                   makeParser(str_Ex_excitation_grid_function,{"x","y","z","t"})));
+       Eyfield_xt_grid_parser.reset(new ParserWrapper<4>(
+                   makeParser(str_Ey_excitation_grid_function,{"x","y","z","t"})));
+       Ezfield_xt_grid_parser.reset(new ParserWrapper<4>(
+                   makeParser(str_Ez_excitation_grid_function,{"x","y","z","t"})));
+    }
+
 
 #ifdef WARPX_MAG_LLG
     if (M_ext_grid_s == "constant")
@@ -414,7 +467,6 @@ WarpX::InitLevelData (int lev, Real /*time*/)
                                                     str_By_ext_grid_function);
        Store_parserString(pp, "Bz_external_grid_function(x,y,z)",
                                                     str_Bz_ext_grid_function);
-
        Bxfield_parser.reset(new ParserWrapper<3>(
                                 makeParser(str_Bx_ext_grid_function,{"x","y","z"})));
        Byfield_parser.reset(new ParserWrapper<3>(
@@ -426,25 +478,25 @@ WarpX::InitLevelData (int lev, Real /*time*/)
        InitializeExternalFieldsOnGridUsingParser(Bfield_fp[lev][0].get(),
                                                  Bfield_fp[lev][1].get(),
                                                  Bfield_fp[lev][2].get(),
-                                                 Bxfield_parser.get(),
-                                                 Byfield_parser.get(),
-                                                 Bzfield_parser.get(),
+                                                 getParser(Bxfield_parser),
+                                                 getParser(Byfield_parser),
+                                                 getParser(Bzfield_parser),
                                                  lev);
        if (lev > 0) {
           InitializeExternalFieldsOnGridUsingParser(Bfield_aux[lev][0].get(),
                                                     Bfield_aux[lev][1].get(),
                                                     Bfield_aux[lev][2].get(),
-                                                    Bxfield_parser.get(),
-                                                    Byfield_parser.get(),
-                                                    Bzfield_parser.get(),
+                                                    getParser(Bxfield_parser),
+                                                    getParser(Byfield_parser),
+                                                    getParser(Bzfield_parser),
                                                     lev);
 
           InitializeExternalFieldsOnGridUsingParser(Bfield_cp[lev][0].get(),
                                                     Bfield_cp[lev][1].get(),
                                                     Bfield_cp[lev][2].get(),
-                                                    Bxfield_parser.get(),
-                                                    Byfield_parser.get(),
-                                                    Bzfield_parser.get(),
+                                                    getParser(Bxfield_parser),
+                                                    getParser(Byfield_parser),
+                                                    getParser(Bzfield_parser),
                                                     lev);
        }
     }
@@ -475,25 +527,25 @@ WarpX::InitLevelData (int lev, Real /*time*/)
        InitializeExternalFieldsOnGridUsingParser(Efield_fp[lev][0].get(),
                                                  Efield_fp[lev][1].get(),
                                                  Efield_fp[lev][2].get(),
-                                                 Exfield_parser.get(),
-                                                 Eyfield_parser.get(),
-                                                 Ezfield_parser.get(),
+                                                 getParser(Exfield_parser),
+                                                 getParser(Eyfield_parser),
+                                                 getParser(Ezfield_parser),
                                                  lev);
        if (lev > 0) {
           InitializeExternalFieldsOnGridUsingParser(Efield_aux[lev][0].get(),
                                                     Efield_aux[lev][1].get(),
                                                     Efield_aux[lev][2].get(),
-                                                    Exfield_parser.get(),
-                                                    Eyfield_parser.get(),
-                                                    Ezfield_parser.get(),
+                                                    getParser(Exfield_parser),
+                                                    getParser(Eyfield_parser),
+                                                    getParser(Ezfield_parser),
                                                     lev);
 
           InitializeExternalFieldsOnGridUsingParser(Efield_cp[lev][0].get(),
                                                     Efield_cp[lev][1].get(),
                                                     Efield_cp[lev][2].get(),
-                                                    Exfield_parser.get(),
-                                                    Eyfield_parser.get(),
-                                                    Ezfield_parser.get(),
+                                                    getParser(Exfield_parser),
+                                                    getParser(Eyfield_parser),
+                                                    getParser(Ezfield_parser),
                                                     lev);
        }
     }
@@ -525,25 +577,25 @@ WarpX::InitLevelData (int lev, Real /*time*/)
        InitializeExternalFieldsOnGridUsingParser(H_biasfield_fp[lev][0].get(),
                                                  H_biasfield_fp[lev][1].get(),
                                                  H_biasfield_fp[lev][2].get(),
-                                                 Hx_biasfield_parser.get(),
-                                                 Hy_biasfield_parser.get(),
-                                                 Hz_biasfield_parser.get(),
+                                                 getParser(Hx_biasfield_parser),
+                                                 getParser(Hy_biasfield_parser),
+                                                 getParser(Hz_biasfield_parser),
                                                  lev);
        if (lev > 0) {
           InitializeExternalFieldsOnGridUsingParser(H_biasfield_aux[lev][0].get(),
                                                     H_biasfield_aux[lev][1].get(),
                                                     H_biasfield_aux[lev][2].get(),
-                                                    Hx_biasfield_parser.get(),
-                                                    Hy_biasfield_parser.get(),
-                                                    Hz_biasfield_parser.get(),
+                                                    getParser(Hx_biasfield_parser),
+                                                    getParser(Hy_biasfield_parser),
+                                                    getParser(Hz_biasfield_parser),
                                                     lev);
 
           InitializeExternalFieldsOnGridUsingParser(H_biasfield_cp[lev][0].get(),
                                                     H_biasfield_cp[lev][1].get(),
                                                     H_biasfield_cp[lev][2].get(),
-                                                    Hx_biasfield_parser.get(),
-                                                    Hy_biasfield_parser.get(),
-                                                    Hz_biasfield_parser.get(),
+                                                    getParser(Hx_biasfield_parser),
+                                                    getParser(Hy_biasfield_parser),
+                                                    getParser(Hz_biasfield_parser),
                                                     lev);
        }
     }
@@ -571,25 +623,25 @@ WarpX::InitLevelData (int lev, Real /*time*/)
        InitializeExternalFieldsOnGridUsingParser(Mfield_fp[lev][0].get(),
                                                  Mfield_fp[lev][1].get(),
                                                  Mfield_fp[lev][2].get(),
-                                                 Mxfield_parser.get(),
-                                                 Myfield_parser.get(),
-                                                 Mzfield_parser.get(),
+                                                 getParser(Mxfield_parser),
+                                                 getParser(Myfield_parser),
+                                                 getParser(Mzfield_parser),
                                                  lev);
        if (lev > 0) {
           InitializeExternalFieldsOnGridUsingParser(Mfield_aux[lev][0].get(),
                                                     Mfield_aux[lev][1].get(),
                                                     Mfield_aux[lev][2].get(),
-                                                    Mxfield_parser.get(),
-                                                    Myfield_parser.get(),
-                                                    Mzfield_parser.get(),
+                                                    getParser(Mxfield_parser),
+                                                    getParser(Myfield_parser),
+                                                    getParser(Mzfield_parser),
                                                     lev);
 
           InitializeExternalFieldsOnGridUsingParser(Mfield_cp[lev][0].get(),
                                                     Mfield_cp[lev][1].get(),
                                                     Mfield_cp[lev][2].get(),
-                                                    Mxfield_parser.get(),
-                                                    Myfield_parser.get(),
-                                                    Mzfield_parser.get(),
+                                                    getParser(Mxfield_parser),
+                                                    getParser(Myfield_parser),
+                                                    getParser(Mzfield_parser),
                                                     lev);
        }
 
@@ -623,8 +675,8 @@ WarpX::InitLevelData (int lev, Real /*time*/)
 void
 WarpX::InitializeExternalFieldsOnGridUsingParser (
        MultiFab *mfx, MultiFab *mfy, MultiFab *mfz,
-       ParserWrapper<3> *xfield_parser, ParserWrapper<3> *yfield_parser,
-       ParserWrapper<3> *zfield_parser, const int lev)
+       HostDeviceParser<3> const& xfield_parser, HostDeviceParser<3> const& yfield_parser,
+       HostDeviceParser<3> const& zfield_parser, const int lev)
 {
     const auto dx_lev = geom[lev].CellSizeArray();
     const RealBox& real_box = geom[lev].ProbDomain();
@@ -666,15 +718,15 @@ WarpX::InitializeExternalFieldsOnGridUsingParser (
                 if (ncomp > 1) {
                     // This condition is specific to Mfield, where,
                     // x-, y-, and z-components are stored on the x-face
-                    mfxfab(i,j,k,0) = (*xfield_parser)(x,y,z);
-                    mfxfab(i,j,k,1) = (*yfield_parser)(x,y,z);
-                    mfxfab(i,j,k,2) = (*zfield_parser)(x,y,z);
+                    mfxfab(i,j,k,0) = xfield_parser(x,y,z);
+                    mfxfab(i,j,k,1) = yfield_parser(x,y,z);
+                    mfxfab(i,j,k,2) = zfield_parser(x,y,z);
                 } else
 #endif
                 {
-                    mfxfab(i,j,k) = (*xfield_parser)(x,y,z);
+                    mfxfab(i,j,k) = xfield_parser(x,y,z);
                 }
-         },
+            },
             [=] AMREX_GPU_DEVICE (int i, int j, int k) {
                 amrex::Real fac_x = (1._rt - y_nodal_flag[0]) * dx_lev[0] * 0.5_rt;
                 amrex::Real x = i*dx_lev[0] + real_box.lo(0) + fac_x;
@@ -692,13 +744,13 @@ WarpX::InitializeExternalFieldsOnGridUsingParser (
                 if (ncomp > 1) {
                     // This condition is specific to Mfield, where,
                     // x-, y-, and z-components are stored on the y-face
-                    mfyfab(i,j,k,0) = (*xfield_parser)(x,y,z);
-                    mfyfab(i,j,k,1) = (*yfield_parser)(x,y,z);
-                    mfyfab(i,j,k,2) = (*zfield_parser)(x,y,z);
+                    mfyfab(i,j,k,0) = xfield_parser(x,y,z);
+                    mfyfab(i,j,k,1) = yfield_parser(x,y,z);
+                    mfyfab(i,j,k,2) = zfield_parser(x,y,z);
                 } else
 #endif
                 {
-                    mfyfab(i,j,k)  = (*yfield_parser)(x,y,z);
+                    mfyfab(i,j,k)  = yfield_parser(x,y,z);
                 }
             },
             [=] AMREX_GPU_DEVICE (int i, int j, int k) {
@@ -718,13 +770,13 @@ WarpX::InitializeExternalFieldsOnGridUsingParser (
                 if (ncomp > 1) {
                     // This condition is specific to Mfield, where,
                     // x-, y-, and z-components are stored on the z-face
-                    mfzfab(i,j,k,0) = (*xfield_parser)(x,y,z);
-                    mfzfab(i,j,k,1) = (*yfield_parser)(x,y,z);
-                    mfzfab(i,j,k,2) = (*zfield_parser)(x,y,z);
+                    mfzfab(i,j,k,0) = xfield_parser(x,y,z);
+                    mfzfab(i,j,k,1) = yfield_parser(x,y,z);
+                    mfzfab(i,j,k,2) = zfield_parser(x,y,z);
                 } else
 #endif
                 {
-                    mfzfab(i,j,k) = (*zfield_parser)(x,y,z);
+                    mfzfab(i,j,k) = zfield_parser(x,y,z);
                 }
             }
         );

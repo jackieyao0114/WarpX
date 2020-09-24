@@ -196,7 +196,7 @@ WarpX::Evolve (int numsteps)
             // only move by one or two cells per time step
             if (max_level == 0) {
                 int num_redistribute_ghost = num_moved;
-                if ((v_galilean[0]!=0) or (v_galilean[1]!=0) or (v_galilean[2]!=0)) {
+                if ((m_v_galilean[0]!=0) or (m_v_galilean[1]!=0) or (m_v_galilean[2]!=0)) {
                     // Galilean algorithm ; particles can move by up to 2 cells
                     num_redistribute_ghost += 2;
                 } else {
@@ -311,6 +311,10 @@ WarpX::OneStep_nosub (Real cur_time)
     doQEDEvents();
 #endif
 
+    // +1 is necessary here because value of step seen by user (first step is 1) is different than
+    // value of step in code (first step is 0)
+    mypc->doResampling(istep[0]+1);
+
     // Synchronize J and rho
     SyncCurrent();
     SyncRho();
@@ -331,6 +335,9 @@ WarpX::OneStep_nosub (Real cur_time)
     // For extended PML: copy J from regular grid to PML, and damp J in PML
     if (do_pml && pml_has_particles) CopyJPML();
     if (do_pml && do_pml_j_damping) DampJPML();
+
+    // ApplyExternalFieldExcitation
+    ApplyExternalFieldExcitationOnGrid();
 
     if (!do_electrostatic) {
     // Electromagnetic solver:
@@ -463,6 +470,10 @@ WarpX::OneStep_sub1 (Real curtime)
 #ifdef WARPX_QED
     doQEDEvents();
 #endif
+
+    // +1 is necessary here because value of step seen by user (first step is 1) is different than
+    // value of step in code (first step is 0)
+    mypc->doResampling(istep[0]+1);
 
     AMREX_ALWAYS_ASSERT_WITH_MESSAGE(finest_level == 1, "Must have exactly two levels");
     const int fine_lev = 1;

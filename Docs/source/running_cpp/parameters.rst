@@ -558,36 +558,36 @@ Particle initialization
 * ``<species>.do_qed`` (`int`) optional (default `0`)
     If `<species>.do_qed = 0` all the QED effects are disabled for this species.
     If `<species>.do_qed = 1` QED effects can be enabled for this species (see below).
-    **Implementation of this feature is in progress. It requires `picsar` on the `QED` branch and to compile with QED=TRUE**
+    **This feature requires to compile with QED=TRUE**
 
 * ``<species>.do_qed_quantum_sync`` (`int`) optional (default `0`)
     It only works if `<species>.do_qed = 1`. Enables Quantum synchrotron emission for this species.
     Quantum synchrotron lookup table should be either generated or loaded from disk to enable
     this process (see "Lookup tables for QED modules" section below).
     `<species>` must be either an electron or a positron species.
-    **Implementation of this feature is in progress. It requires `picsar` on the `QED` branch and to compile with QED=TRUE**
+    **This feature requires to compile with QED=TRUE**
 
 * ``<species>.do_qed_breit_wheeler`` (`int`) optional (default `0`)
     It only works if `<species>.do_qed = 1`. Enables non-linear Breit-Wheeler process for this species.
     Breit-Wheeler lookup table should be either generated or loaded from disk to enable
     this process (see "Lookup tables for QED modules" section below).
     `<species>` must be a photon species.
-    **Implementation of this feature is in progress. It requires `picsar` on the `QED` branch and to compile with QED=TRUE**
+    **This feature requires to compile with QED=TRUE**
 
 * ``<species>.qed_quantum_sync_phot_product_species`` (`string`)
     If an electron or a positron species has the Quantum synchrotron process, a photon product species must be specified
     (the name of an existing photon species must be provided)
-    **Implementation of this feature is in progress. It requires `picsar` on the `QED` branch and to compile with QED=TRUE**
+    **This feature requires to compile with QED=TRUE**
 
 * ``<species>.qed_breit_wheeler_ele_product_species`` (`string`)
     If a photon species has the Breit-Wheeler process, an electron product species must be specified
     (the name of an existing electron species must be provided)
-    **Implementation of this feature is in progress. It requires `picsar` on the `QED` branch and to compile with QED=TRUE**
+    **This feature requires to compile with QED=TRUE**
 
 * ``<species>.qed_breit_wheeler_pos_product_species`` (`string`)
     If a photon species has the Breit-Wheeler process, a positron product species must be specified
     (the name of an existing positron species must be provided).
-    **Implementation of this feature is in progress. It requires `picsar` on the `QED` branch and to compile with QED=TRUE**
+    **This feature requires to compile with QED=TRUE**
 
 .. _running-cpp-parameters-laser:
 
@@ -913,6 +913,30 @@ Laser initialization
     B-field to each particle which is then added to the field values gathered
     from the grid in the PIC cycle.
 
+* ``B_excitation_on_grid_style`` (string) optional (default is "default")
+    This parameter is used to set the type of external magnetic field excitation
+    varying in space (x,y,z) and time (t). The excitation is added to the magnetic field
+    on the grid at every timestep. To add an external B-excitation as a function
+    of (x,y,z,t), use the option ``parse_B_excitation_grid_function``. This option requires
+    additional parameters in the input file to set the parser function, namely,
+    ``warpx.Bx_excitation_grid_function(x,y,z,t)``,
+    ``warpx.By_excitation_grid_function(x,y,z,t)``,
+    ``warpx.Bz_excitation_grid_function(x,y,z,t)`` to apply the external B-field on the grid.
+    Constants required in the mathematical expression can be set using ``my_constants``.
+    This function is currently supported only for 3D simulations.
+
+* ``E_excitation_on_grid_style`` (string) optional (default is "default")
+    This parameter is used to set the type of external electric field excitation
+    varying in space (x,y,z) and time (t). The excitation is added to the electric field
+    on the grid at every timestep. To add an external E-excitation as a function
+    of (x,y,z,t), use the option ``parse_E_excitation_grid_function``. This option requires
+    additional parameters in the input file to set the parser function, namely,
+    ``warpx.Ex_excitation_grid_function(x,y,z,t)``,
+    ``warpx.Ey_excitation_grid_function(x,y,z,t)``,
+    ``warpx.Ez_excitation_grid_function(x,y,z,t)`` to apply the external E-field on the grid.
+    Constants required in the mathematical expression can be set using ``my_constants``.
+    This function is currently supported only for 3D simulations.
+
 .. _running-cpp-parameters-collision:
 
 Collision initialization
@@ -973,6 +997,17 @@ Numerics and algorithms
     Whether to add compensation when applying k-space filtering.
     This requires `warpx.use_kspace_filter=1` and is only supported
     with the RZ spectral solver.
+
+* ``warpx.use_damp_fields_in_z_guard`` (`0` or `1`)
+    When using the RZ spectrol solver, specifies whether to apply a
+    damping factor to the E and B fields in the guard cells
+    along z that extend beyond the edge of the domain.
+    When the boundary conditions along z are not periodic, this defaults to
+    true, otherwise false. The damping profile is
+    a sine squared and is applied to the fields on the outer half of the guards.
+    This damping is useful for damping high frequency numerical artifacts that
+    occur when there is parallel decomposition along z with non-periodic boundary
+    conditions.
 
 * ``algo.current_deposition`` (`string`, optional)
     This parameter selects the algorithm for the deposition of the current density.
@@ -1043,7 +1078,7 @@ Numerics and algorithms
     The medium for evaluating the Maxwell solver. Available options are :
 
     - ``vacuum``: vacuum properties are used in the Maxwell solver.
-    - ``macroscopic``: macroscopic Maxwell equation is evaluated. If this option is selected, then the corresponding properties of the medium must be provided using ``macroscopic.sigma``, ``macroscopic.epsilon``, and ``macroscopic.mu``.
+    - ``macroscopic``: macroscopic Maxwell equation is evaluated. If this option is selected, then the corresponding properties of the medium must be provided using ``macroscopic.sigma``, ``macroscopic.epsilon``, and ``macroscopic.mu`` for each case where the initialization style is ``constant``.  Otherwise if the initialization style uses the parser, ``macroscopic.sigma_function(x,y,z)``, ``macroscopic.epsilon_function(x,y,z)`` and/or ``macroscopic.mu_function(x,y,z)`` must be provided using the parser initialization style for spatially varying macroscopic properties.
 
     If ``algo.em_solver_medium`` is not specified, ``vacuum`` is the default.
 
@@ -1054,12 +1089,21 @@ Numerics and algorithms
     - ``laxwendroff`` is the semi-implicit, second order in time scheme for E-update.
     Comparing the two methods, Lax-Wendroff is more prone to developing oscillations and requires a smaller timestep for stability. On the other hand, Backward Euler is more robust but it is first-order accurate in time compared to the second-order Lax-Wendroff method.
 
+* ``macroscopic.sigma_function(x,y,z)``, ``macroscopic.epsilon_function(x,y,z)``, ``macroscopic.mu_function(x,y,z)`` (`string`)
+     To initialize spatially varying conducitivy, permittivity, and permeability, respectively,
+     using a mathematical function in the input. Constants required in the
+     mathematical expression can be set using ``my_constants``. These parameters are parsed
+     if ``algo.em_solver_medium=macroscopic``.
+
 * ``macroscopic.sigma``, ``macroscopic.epsilon``, ``macroscopic.mu`` (`double`)
-    The conductivity, permittivity, and permeability of the computational medium, respectively.
-    If ``algo.em_solver_medium`` is set to macroscopic, then these properties must be provided.
+    To initialize a constant conductivity, permittivity, and permeability of the
+    computational medium, respectively. The default values are the corresponding values
+    in vacuum.
 
 * ``macroscopic.mag_normalized_error`` (`double`; default: `0.1`)
-    The maximum relative amount we let M deviate from Ms before aborting for the LLG equation. This requires `USE_LLG=TRUE` in the GNUMakefile.
+    The maximum relative amount we let M deviate from Ms before aborting for the LLG equation for saturated cases, i.e., `mag_M_normalization>0`.
+    For the unsaturated case, i.e., `mag_M_normalization=0`, this is the maximum relative amount we let M overshoot Ms and renormalize to Ms before aborting.
+    This requires `USE_LLG=TRUE` in the GNUMakefile.
 
 * ``macroscopic.mag_max_iter`` (`int`; default: `100`)
     The maximum number of iterations allowed of the 2nd-order trapezoidal scheme for the LLG equation. This requires `USE_LLG=TRUE` in the GNUMakefile.
@@ -1070,8 +1114,12 @@ Numerics and algorithms
 * ``warpx.mag_time_scheme_order`` (`1` or `2`; default: `1`)
     The value of the time advancement scheme of M field. `mag_time_scheme_order==1` is the 1st-order Eulerian scheme and `mag_time_scheme_order==2` is the 2nd-order trapezoidal scheme for the LLG equation. This requires `USE_LLG=TRUE` in the GNUMakefile.
 
-* ``warpx.mag_secondorder_normalization`` (`1` or `2`; default: `1`)
-    When to apply normalization in the second-order magnetization scheme. `mag_secondorder_normalization==1` applies it after each iteration; `mag_secondorder_normalization==2` applies it after the iterations have converged. This requires `USE_LLG=TRUE` in the GNUMakefile.
+* ``warpx.mag_M_normalization`` (`0` or `1` or `2`; no default, must be user-input)
+    The strategy of normalizating M magnitude. `mag_M_normalization==0` indicates unsaturated materials, i.e. `M_magnitude` is no larger than the saturation magnetization `mag_Ms`.
+    Therefore, no normalization of M magnitude is applied. `mag_M_normalization>0` indicates saturated materials, i.e. `M_magnitude` is equal the saturation magnetization `mag_Ms`.
+    In this case, the value of `mag_M_normalization` indicates when to apply normalization in the second-order magnetization scheme. `mag_M_normalization==1` applies it after each iteration; `mag_M_normalization==2` applies it after the iterations have converged.
+    In the first-order magnetization scheme, `mag_M_normalization==1` is equivalent to `mag_M_normalization==2`, and both normalize `M_magnitude` by `mag_Ms`.
+    This requires `USE_LLG=TRUE` in the GNUMakefile.
 
 * ``warpx.mag_LLG_coupling`` (`0` or `1`; default: `1`)
     Turn on coupling of Maxwell solution to the LLG updates. `mag_LLG_coupling==1` enables, `mag_LLG_coupling=0` diables. This requires `USE_LLG=TRUE` in the GNUMakefile.
@@ -1260,7 +1308,7 @@ Numerics and algorithms
  * ``warpx.quantum_xi`` ('float'; default: 1.3050122.e-52)
      Overwrites the actual quantum parameter used in Maxwell's QED equations. Assigning a
      value here will make the simulation unphysical, but will allow QED effects to become more apparent.
-     Note that this option will only have an effect if the warpx.use_Hybrid_QED flag is also triggered.
+     Note that this option will only have an effect if the ``warpx.use_Hybrid_QED`` flag is also triggered.
 
  * ``warpx.do_device_synchronize_before_profile`` (`bool`) optional (default `1`)
     When running in an accelerated platform, whether to call a deviceSynchronize around profiling regions.
@@ -1355,7 +1403,7 @@ In-situ capabilities can be used by turning on Sensei or Ascent (provided they a
 
     * ``plotfile`` for native AMReX format.
 
-    * ``checkpoint`` for a checkpoint file, only wirks with ``<diag_name>.diag_type = Full``.
+    * ``checkpoint`` for a checkpoint file, only works with ``<diag_name>.diag_type = Full``.
 
     * ``openpmd`` for OpenPMD format `openPMD <https://www.openPMD.org>`_.
       Requires to build WarpX with ``USE_OPENPMD=TRUE`` (see :ref:`instructions <building-openpmd>`).
@@ -1430,10 +1478,12 @@ In-situ capabilities can be used by turning on Sensei or Ascent (provided they a
     Root for output file names. Supports sub-directories.
 
 * ``<diag_name>.diag_lo`` (list `float`, 1 per dimension) optional (default `-infinity -infinity -infinity`)
-    Lower corner of the output fields (if smaller than ``warpx.dom_lo``, then set to ``warpx.dom_lo``).
+    Lower corner of the output fields (if smaller than ``warpx.dom_lo``, then set to ``warpx.dom_lo``). Currently, when the ``diag_lo`` is different from ``warpx.dom_lo``, particle output is disabled.
 
 * ``<diag_name>.diag_hi`` (list `float`, 1 per dimension) optional (default `+infinity +infinity +infinity`)
-    Higher corner of the output fields (if larger than ``warpx.dom_hi``, then set to ``warpx.dom_hi``).
+    Higher corner of the output fields (if larger than ``warpx.dom_hi``, then set to ``warpx.dom_hi``). Currently, when the ``diag_hi`` is different from ``warpx.dom_hi``, particle output i
+s disabled.
+
 
 * ``<diag_name>.species`` (list of `string`, default all physical species in the simulation)
     Which species dumped in this diagnostics.
@@ -1743,23 +1793,22 @@ Reduced Diagnostics
     The separator between row values in the output file.
     The default separator is a whitespace.
 
-Lookup tables and other settings for QED modules (implementation in progress)
+Lookup tables and other settings for QED modules
 -----------------------------------------------------------------------------
 
 Lookup tables store pre-computed values for functions used by the QED modules.
-**Implementation of this feature is in progress. It requires `picsar` on the `QED` branch and to compile with QED=TRUE**
+**This feature requires to compile with QED=TRUE (and also with QED_TABLE_GEN=TRUE for table generation) **
 
 * ``qed_bw.lookup_table_mode`` (`string`)
     There are three options to prepare the lookup table required by the Breit-Wheeler module:
 
-    * ``dummy_builtin``:  a built-in table is used (Warning: the quality of the table is very low,
-      so this option has to be used only for test purposes).
+    * ``builtin``:  a built-in table is used (Warning: the table gives reasonable results but its resolution
+    is quite low).
 
     * ``generate``: a new table is generated. This option requires Boost math library
-      (version >= 1.67) and to compile with QED_TABLE_GEN=TRUE. All
-      the following parameters must be specified:
-
-        * ``qed_bw.chi_min`` (`float`): minimum chi parameter to be considered by the engine
+      (version >= 1.66) and to compile with ``QED_TABLE_GEN=TRUE``. All
+      the following parameters must be specified (table 1 is used to evolve the optical depth
+      of the photons, while table 2 is used for pair generation):
 
         * ``qed_bw.tab_dndt_chi_min`` (`float`): minimum chi parameter for lookup table 1 (
           used for the evolution of the optical depth of the photons)
@@ -1776,8 +1825,8 @@ Lookup tables store pre-computed values for functions used by the QED modules.
         * ``qed_bw.tab_pair_chi_how_many`` (`int`): number of points to be used for chi axis in lookup table 2
 
         * ``qed_bw.tab_pair_frac_how_many`` (`int`): number of points to be used for the second axis in lookup table 2
-          (the second axis is the ratio between the energy of the less energetic particle of the pair and the
-          energy of the photon).
+          (the second axis is the ratio between the quantum parameter of the less energetic particle of the pair and the
+          quantum parameter of the photon).
 
         * ``qed_bw.save_table_in`` (`string`): where to save the lookup table
 
@@ -1789,14 +1838,13 @@ Lookup tables store pre-computed values for functions used by the QED modules.
 * ``qed_qs.lookup_table_mode`` (`string`)
     There are three options to prepare the lookup table required by the Quantum Synchrotron module:
 
-    * ``dummy_builtin``:  a built-in table is used (Warning: the quality of the table is very low,
-      so this option has to be used only for test purposes).
+    * ``builtin``: a built-in table is used (Warning: the table gives reasonable results but its resolution
+    is quite low).
 
     * ``generate``: a new table is generated. This option requires Boost math library
-      (version >= 1.67) and to compile with QED_TABLE_GEN=TRUE. All
-      the following parameters must be specified:
-
-        * ``qed_qs.chi_min`` (`float`): minimum chi parameter to be considered by the engine
+      (version >= 1.66) and to compile with ``QED_TABLE_GEN=TRUE``. All
+      the following parameters must be specified (table 1 is used to evolve the optical depth
+      of the particles, while table 2 is used for photon emission):
 
         * ``qed_qs.tab_dndt_chi_min`` (`float`): minimum chi parameter for lookup table 1 (
           used for the evolution of the optical depth of electrons and positrons)
@@ -1812,8 +1860,11 @@ Lookup tables store pre-computed values for functions used by the QED modules.
 
         * ``qed_qs.tab_em_chi_how_many`` (`int`): number of points to be used for chi axis in lookup table 2
 
-        * ``qed_qs.tab_em_prob_how_many`` (`int`): number of points to be used for the second axis in lookup table 2
-          (the second axis is a cumulative probability).
+        * ``qed_qs.tab_em_frac_how_many`` (`int`): number of points to be used for the second axis in lookup table 2
+          (the second axis is the ratio between the quantum parameter of the photon and the
+          quantum parameter of the charged particle).
+
+        * ``qed_qs.tab_em_frac_min`` (`float`): minimum value to be considered for the second axis of lookup table 2
 
         * ``qed_bw.save_table_in`` (`string`): where to save the lookup table
 
@@ -1822,12 +1873,18 @@ Lookup tables store pre-computed values for functions used by the QED modules.
 
         * ``qed_qs.load_table_from`` (`string`): name of the lookup table file to read from.
 
-* ``qed_qs.photon_creation_energy_threshold`` (`float`) optional (default `2*me*c^2`)
-    Energy threshold for photon particle creation in SI units.
+* ``qed_bw.chi_min`` (`float`): minimum chi parameter to be considered by the Breit-Wheeler engine
+    (suggested value : 0.01)
+
+* ``qed_qs.chi_min`` (`float`): minimum chi parameter to be considered by the Quantum Synchrotron engine
+    (suggested value : 0.001)
+
+* ``qed_qs.photon_creation_energy_threshold`` (`float`) optional (default `2`)
+    Energy threshold for photon particle creation in `*me*c^2` units.
 
 * ``warpx.do_qed_schwinger`` (`bool`) optional (default `0`)
     If this is 1, Schwinger electron-positron pairs can be generated in vacuum in the cells where the EM field is high enough.
-    Activating the Schwinger process requires the code to be compiled with ``QED=TRUE`` and ``PICSAR`` on the branch ``QED``.
+    Activating the Schwinger process requires the code to be compiled with ``QED=TRUE`` and ``PICSAR``.
     If ``warpx.do_qed_schwinger = 1``, Schwinger product species must be specified with
     ``qed_schwinger.ele_product_species`` and ``qed_schwinger.pos_product_species``.
     **Note: implementation of this feature is in progress.**

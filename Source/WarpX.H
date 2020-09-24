@@ -94,7 +94,7 @@ public:
     static void shiftMF (amrex::MultiFab& mf, const amrex::Geometry& geom,
                          int num_shift, int dir, amrex::IntVect ng_extra,
                          amrex::Real external_field=0.0, bool useparser = false,
-                         ParserWrapper<3> *field_parser=nullptr);
+                         HostDeviceParser<3> const& field_parser={});
 
     static void GotoNextLine (std::istream& is);
 
@@ -114,6 +114,10 @@ public:
     static std::string B_ext_grid_s;
     static std::string E_ext_grid_s;
 
+    // Initialization Type for External E and B excitation on grid
+    static std::string B_excitation_grid_s;
+    static std::string E_excitation_grid_s;
+
 #ifdef WARPX_MAG_LLG
     static std::string M_ext_grid_s; // added for M;
     static std::string H_bias_ext_grid_s;
@@ -127,6 +131,15 @@ public:
     static std::string str_Ex_ext_grid_function;
     static std::string str_Ey_ext_grid_function;
     static std::string str_Ez_ext_grid_function;
+
+    // Function for B excitation (x,y,z,t) on the grid
+    static std::string str_Bx_excitation_grid_function;
+    static std::string str_By_excitation_grid_function;
+    static std::string str_Bz_excitation_grid_function;
+    // Function for E excitation (x,y,z,t) on the grid
+    static std::string str_Ex_excitation_grid_function;
+    static std::string str_Ey_excitation_grid_function;
+    static std::string str_Ez_excitation_grid_function;
 
 #ifdef WARPX_MAG_LLG
     // Parser for M_external on the grid
@@ -147,6 +160,16 @@ public:
     std::unique_ptr<ParserWrapper<3> > Exfield_parser;
     std::unique_ptr<ParserWrapper<3> > Eyfield_parser;
     std::unique_ptr<ParserWrapper<3> > Ezfield_parser;
+
+
+    // ParserWrapper for B_external excitation on the grid
+    std::unique_ptr<ParserWrapper<4> > Bxfield_xt_grid_parser;
+    std::unique_ptr<ParserWrapper<4> > Byfield_xt_grid_parser;
+    std::unique_ptr<ParserWrapper<4> > Bzfield_xt_grid_parser;
+    // ParserWrapper for E_external excitation on the grid
+    std::unique_ptr<ParserWrapper<4> > Exfield_xt_grid_parser;
+    std::unique_ptr<ParserWrapper<4> > Eyfield_xt_grid_parser;
+    std::unique_ptr<ParserWrapper<4> > Ezfield_xt_grid_parser;
 
 #ifdef WARPX_MAG_LLG
     // ParserWrapper for M_external on the grid
@@ -171,7 +194,7 @@ public:
 
 #ifdef WARPX_MAG_LLG
     // second-order magnetization normalization strategy
-    int mag_secondorder_normalization = 1;
+    int mag_M_normalization;
     // turn on LLG + Maxwell coupling
     int mag_LLG_coupling = 1;
 #endif
@@ -206,6 +229,7 @@ public:
     static bool use_filter;
     static bool use_kspace_filter;
     static bool use_filter_compensation;
+    static bool use_damp_fields_in_z_guard;
     static bool serialize_ics;
 
     // Back transformation diagnostic
@@ -349,8 +373,8 @@ public:
     amrex::Vector< std::unique_ptr<NCIGodfreyFilter> > nci_godfrey_filter_bxbyez;
 
     amrex::Real time_of_last_gal_shift  = 0;
-    amrex::Array<amrex::Real,3> v_galilean = {{0}};
-    amrex::Array<amrex::Real,3> galilean_shift = {{0}};
+    amrex::Array<amrex::Real,3> m_v_galilean = {{0}};
+    amrex::Array<amrex::Real,3> m_galilean_shift = {{0}};
 
     static int num_mirrors;
     amrex::Vector<amrex::Real> mirror_z;
@@ -371,7 +395,7 @@ public:
 
     /**
      * \brief
-     * This function shifts the boundary of the grid by 'v_galilean*dt'.
+     * This function shifts the boundary of the grid by 'm_v_galilean*dt'.
      * In doding so, only positions attributes are changed while fields remain unchanged.
      */
     void ShiftGalileanBoundary ();
@@ -439,6 +463,16 @@ public:
     /** \brief returns the load balance interval
      */
     IntervalsParser get_load_balance_intervals () const {return load_balance_intervals;}
+
+    /**
+     * \brief Private function for spectral solver
+     * Applies a damping factor in the guards cells that extend
+     * beyond the extent of the domain, reducing fluctuations that
+     * can appear in parallel simulations. This will be called
+     * when use_damp_fields_in_z_guard is true.
+     */
+    void DampFieldsInGuards (std::array<std::unique_ptr<amrex::MultiFab>,3>& Efield,
+                             std::array<std::unique_ptr<amrex::MultiFab>,3>& Bfield);
 
 #ifdef WARPX_DIM_RZ
     void ApplyInverseVolumeScalingToCurrentDensity(amrex::MultiFab* Jx,
@@ -615,15 +649,26 @@ public:
      * \param[in] lev, level of the Multifabs that is initialized
      */
     void InitializeExternalFieldsOnGridUsingParser (
-        amrex::MultiFab *mfx, amrex::MultiFab *mfy, amrex::MultiFab *mfz,
-        ParserWrapper<3> *xfield_parser, ParserWrapper<3> *yfield_parser,
-        ParserWrapper<3> *zfield_parser, const int lev);
+         amrex::MultiFab *mfx, amrex::MultiFab *mfy, amrex::MultiFab *mfz,
+         HostDeviceParser<3> const& xfield_parser, HostDeviceParser<3> const& yfield_parser,
+         HostDeviceParser<3> const& zfield_parser, const int lev);
+
     /** \brief adds particle and cell contributions in cells to compute heuristic
      * cost in each box on each level, and records in `costs`
      * @param[in] costs vector of (`unique_ptr` to) vectors; expected to be initialized
      * to correct number of boxes and boxes per level
      */
     void ComputeCostsHeuristic (amrex::Vector<std::unique_ptr<amrex::LayoutData<amrex::Real> > >& costs);
+
+    /** \brief adds the contribution of user-defined external field-excitation
+     *   to Efield_fp and Bfield_fp.
+     */
+    void ApplyExternalFieldExcitationOnGrid ();
+    void ApplyExternalFieldExcitationOnGrid ( amrex::MultiFab *mfx,
+         amrex::MultiFab *mfy, amrex::MultiFab *mfz,
+         HostDeviceParser<4> const& xfield_parser,
+         HostDeviceParser<4> const& yfield_parser,
+         HostDeviceParser<4> const& zfield_parser, const int lev );
 
 protected:
 
