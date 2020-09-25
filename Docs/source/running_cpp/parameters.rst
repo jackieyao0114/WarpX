@@ -937,6 +937,19 @@ Laser initialization
     Constants required in the mathematical expression can be set using ``my_constants``.
     This function is currently supported only for 3D simulations.
 
+* ``H_excitation_on_grid_style`` (string) optional (default is "default")
+    This parameter is used to set the type of external magnetic field excitation
+    varying in space (x,y,z) and time (t). The excitation is added to the magnetic field
+    on the grid at every timestep. To add an external H-excitation as a function
+    of (x,y,z,t), use the option ``parse_H_excitation_grid_function``. This option requires
+    additional parameters in the input file to set the parser function, namely,
+    ``warpx.Hx_excitation_grid_function(x,y,z,t)``,
+    ``warpx.Hy_excitation_grid_function(x,y,z,t)``,
+    ``warpx.Hz_excitation_grid_function(x,y,z,t)`` to apply the external H-field on the grid.
+    Constants required in the mathematical expression can be set using ``my_constants``.
+    This function is currently supported only for 3D simulations.
+    This requires `USE_LLG=TRUE` in the GNUMakefile.
+
 .. _running-cpp-parameters-collision:
 
 Collision initialization

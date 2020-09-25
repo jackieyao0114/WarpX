@@ -285,7 +285,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveM_2nd (
         int M_iter = 0;
         // relative tolerance stopping criteria for 2nd-order iterative algorithm
         amrex::Real M_tol = macroscopic_properties->getmag_tol();
-        amrex::Real M_iter_maxerror = -1.0;
         int stop_iter = 0;
 
         // calculate the maximum absolute value of the Mfield_prev
@@ -346,9 +345,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveM_2nd (
             Box const& tbx = mfi.tilebox(Bfield[0]->ixType().toIntVect()); /* just define which grid type */
             Box const& tby = mfi.tilebox(Bfield[1]->ixType().toIntVect());
             Box const& tbz = mfi.tilebox(Bfield[2]->ixType().toIntVect());
-
-            // reset the value of the M_iter_maxerror
-            M_iter_maxerror = -1.0;
 
             // loop over cells and update fields
             amrex::ParallelFor(tbx, tby, tbz,
@@ -628,6 +624,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM_2nd (
         }
 
         // Check the error between Mfield and Mfield_prev and decide whether another iteration is needed
+        amrex::Real M_iter_maxerror = -1.0;
         for (int i = 0; i < 1; i++){
             for (int j = 0; j < 3; j++){
                 Real M_iter_error = Mfield_error[i]->norm0(j);

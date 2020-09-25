@@ -370,12 +370,13 @@ WarpX::OneStep_nosub (Real cur_time)
 #ifdef WARPX_MAG_LLG
         if (WarpX::em_solver_medium == MediumForEM::Macroscopic) { //evolveM is not applicable to vacuum
             if (mag_time_scheme_order==1){
-                MacroscopicEvolveM(0.5*dt[0]); // we now have M^{n+1/2}
+                MacroscopicEvolveHM(0.5*dt[0]); // we now have M^{n+1/2}
             } else if (mag_time_scheme_order==2){
                 MacroscopicEvolveM_2nd(0.5*dt[0]); // we now have M^{n+1/2}
             } else {
                 amrex::Abort("unsupported mag_time_scheme_order for M field");
             }
+            FillBoundaryH(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
             FillBoundaryM(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
         } else {
             amrex::Abort("unsupported em_solver_medium for M field");
@@ -412,14 +413,11 @@ WarpX::OneStep_nosub (Real cur_time)
 #ifdef WARPX_MAG_LLG
         if (WarpX::em_solver_medium == MediumForEM::Macroscopic) {
             if (mag_time_scheme_order==1){
-                MacroscopicEvolveM(0.5*dt[0]); // we now have M^{n+1}
+                MacroscopicEvolveHM(0.5*dt[0]); // we now have M^{n+1}
             } else if (mag_time_scheme_order==2){
                 MacroscopicEvolveM_2nd(0.5*dt[0]); // we now have M^{n+1}
             } else {
                 amrex::Abort("unsupported mag_time_scheme_order for M field");
-            }
-            if ( safe_guard_cells ){
-                FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             }
         }
         else {
@@ -432,7 +430,7 @@ WarpX::OneStep_nosub (Real cur_time)
 /* for output */
 #ifdef WARPX_MAG_LLG
     // output the field variables on level 0
-    MacroscopicfieldOutput(Mfield_fp[0], Efield_fp[0], Bfield_fp[0], cur_time);
+    MacroscopicfieldOutput(Mfield_fp[0], Hfield_fp[0], Efield_fp[0], Bfield_fp[0], cur_time);
 #endif
 
 }

@@ -408,6 +408,40 @@ WarpX::MacroscopicEvolveM_2nd (int lev, PatchType patch_type, amrex::Real a_dt) 
         amrex::Abort("Macroscopic EvolveM_2nd is not implemented for pml boundary condition yet");
     }
 }
+
+// define WarpX::MacroscopicEvolveM_2nd
+void
+WarpX::MacroscopicEvolveHM (amrex::Real a_dt)
+{
+    for (int lev = 0; lev <= finest_level; ++lev ) {
+        MacroscopicEvolveHM(lev, a_dt);
+    }
+}
+
+void
+WarpX::MacroscopicEvolveHM (int lev, amrex::Real a_dt) {
+
+    WARPX_PROFILE("WarpX::MacroscopicEvolveHM()");
+    MacroscopicEvolveHM(lev, PatchType::fine, a_dt);
+    if (lev > 0) {
+        amrex::Abort("Macroscopic EvolveHM is not implemented for lev>0, yet.");
+    }
+}
+
+void
+WarpX::MacroscopicEvolveHM (int lev, PatchType patch_type, amrex::Real a_dt) {
+    if (patch_type == PatchType::fine) {
+        m_fdtd_solver_fp[lev]->MacroscopicEvolveHM( Mfield_fp[lev], Hfield_fp[lev], H_biasfield_fp[lev], Efield_fp[lev], 
+                                             a_dt, m_macroscopic_properties);
+    }
+    else {
+        amrex::Abort("Macroscopic EvolveHM is not implemented for lev > 0 yet");
+    }
+    if (do_pml) {
+        amrex::Abort("Macroscopic EvolveHM is not implemented for pml boundary condition yet");
+    }
+}
+
 #endif
 
 void
