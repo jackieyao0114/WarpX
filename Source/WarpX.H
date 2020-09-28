@@ -465,6 +465,10 @@ public:
     void MacroscopicEvolveM_2nd (         amrex::Real dt);
     void MacroscopicEvolveM_2nd (int lev, amrex::Real dt);
     void MacroscopicEvolveM_2nd (int lev, PatchType patch_type, amrex::Real dt);
+
+    void MacroscopicEvolveHM_2nd (         amrex::Real dt);
+    void MacroscopicEvolveHM_2nd (int lev, amrex::Real dt);
+    void MacroscopicEvolveHM_2nd (int lev, PatchType patch_type, amrex::Real dt);
 #endif
 
 /* for output */
