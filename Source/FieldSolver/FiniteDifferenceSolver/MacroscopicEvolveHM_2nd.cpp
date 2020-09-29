@@ -679,6 +679,9 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
             Array4<Real> const &Hx = Hfield[0]->array(mfi);
             Array4<Real> const &Hy = Hfield[1]->array(mfi);
             Array4<Real> const &Hz = Hfield[2]->array(mfi);
+            Array4<Real> const &Hx_old = Hfield_old[0]->array(mfi);
+            Array4<Real> const &Hy_old = Hfield_old[1]->array(mfi);
+            Array4<Real> const &Hz_old = Hfield_old[2]->array(mfi);
             Array4<Real> const &Ex = Efield[0]->array(mfi);
             Array4<Real> const &Ey = Efield[1]->array(mfi);
             Array4<Real> const &Ez = Efield[2]->array(mfi);
@@ -707,18 +710,18 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
                 tbx, tby, tbz,
 
                 [=] AMREX_GPU_DEVICE(int i, int j, int k) {
-                    Hx(i, j, k) += 1 / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k) 
-                                 - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k) - M_xface(i, j, k, 0) + M_xface_old(i, j, k, 0);
+                    Hx(i, j, k) = Hx_old(i, j, k) + 1 / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k) 
+                                - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k) - M_xface(i, j, k, 0) + M_xface_old(i, j, k, 0);
                 },
 
                 [=] AMREX_GPU_DEVICE(int i, int j, int k) {
-                    Hy(i, j, k) += 1 / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k) 
-                                 - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k) - M_yface(i, j, k, 1) + M_yface_old(i, j, k, 1);
+                    Hy(i, j, k) = Hy_old(i, j, k) + 1 / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k) 
+                                - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k) - M_yface(i, j, k, 1) + M_yface_old(i, j, k, 1);
                 },
 
                 [=] AMREX_GPU_DEVICE(int i, int j, int k) {
-                    Hz(i, j, k) += 1 / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k) 
-                                 - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k) - M_zface(i, j, k, 2) + M_zface_old(i, j, k, 2);
+                    Hz(i, j, k) = Hz_old(i, j, k) + 1 / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k) 
+                                - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k) - M_zface(i, j, k, 2) + M_zface_old(i, j, k, 2);
                 }
 
             );
