@@ -151,9 +151,9 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
               // keep the interpolation
               Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_gamma_arr);
 
-              Real M_magnitude = (M_normalization == 0) ?
-                  std::sqrt( std::pow(M_xface(i, j, k, 0),2.0) + std::pow(M_xface(i, j, k, 1),2.0) + std::pow(M_xface(i, j, k, 2),2.0) ) :
-                  MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr);
+              // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
+              Real M_magnitude = (M_normalization == 0) ? std::sqrt( std::pow(M_xface(i, j, k, 0),2.0) + std::pow(M_xface(i, j, k, 1),2.0) + std::pow(M_xface(i, j, k, 2),2.0) )
+                                                        : MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr);
               // a_temp_static_coeff does not change in the current step for SATURATED materials; but it does change for UNSATURATED ones
               Real a_temp_static_coeff = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_alpha_arr) / M_magnitude;
 
@@ -205,9 +205,9 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
               // keep the interpolation
               Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_gamma_arr);
 
-              Real M_magnitude = (M_normalization == 0) ?
-                  std::sqrt( std::pow(M_yface(i, j, k, 0),2.0) + std::pow(M_yface(i, j, k, 1),2.0) + std::pow(M_yface(i, j, k, 2),2.0) ) :
-                  MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_Ms_arr);
+              // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
+              Real M_magnitude = (M_normalization == 0) ? std::sqrt( std::pow(M_yface(i, j, k, 0),2.0) + std::pow(M_yface(i, j, k, 1),2.0) + std::pow(M_yface(i, j, k, 2),2.0) )
+                                                        : MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_Ms_arr);
               Real a_temp_static_coeff = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_alpha_arr) / M_magnitude;
 
               // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
@@ -258,9 +258,9 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
               // keep the interpolation
               Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_gamma_arr);
 
-              Real M_magnitude = (M_normalization == 0) ?
-                  std::sqrt( std::pow(M_zface(i, j, k, 0),2.0_rt) + std::pow(M_zface(i, j, k, 1),2.0_rt) + std::pow(M_zface(i, j, k, 2),2.0_rt) ) :
-                  MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_Ms_arr);
+              // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
+              Real M_magnitude = (M_normalization == 0) ? std::sqrt( std::pow(M_zface(i, j, k, 0),2.0) + std::pow(M_zface(i, j, k, 1),2.0) + std::pow(M_zface(i, j, k, 2),2.0) )
+                                                        : MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_Ms_arr);
               Real a_temp_static_coeff = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_alpha_arr) / M_magnitude;
 
               // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
@@ -426,6 +426,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
                       std::pow(M_xface(i, j, k, 2),2.0) ) / MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr);
 
               if (M_normalization == 1) {
+                  // saturated case; if |M| has drifted from M_s too much, abort.  Otherwise, normalize
                   // check the normalized error
                   if ( amrex::Math::abs(1._rt-M_magnitude_normalized) > mag_normalized_error ){
                       printf("i = %d, j=%d, k=%d\n", i, j, k);
@@ -530,6 +531,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
                       std::pow(M_yface(i, j, k, 2),2.0) ) / MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_Ms_arr);
 
               if (M_normalization == 1) {
+                  // saturated case; if |M| has drifted from M_s too much, abort.  Otherwise, normalize
                   // check the normalized error
                   if ( amrex::Math::abs(1._rt-M_magnitude_normalized) > mag_normalized_error ){
                       printf("i = %d, j=%d, k=%d\n", i, j, k);
@@ -633,6 +635,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
                       std::pow(M_zface(i, j, k, 2),2.0_rt) ) / MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_Ms_arr);
 
               if (M_normalization == 1) {
+                  // saturated case; if |M| has drifted from M_s too much, abort.  Otherwise, normalize
                   // check the normalized error
                   if ( amrex::Math::abs(1.-M_magnitude_normalized) > mag_normalized_error ){
                       printf("i = %d, j=%d, k=%d\n", i, j, k);
