@@ -139,6 +139,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                 // keep the interpolation. The IntVect is (1,0,0) to interpolate values to the x-face.
                 Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(1, 0, 0), mag_gamma_arr);
 
+                // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
                 Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) + std::pow(M_xface(i, j, k, 2), 2.0))
                                                           : MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(1, 0, 0), mag_Ms_arr);
                 Real Gil_damp = PhysConst::mu0 * mag_gamma_interp * MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(1, 0, 0), mag_alpha_arr) / M_magnitude;
@@ -176,6 +177,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                 }
                 if (M_normalization > 0)
                 {
+                    // saturated case; if |M| has drifted from M_s too much, abort.  Otherwise, normalize
                     // check the normalized error
                     if (amrex::Math::abs(1._rt - M_magnitude_normalized) > mag_normalized_error)
                     {
@@ -230,6 +232,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                 // keep the interpolation. The IntVect is (0,1,0) to interpolate values to the y-face.
                 Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(0, 1, 0), mag_gamma_arr);
 
+                // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
                 Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_yface(i, j, k, 0), 2.0) + std::pow(M_yface(i, j, k, 1), 2.0) + std::pow(M_yface(i, j, k, 2), 2.0))
                                                           : MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(0, 1, 0), mag_Ms_arr);
                 Real Gil_damp = PhysConst::mu0 * mag_gamma_interp * MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(0, 1, 0), mag_alpha_arr) / M_magnitude;
@@ -267,6 +270,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
 
                 if (M_normalization > 0)
                 {
+                    // saturated case; if |M| has drifted from M_s too much, abort.  Otherwise, normalize
                     // check the normalized error
                     if (amrex::Math::abs(1._rt - M_magnitude_normalized) > mag_normalized_error)
                     {
@@ -322,7 +326,9 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                 // keep the interpolation. The IntVect is (0,0,1) to interpolate values to the z-face.
                 Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(0, 0, 1), mag_gamma_arr);
 
-                Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_zface(i, j, k, 0), 2.0_rt) + std::pow(M_zface(i, j, k, 1), 2.0_rt) + std::pow(M_zface(i, j, k, 2), 2.0_rt)) : MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(0, 0, 1), mag_Ms_arr);
+                // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
+                Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_zface(i, j, k, 0), 2.0_rt) + std::pow(M_zface(i, j, k, 1), 2.0_rt) + std::pow(M_zface(i, j, k, 2), 2.0_rt))
+                                                          : MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(0, 0, 1), mag_Ms_arr);
                 Real Gil_damp = PhysConst::mu0 * mag_gamma_interp * MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(0, 0, 1), mag_alpha_arr) / M_magnitude;
 
                 // x component on z-faces of grid
@@ -358,6 +364,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
 
                 if (M_normalization > 0)
                 {
+                    // saturated case; if |M| has drifted from M_s too much, abort.  Otherwise, normalize
                     // check the normalized error
                     if (amrex::Math::abs(1._rt - M_magnitude_normalized) > mag_normalized_error)
                     {
