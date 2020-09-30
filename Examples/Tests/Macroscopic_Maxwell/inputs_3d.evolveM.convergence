@@ -6,7 +6,7 @@
 ####### GENERAL PARAMETERS ######
 #################################
 max_step = 150
-amr.n_cell = 32 32 32 # number of cells spanning the domain in each coordinate direction at level 0
+amr.n_cell = 64 64 64 # number of cells spanning the domain in each coordinate direction at level 0
 amr.max_grid_size = 32 # maximum size of each AMReX box, used to decompose the domain
 amr.blocking_factor = 16
 geometry.coord_sys = 0
@@ -29,8 +29,8 @@ warpx.verbose = 0
 warpx.use_filter = 0
 warpx.cfl = 0.5
 warpx.do_pml = 0
-warpx.mag_time_scheme_order = 2 # default 1
-warpx.mag_M_normalization = 1
+warpx.mag_time_scheme_order = 1 # default 1
+warpx.mag_M_normalization = 1 # 1 is saturated
 warpx.mag_LLG_coupling = 1
 particles.nspecies = 0
 
@@ -90,7 +90,8 @@ warpx.Mz_external_grid_function(x,y,z) = 0.
 
 #Diagnostics
 diagnostics.diags_names = plt
-plt.period = 5
+plt.period = 1
 plt.diag_type = Full
-plt.fields_to_plot = Ex Ey Ez Hx Hy Hz Bx By Bz Mx_xface My_xface Mz_xface Mx_yface My_yface Mz_yface Mx_zface My_zface Mz_zface
+plt.fields_to_plot = Ex Ey Ez Bx By Bz
+#plt.fields_to_plot = Ex Ey Ez Hx Hy Hz Bx By Bz Mx_xface My_xface Mz_xface Mx_yface My_yface Mz_yface Mx_zface My_zface Mz_zface
 plt.plot_raw_fields = 0
