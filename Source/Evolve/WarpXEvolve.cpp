@@ -94,6 +94,7 @@ WarpX::Evolve (int numsteps)
             FillBoundaryE(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
 #ifdef WARPX_MAG_LLG
+            FillBoundaryH(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
 #endif
             UpdateAuxilaryData();
@@ -113,6 +114,7 @@ WarpX::Evolve (int numsteps)
             FillBoundaryE(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
             FillBoundaryB(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
 #ifdef WARPX_MAG_LLG
+            FillBoundaryH(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
             FillBoundaryM(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
 #endif
             // E and B: enough guard cells to update Aux or call Field Gather in fp and cp
@@ -422,6 +424,12 @@ WarpX::OneStep_nosub (Real cur_time)
         }
         else {
                 amrex::Abort("unsupported em_solver_medium for M field");
+        }
+        // H and M are up-to-date in the domain, but all guard cells are
+        // outdated.
+        if ( safe_guard_cells ){
+            FillBoundaryH(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
+            FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
         }
 #endif //
 #endif // end for PSATD
