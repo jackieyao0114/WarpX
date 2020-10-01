@@ -307,6 +307,12 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
 
         // begin the iteration
         while (!stop_iter) {
+
+        auto const& cperiod = warpx.Geom(0).periodicity();
+        Hfield[0]->FillBoundary(cperiod);
+        Hfield[1]->FillBoundary(cperiod);
+        Hfield[2]->FillBoundary(cperiod);
+
         for (MFIter mfi(*Mfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi)
         {
             auto& mag_Ms_mf = macroscopic_properties->getmag_Ms_mf();
