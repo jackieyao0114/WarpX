@@ -1450,6 +1450,7 @@ In-situ capabilities can be used by turning on Sensei or Ascent (provided they a
     ``F`` ``part_per_grid`` ``part_per_proc`` ``divE`` ``divB``.
     Default is ``<diag_name>.fields_to_plot = Ex Ey Ez Bx By Bz jx jy jz``.
     If compiled with ``USE_LLG=TRUE``, additional values include
+    ``Hx`` ``Hy`` ``Hz``
     ``Mx_xface`` ``Mx_yface`` ``Mx_zface``
     ``My_xface`` ``My_yface`` ``My_zface``
     ``Mz_xface`` ``Mz_yface`` ``Mz_zface``
