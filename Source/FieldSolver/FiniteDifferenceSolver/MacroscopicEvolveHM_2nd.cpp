@@ -22,6 +22,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
     // Each M-multifab has three components, one for each component in x, y, z. (All multifabs are four dimensional, (i,j,k,n)), where, n=1 for E, B, but, n=3 for M_xface, M_yface, M_zface
     std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Mfield, // Mfield contains three components MultiFab
     std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Hfield,
+    std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Bfield,
     std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& H_biasfield, // H bias
     std::array< std::unique_ptr<amrex::MultiFab>, 3> const &Efield,
     amrex::Real const dt,
@@ -29,7 +30,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
 
     if (m_fdtd_algo == MaxwellSolverAlgo::Yee)
     {
-        MacroscopicEvolveHMCartesian_2nd <CartesianYeeAlgorithm> (Mfield, Hfield, H_biasfield, Efield, dt, macroscopic_properties);
+        MacroscopicEvolveHMCartesian_2nd <CartesianYeeAlgorithm> (Mfield, Hfield, Bfield, H_biasfield, Efield, dt, macroscopic_properties);
     }
     else {
        amrex::Abort("Only yee algorithm is compatible for M updates.");
@@ -41,6 +42,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
     void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd (
         std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Mfield,
         std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Hfield,
+        std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Bfield,
         std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& H_biasfield, // H bias
         std::array< std::unique_ptr<amrex::MultiFab>, 3> const &Efield,
         amrex::Real const dt,
@@ -845,5 +847,51 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
         }
 
     } // end the iteration
+
+    // update B
+    for (MFIter mfi(*Bfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi)
+    {
+        // Extract field data for this grid/tile
+        Array4<Real> const &Hx = Hfield[0]->array(mfi);
+        Array4<Real> const &Hy = Hfield[1]->array(mfi);
+        Array4<Real> const &Hz = Hfield[2]->array(mfi);
+        Array4<Real> const &Bx = Bfield[0]->array(mfi);
+        Array4<Real> const &By = Bfield[1]->array(mfi);
+        Array4<Real> const &Bz = Bfield[2]->array(mfi);
+        Array4<Real> const &M_xface = Mfield[0]->array(mfi);         // note M_xface include x,y,z components at |_x faces
+        Array4<Real> const &M_yface = Mfield[1]->array(mfi);         // note M_yface include x,y,z components at |_y faces
+        Array4<Real> const &M_zface = Mfield[2]->array(mfi);         // note M_zface include x,y,z components at |_z faces
+
+        // Extract stencil coefficients
+        Real const *const AMREX_RESTRICT coefs_x = m_stencil_coefs_x.dataPtr();
+        int const n_coefs_x = m_stencil_coefs_x.size();
+        Real const *const AMREX_RESTRICT coefs_y = m_stencil_coefs_y.dataPtr();
+        int const n_coefs_y = m_stencil_coefs_y.size();
+        Real const *const AMREX_RESTRICT coefs_z = m_stencil_coefs_z.dataPtr();
+        int const n_coefs_z = m_stencil_coefs_z.size();
+
+        // Extract tileboxes for which to loop
+        Box const &tbx = mfi.tilebox(Bfield[0]->ixType().toIntVect());
+        Box const &tby = mfi.tilebox(Bfield[1]->ixType().toIntVect());
+        Box const &tbz = mfi.tilebox(Bfield[2]->ixType().toIntVect());
+
+        // Loop over the cells and update the fields
+        amrex::ParallelFor(
+            tbx, tby, tbz,
+
+            [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+                Bx(i, j, k) = PhysConst::mu0 * (M_xface(i, j, k, 0) + Hx(i, j, k));
+            },
+
+            [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+                By(i, j, k) = PhysConst::mu0 * (M_yface(i, j, k, 1) + Hy(i, j, k));
+            },
+
+            [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+                Bz(i, j, k) = PhysConst::mu0 * (M_zface(i, j, k, 2) + Hz(i, j, k));
+            }
+
+        );
+    }
 }
 #endif

@@ -108,6 +108,7 @@ class FiniteDifferenceSolver
 
         void MacroscopicEvolveHM ( std::array<std::unique_ptr<amrex::MultiFab>, 3> &Mfield,
                        std::array<std::unique_ptr<amrex::MultiFab>, 3> &Hfield,            // H Maxwell
+                       std::array< std::unique_ptr<amrex::MultiFab>, 3>& Bfield,
                        std::array<std::unique_ptr<amrex::MultiFab>, 3> const &H_biasfield, // H bias
                        std::array<std::unique_ptr<amrex::MultiFab>, 3> const &Efield,
                        amrex::Real const dt,
@@ -115,6 +116,7 @@ class FiniteDifferenceSolver
         
         void MacroscopicEvolveHM_2nd ( std::array<std::unique_ptr<amrex::MultiFab>, 3> &Mfield,
                        std::array<std::unique_ptr<amrex::MultiFab>, 3> &Hfield,            // H Maxwell
+                       std::array< std::unique_ptr<amrex::MultiFab>, 3>& Bfield,
                        std::array<std::unique_ptr<amrex::MultiFab>, 3> const &H_biasfield, // H bias
                        std::array<std::unique_ptr<amrex::MultiFab>, 3> const &Efield,
                        amrex::Real const dt,
@@ -247,6 +249,7 @@ class FiniteDifferenceSolver
         void MacroscopicEvolveHMCartesian(
             std::array<std::unique_ptr<amrex::MultiFab>, 3> &Mfield,
             std::array<std::unique_ptr<amrex::MultiFab>, 3> &Hfield,            // H Maxwell
+            std::array< std::unique_ptr<amrex::MultiFab>, 3>& Bfield,
             std::array<std::unique_ptr<amrex::MultiFab>, 3> const &H_biasfield, // H bias
             std::array<std::unique_ptr<amrex::MultiFab>, 3> const &Efield,
             amrex::Real const dt,
@@ -256,6 +259,7 @@ class FiniteDifferenceSolver
         void MacroscopicEvolveHMCartesian_2nd(
             std::array<std::unique_ptr<amrex::MultiFab>, 3> &Mfield,
             std::array<std::unique_ptr<amrex::MultiFab>, 3> &Hfield,            // H Maxwell
+            std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Bfield,
             std::array<std::unique_ptr<amrex::MultiFab>, 3> const &H_biasfield, // H bias
             std::array<std::unique_ptr<amrex::MultiFab>, 3> const &Efield,
             amrex::Real const dt,
