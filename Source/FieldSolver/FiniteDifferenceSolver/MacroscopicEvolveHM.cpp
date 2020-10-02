@@ -163,20 +163,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                 // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
                 amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) + std::pow(M_xface(i, j, k, 2), 2.0)) / MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(1, 0, 0), mag_Ms_arr);
 
-                /* for debugging*/
-                if (i == 4 && j == 4 && k == 4)
-                {
-                    printf("x face, i = %d, j=%d, k=%d\n", i, j, k);
-                    printf("Mx = %f, My = %f, Mz = %f \n", M_xface(i, j, k, 0), M_xface(i, j, k, 1), M_xface(i, j, k, 2));
-                    printf("Hx_eff = %f, Hy_eff = %f, Hz_eff = %f \n", Hx_eff, Hy_eff, Hz_eff);
-                    printf("Hx = %f, Hy = %f, Hz = %f \n", Hx(i, j, k), Hy(i, j, k), Hz(i, j, k));
-                    printf("torque x = %f, damping x = %f \n", dt * (PhysConst::mu0 * mag_gamma_interp) * (M_xface_old(i, j, k, 1) * Hz_eff - M_xface_old(i, j, k, 2) * Hy_eff),
-                           dt * Gil_damp * (M_xface_old(i, j, k, 1) * (M_xface_old(i, j, k, 0) * Hy_eff - M_xface_old(i, j, k, 1) * Hx_eff) - M_xface_old(i, j, k, 2) * (M_xface_old(i, j, k, 2) * Hx_eff - M_xface_old(i, j, k, 0) * Hz_eff)));
-                    printf("torque y = %f, damping y = %f \n", dt * (PhysConst::mu0 * mag_gamma_interp) * (M_xface_old(i, j, k, 2) * Hx_eff - M_xface_old(i, j, k, 0) * Hz_eff),
-                           dt * Gil_damp * (M_xface_old(i, j, k, 2) * (M_xface_old(i, j, k, 1) * Hz_eff - M_xface_old(i, j, k, 2) * Hy_eff) - M_xface_old(i, j, k, 0) * (M_xface_old(i, j, k, 0) * Hy_eff - M_xface_old(i, j, k, 1) * Hx_eff)));
-                    printf("torque z = %f, damping z = %f \n", dt * (PhysConst::mu0 * mag_gamma_interp) * (M_xface_old(i, j, k, 0) * Hy_eff - M_xface_old(i, j, k, 1) * Hx_eff),
-                           dt * Gil_damp * (M_xface_old(i, j, k, 0) * (M_xface_old(i, j, k, 2) * Hx_eff - M_xface_old(i, j, k, 0) * Hz_eff) - M_xface_old(i, j, k, 1) * (M_xface_old(i, j, k, 1) * Hz_eff - M_xface_old(i, j, k, 2) * Hy_eff)));
-                }
                 if (M_normalization > 0)
                 {
                     // saturated case; if |M| has drifted from M_s too much, abort.  Otherwise, normalize
@@ -254,21 +240,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                 // temporary normalized magnitude of M_yface field at the fixed point
                 // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
                 amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_yface(i, j, k, 0), 2.0) + std::pow(M_yface(i, j, k, 1), 2.0) + std::pow(M_yface(i, j, k, 2), 2.0)) / MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(0, 1, 0), mag_Ms_arr);
-
-                /* for debugging*/
-                if (i == 4 && j == 4 && k == 4)
-                {
-                    printf("y face, i = %d, j=%d, k=%d\n", i, j, k);
-                    printf("Mx = %f, My = %f, Mz = %f \n", M_yface(i, j, k, 0), M_yface(i, j, k, 1), M_yface(i, j, k, 2));
-                    printf("Hx_eff = %f, Hy_eff = %f, Hz_eff = %f \n", Hx_eff, Hy_eff, Hz_eff);
-                    printf("Hx = %f, Hy = %f, Hz = %f \n", Hx(i, j, k), Hy(i, j, k), Hz(i, j, k));
-                    printf("torque x = %f, damping x = %f \n", dt * (PhysConst::mu0 * mag_gamma_interp) * (M_yface_old(i, j, k, 1) * Hz_eff - M_yface_old(i, j, k, 2) * Hy_eff),
-                           dt * Gil_damp * (M_yface_old(i, j, k, 1) * (M_yface_old(i, j, k, 0) * Hy_eff - M_yface_old(i, j, k, 1) * Hx_eff) - M_yface_old(i, j, k, 2) * (M_yface_old(i, j, k, 2) * Hx_eff - M_yface_old(i, j, k, 0) * Hz_eff)));
-                    printf("torque y = %f, damping y = %f \n", dt * (PhysConst::mu0 * mag_gamma_interp) * (M_yface_old(i, j, k, 2) * Hx_eff - M_yface_old(i, j, k, 0) * Hz_eff),
-                           dt * Gil_damp * (M_yface_old(i, j, k, 2) * (M_yface_old(i, j, k, 1) * Hz_eff - M_yface_old(i, j, k, 2) * Hy_eff) - M_yface_old(i, j, k, 0) * (M_yface_old(i, j, k, 0) * Hy_eff - M_yface_old(i, j, k, 1) * Hx_eff)));
-                    printf("torque z = %f, damping z = %f \n", dt * (PhysConst::mu0 * mag_gamma_interp) * (M_yface_old(i, j, k, 0) * Hy_eff - M_yface_old(i, j, k, 1) * Hx_eff),
-                           dt * Gil_damp * (M_yface_old(i, j, k, 0) * (M_yface_old(i, j, k, 2) * Hx_eff - M_yface_old(i, j, k, 0) * Hz_eff) - M_yface_old(i, j, k, 1) * (M_yface_old(i, j, k, 1) * Hz_eff - M_yface_old(i, j, k, 2) * Hy_eff)));
-                }
 
                 if (M_normalization > 0)
                 {
@@ -349,21 +320,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                 // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
                 amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_zface(i, j, k, 0), 2.0_rt) + std::pow(M_zface(i, j, k, 1), 2.0_rt) + std::pow(M_zface(i, j, k, 2), 2.0_rt)) / MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(0, 0, 1), mag_Ms_arr);
 
-                /* for debugging*/
-                if (i == 4 && j == 4 && k == 4)
-                {
-                    printf("z face, i = %d, j=%d, k=%d\n", i, j, k);
-                    printf("Mx = %f, My = %f, Mz = %f \n", M_zface(i, j, k, 0), M_zface(i, j, k, 1), M_zface(i, j, k, 2));
-                    printf("Hx_eff = %f, Hy_eff = %f, Hz_eff = %f \n", Hx_eff, Hy_eff, Hz_eff);
-                    printf("Hx = %f, Hy = %f, Hz = %f \n", Hx(i, j, k), Hy(i, j, k), Hz(i, j, k));
-                    printf("torque x = %f, damping x = %f \n", dt * (PhysConst::mu0 * mag_gamma_interp) * (M_zface_old(i, j, k, 1) * Hz_eff - M_zface_old(i, j, k, 2) * Hy_eff),
-                           dt * Gil_damp * (M_zface_old(i, j, k, 1) * (M_zface_old(i, j, k, 0) * Hy_eff - M_zface_old(i, j, k, 1) * Hx_eff) - M_zface_old(i, j, k, 2) * (M_zface_old(i, j, k, 2) * Hx_eff - M_zface_old(i, j, k, 0) * Hz_eff)));
-                    printf("torque y = %f, damping y = %f \n", dt * (PhysConst::mu0 * mag_gamma_interp) * (M_zface_old(i, j, k, 2) * Hx_eff - M_zface_old(i, j, k, 0) * Hz_eff),
-                           dt * Gil_damp * (M_zface_old(i, j, k, 0) * (M_zface_old(i, j, k, 2) * Hx_eff - M_zface_old(i, j, k, 0) * Hz_eff) - M_zface_old(i, j, k, 1) * (M_zface_old(i, j, k, 1) * Hz_eff - M_zface_old(i, j, k, 2) * Hy_eff)));
-                    printf("torque z = %f, damping z = %f \n", dt * (PhysConst::mu0 * mag_gamma_interp) * (M_zface_old(i, j, k, 0) * Hy_eff - M_zface_old(i, j, k, 1) * Hx_eff),
-                           dt * Gil_damp * (M_zface_old(i, j, k, 0) * (M_zface_old(i, j, k, 2) * Hx_eff - M_zface_old(i, j, k, 0) * Hz_eff) - M_zface_old(i, j, k, 1) * (M_zface_old(i, j, k, 1) * Hz_eff - M_zface_old(i, j, k, 2) * Hy_eff)));
-                }
-
                 if (M_normalization > 0)
                 {
                     // saturated case; if |M| has drifted from M_s too much, abort.  Otherwise, normalize
@@ -435,18 +391,38 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
             tbx, tby, tbz,
 
             [=] AMREX_GPU_DEVICE(int i, int j, int k) {
-                Hx(i, j, k) += 1 / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k) 
-                             - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k) - M_xface(i, j, k, 0) + M_xface_old(i, j, k, 0);
+                if (coupling == 1) {
+                    Hx(i, j, k) += 1 / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k) 
+                                 - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k) - M_xface(i, j, k, 0) + M_xface_old(i, j, k, 0);
+                }
+                else{
+                    Hx(i, j, k) += 1 / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k) 
+                                 - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k);
+                }
             },
 
             [=] AMREX_GPU_DEVICE(int i, int j, int k) {
-                Hy(i, j, k) += 1 / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k) 
-                             - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k) - M_yface(i, j, k, 1) + M_yface_old(i, j, k, 1);
+                if (coupling == 1){
+                    Hy(i, j, k) += 1 / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k) 
+                                 - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k) - M_yface(i, j, k, 1) + M_yface_old(i, j, k, 1);
+                }
+                else {
+                    Hy(i, j, k) += 1 / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k) 
+                                 - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k);
+                }
+                
             },
 
             [=] AMREX_GPU_DEVICE(int i, int j, int k) {
-                Hz(i, j, k) += 1 / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k) 
-                             - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k) - M_zface(i, j, k, 2) + M_zface_old(i, j, k, 2);
+                if (coupling == 1){
+                    Hz(i, j, k) += 1 / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k) 
+                                 - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k) - M_zface(i, j, k, 2) + M_zface_old(i, j, k, 2);
+                }
+                else{
+                    Hz(i, j, k) += 1 / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k) 
+                                 - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k);
+                }
+                
             }
 
         );
