@@ -30,7 +30,8 @@ my_constants.TP = 1.5385e-9 # Gaussian pulse width
 warpx.verbose = 0
 warpx.use_filter = 0
 warpx.cfl = 0.9
-warpx.do_pml = 0
+warpx.do_pml_Lo = 0 0 0
+warpx.do_pml_Hi = 0 0 1
 warpx.mag_time_scheme_order = 1 # default 1
 warpx.mag_M_normalization = 1 # 1 is saturated
 warpx.mag_LLG_coupling = 1
@@ -51,13 +52,13 @@ macroscopic.mu_function(x,y,z) = "1.25663706212e-06"
 
 #unit conversion: 1 Gauss = (1000/4pi) A/m
 macroscopic.mag_Ms_init_style = "parse_mag_Ms_function" # parse or "constant"
-macroscopic.mag_Ms_function(x,y,z) = "1.4e5 * (t<=h) + 0.1 * (t>h)" # in unit A/m, equal to 1750 Gauss; Ms must be nonzero for LLG
+macroscopic.mag_Ms_function(x,y,z) = "1.4e5 * (z<=h) + 0.1 * (z>h)" # in unit A/m, equal to 1750 Gauss; Ms must be nonzero for LLG
 
 macroscopic.mag_alpha_init_style = "parse_mag_alpha_function" # parse or "constant"
-macroscopic.mag_alpha_function(x,y,z) = "0.0058 * (t<=h) + 0 * (t>h)" # alpha is unitless, calculated from linewidth Delta_H = 40 Oersted
+macroscopic.mag_alpha_function(x,y,z) = "0.0058 * (z<=h) + 0 * (z>h)" # alpha is unitless, calculated from linewidth Delta_H = 40 Oersted
 
 macroscopic.mag_gamma_init_style = "parse_mag_gamma_function" # parse or "constant"
-macroscopic.mag_gamma_function(x,y,z) = "-1.759e11 * (t<=h) + 0 * (t>h)" # gyromagnetic ratio is constant for electrons in all materials
+macroscopic.mag_gamma_function(x,y,z) = "-1.759e11 * (z<=h) + 0 * (z>h)" # gyromagnetic ratio is constant for electrons in all materials
 
 macroscopic.mag_max_iter = 100 # maximum number of M iteration in each time step
 macroscopic.mag_tol = 1.e-6 # M magnitude relative error tolerance compared to previous iteration
@@ -74,7 +75,7 @@ warpx.Ez_external_grid_function(x,y,z) = 0.
 
 warpx.E_excitation_on_grid_style = "parse_E_excitation_grid_function"
 warpx.Ex_excitation_grid_function(x,y,z,t) = "0.0"
-warpx.Ey_excitation_grid_function(x,y,z,t) = "(exp((t-3*TP)**2/(2*TP**2))*cos(2*pi*c/wavelength*t)) * (z>=h && z<(h+1.0e-4))"
+warpx.Ey_excitation_grid_function(x,y,z,t) = "(exp((t-3*TP)**2/(2*TP**2))*cos(2*pi*c/wavelength*t)) * (z>=h && z<h+1.0e-4)"
 warpx.Ez_excitation_grid_function(x,y,z,t) = "0.0"
 
 warpx.H_ext_grid_init_style = parse_H_ext_grid_function
@@ -87,12 +88,12 @@ warpx.Hz_external_grid_function(x,y,z) = 0.
 
 warpx.H_bias_ext_grid_init_style = parse_H_bias_ext_grid_function
 warpx.Hx_bias_external_grid_function(x,y,z)= 0.
-warpx.Hy_bias_external_grid_function(x,y,z)= 9470. # in A/m, equal to 120 Oersted
+warpx.Hy_bias_external_grid_function(x,y,z)= "9470.0 * (z<=h) + 0 * (z>h)" # in A/m, equal to 120 Oersted
 warpx.Hz_bias_external_grid_function(x,y,z)= 0. 
 
 warpx.M_ext_grid_init_style = parse_M_ext_grid_function
 warpx.Mx_external_grid_function(x,y,z)= 0.
-warpx.My_external_grid_function(x,y,z)= "1.4e5"
+warpx.My_external_grid_function(x,y,z)= "1.4e5 * (z<=h) + 0.1 * (z>h)" 
 warpx.Mz_external_grid_function(x,y,z) = 0.
 
 #Diagnostics
