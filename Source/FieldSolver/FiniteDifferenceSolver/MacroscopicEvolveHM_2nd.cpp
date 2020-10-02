@@ -308,10 +308,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
         // begin the iteration
         while (!stop_iter) {
 
-        auto const& cperiod = warpx.Geom(0).periodicity();
-        Hfield[0]->FillBoundary(cperiod);
-        Hfield[1]->FillBoundary(cperiod);
-        Hfield[2]->FillBoundary(cperiod);
+        warpx.FillBoundaryH(warpx.getngE(), warpx.getngExtra());
 
         for (MFIter mfi(*Mfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi)
         {
