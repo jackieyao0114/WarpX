@@ -28,7 +28,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM(
     // Each M-multifab has three components, one for each component in x, y, z. (All multifabs are four dimensional, (i,j,k,n)), where, n=1 for E, B, but, n=3 for M_xface, M_yface, M_zface
     std::array<std::unique_ptr<amrex::MultiFab>, 3> &Mfield,
     std::array<std::unique_ptr<amrex::MultiFab>, 3> &Hfield,            // H Maxwell
-    std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Bfield,
+    std::array<std::unique_ptr<amrex::MultiFab>, 3 >& Bfield,
     std::array<std::unique_ptr<amrex::MultiFab>, 3> const &H_biasfield, // H bias
     std::array<std::unique_ptr<amrex::MultiFab>, 3> const &Efield,
     amrex::Real const dt,
@@ -51,7 +51,7 @@ template <typename T_Algo>
 void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
     std::array<std::unique_ptr<amrex::MultiFab>, 3> &Mfield,
     std::array<std::unique_ptr<amrex::MultiFab>, 3> &Hfield,            // H Maxwell
-    std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Bfield,
+    std::array<std::unique_ptr<amrex::MultiFab>, 3 >& Bfield,
     std::array<std::unique_ptr<amrex::MultiFab>, 3> const &H_biasfield, // H bias
     std::array<std::unique_ptr<amrex::MultiFab>, 3> const &Efield,
     amrex::Real const dt,
@@ -139,7 +139,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
 
                 // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
                 // keep the interpolation. The IntVect is (1,0,0) to interpolate values to the x-face.
-                Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(1, 0, 0), mag_gamma_arr);
+                Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(1, 0, 0), mag_gamma_arr)
+                                      / (1.0 + std::pow(MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_alpha_arr), 2.0));
 
                 // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
                 Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) + std::pow(M_xface(i, j, k, 2), 2.0))
@@ -218,7 +219,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
 
                 // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
                 // keep the interpolation. The IntVect is (0,1,0) to interpolate values to the y-face.
-                Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(0, 1, 0), mag_gamma_arr);
+                Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(0, 1, 0), mag_gamma_arr)
+                                      / (1.0 + std::pow(MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_alpha_arr), 2.0));
 
                 // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
                 Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_yface(i, j, k, 0), 2.0) + std::pow(M_yface(i, j, k, 1), 2.0) + std::pow(M_yface(i, j, k, 2), 2.0))
@@ -297,7 +299,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
 
                 // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
                 // keep the interpolation. The IntVect is (0,0,1) to interpolate values to the z-face.
-                Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(0, 0, 1), mag_gamma_arr);
+                Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(0, 0, 1), mag_gamma_arr)
+                                      / (1.0 + std::pow(MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_alpha_arr), 2.0));
 
                 // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
                 Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_zface(i, j, k, 0), 2.0_rt) + std::pow(M_zface(i, j, k, 1), 2.0_rt) + std::pow(M_zface(i, j, k, 2), 2.0_rt))

@@ -160,8 +160,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
               Real a_temp_static_coeff = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_alpha_arr) / M_magnitude;
 
               // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
-              Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_interp *
-                        (1.0 + std::pow(MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_alpha_arr), 2.0))/ 2.0;
+              Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_interp / 2.0;
 
               // calculate a_temp_static_xface
               // x component on x-faces of grid
@@ -213,8 +212,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
               Real a_temp_static_coeff = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_alpha_arr) / M_magnitude;
 
               // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
-              Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_interp *
-                        (1.0 + std::pow(MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_alpha_arr), 2.0))/ 2.0;
+              Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_interp / 2.0;
 
               // calculate a_temp_static_yface
               // x component on y-faces of grid
@@ -266,8 +264,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
               Real a_temp_static_coeff = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_alpha_arr) / M_magnitude;
 
               // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
-              Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_interp *
-                        (1.0 + std::pow(MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_alpha_arr), 2.0))/ 2.0;
+              Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_interp / 2.0;
 
               // calculate a_temp_static_zface
               // x component on z-faces of grid
@@ -390,8 +387,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
               Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_gamma_arr);
 
               // calculate the a_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
-              Real a_temp_dynamic_coeff = PhysConst::mu0 * std::abs(mag_gamma_interp) *
-                        (1.0 + std::pow(MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_alpha_arr), 2.0))/ 2.0;
+              Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_interp) / 2.0;
                   
               // calculate a_temp_xface
               // x component on x-faces of grid
@@ -461,13 +457,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
 
               // calculate M_error_xface
               // x component on x-faces of grid
-              M_error_xface(i, j, k, 0) = std::abs((M_xface(i, j, k, 0) - M_prev_xface(i, j, k, 0))) / Mfield_prev_max[0];
+              M_error_xface(i, j, k, 0) = amrex::Math::abs((M_xface(i, j, k, 0) - M_prev_xface(i, j, k, 0))) / Mfield_prev_max[0];
 
               // y component on x-faces of grid
-              M_error_xface(i, j, k, 1) = std::abs((M_xface(i, j, k, 1) - M_prev_xface(i, j, k, 1))) / Mfield_prev_max[1];
+              M_error_xface(i, j, k, 1) = amrex::Math::abs((M_xface(i, j, k, 1) - M_prev_xface(i, j, k, 1))) / Mfield_prev_max[1];
 
               // z component on x-faces of grid
-              M_error_xface(i, j, k, 2) = std::abs((M_xface(i, j, k, 2) - M_prev_xface(i, j, k, 2))) / Mfield_prev_max[2];
+              M_error_xface(i, j, k, 2) = amrex::Math::abs((M_xface(i, j, k, 2) - M_prev_xface(i, j, k, 2))) / Mfield_prev_max[2];
 
               },
 
@@ -495,8 +491,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
               Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_gamma_arr);
 
               // calculate the a_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
-              Real a_temp_dynamic_coeff = PhysConst::mu0 * std::abs(mag_gamma_interp) *
-                        (1.0 + std::pow(MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_alpha_arr), 2.0))/ 2.0;
+              Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_interp) / 2.0;
 
               // calculate a_temp_yface
               // x component on y-faces of grid
@@ -566,13 +561,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
 
               // calculate M_error_yface
               // x component on y-faces of grid
-              M_error_yface(i, j, k, 0) = std::abs((M_yface(i, j, k, 0) - M_prev_yface(i, j, k, 0))) / Mfield_prev_max[0];
+              M_error_yface(i, j, k, 0) = amrex::Math::abs((M_yface(i, j, k, 0) - M_prev_yface(i, j, k, 0))) / Mfield_prev_max[0];
 
               // y component on y-faces of grid
-              M_error_yface(i, j, k, 1) = std::abs((M_yface(i, j, k, 1) - M_prev_yface(i, j, k, 1))) / Mfield_prev_max[1];
+              M_error_yface(i, j, k, 1) = amrex::Math::abs((M_yface(i, j, k, 1) - M_prev_yface(i, j, k, 1))) / Mfield_prev_max[1];
 
               // z component on y-faces of grid
-              M_error_yface(i, j, k, 2) = std::abs((M_yface(i, j, k, 2) - M_prev_yface(i, j, k, 2))) / Mfield_prev_max[2];
+              M_error_yface(i, j, k, 2) = amrex::Math::abs((M_yface(i, j, k, 2) - M_prev_yface(i, j, k, 2))) / Mfield_prev_max[2];
               },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
@@ -599,8 +594,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
               Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_gamma_arr);
 
               // calculate the a_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
-              Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_interp) *
-                        (1.0 + std::pow(MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_alpha_arr), 2.0))/ 2.0;
+              Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_interp) / 2.0;
 
               // calculate a_temp_zface
               // x component on z-faces of grid
