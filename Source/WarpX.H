@@ -942,9 +942,11 @@ private:
     // Copy of the coarse aux
     amrex::Vector<std::array<std::unique_ptr<amrex::MultiFab>, 3 > > Efield_cax;
     amrex::Vector<std::array<std::unique_ptr<amrex::MultiFab>, 3 > > Bfield_cax;
+#ifdef WARPX_MAG_LLG
     amrex::Vector<std::array<std::unique_ptr<amrex::MultiFab>, 3 > > Mfield_cax;
     amrex::Vector<std::array<std::unique_ptr<amrex::MultiFab>, 3 > > Hfield_cax;
     amrex::Vector<std::array<std::unique_ptr<amrex::MultiFab>, 3 > > H_biasfield_cax;
+#endif
     amrex::Vector<std::unique_ptr<amrex::iMultiFab> > current_buffer_masks;
     amrex::Vector<std::unique_ptr<amrex::iMultiFab> > gather_buffer_masks;
 
