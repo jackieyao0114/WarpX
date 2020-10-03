@@ -755,7 +755,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
 
         // Check the error between Mfield and Mfield_prev and decide whether another iteration is needed
         amrex::Real M_iter_maxerror = -1.0;
-        for (int i = 0; i < 1; i++){
+        for (int i = 0; i < 3; i++){
             for (int j = 0; j < 3; j++){
                 Real M_iter_error = Mfield_error[i]->norm0(j);
                 if(M_iter_error >= M_iter_maxerror) {
