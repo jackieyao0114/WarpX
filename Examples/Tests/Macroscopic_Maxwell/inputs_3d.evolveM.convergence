@@ -5,9 +5,19 @@
 ################################
 ####### GENERAL PARAMETERS ######
 #################################
-max_step = 150
-amr.n_cell = 64 64 64 # number of cells spanning the domain in each coordinate direction at level 0
-amr.max_grid_size = 32 # maximum size of each AMReX box, used to decompose the domain
+
+max_step = 10
+amr.n_cell = 32 32 32
+amr.max_grid_size = 16
+
+#max_step = 20
+#amr.n_cell = 64 64 64
+#amr.max_grid_size = 32
+
+#max_step = 40
+#amr.n_cell = 128 128 128
+#amr.max_grid_size = 64
+
 amr.blocking_factor = 16
 geometry.coord_sys = 0
 geometry.is_periodic = 1 1 1
@@ -90,8 +100,7 @@ warpx.Mz_external_grid_function(x,y,z) = 0.
 
 #Diagnostics
 diagnostics.diags_names = plt
-plt.period = 1
+plt.period = 40
 plt.diag_type = Full
-#plt.fields_to_plot = Ex Ey Ez Bx By Bz
 plt.fields_to_plot = Ex Ey Ez Hx Hy Hz Bx By Bz Mx_xface My_xface Mz_xface Mx_yface My_yface Mz_yface Mx_zface My_zface Mz_zface
-plt.plot_raw_fields = 0
+plt.plot_raw_fields = 1
