@@ -5,12 +5,12 @@
 ################################
 ####### GENERAL PARAMETERS ######
 #################################
-max_step = 5e3
+max_step = 5000
 amr.n_cell = 64 64 512 # number of cells spanning the domain in each coordinate direction at level 0
 amr.max_grid_size = 32 # maximum size of each AMReX box, used to decompose the domain
 amr.blocking_factor = 16
 geometry.coord_sys = 0
-geometry.is_periodic = 1 1 0
+geometry.is_periodic = 1 1 1
 
 geometry.prob_lo = -15e-3 -15e-3 -30.0e-3
 geometry.prob_hi =  15e-3  15e-3  30.0e-3
@@ -31,7 +31,7 @@ warpx.verbose = 0
 warpx.use_filter = 0
 warpx.cfl = 0.9
 warpx.do_pml_Lo = 0 0 0
-warpx.do_pml_Hi = 0 0 1
+warpx.do_pml_Hi = 0 0 0
 warpx.mag_time_scheme_order = 1 # default 1
 warpx.mag_M_normalization = 1 # 1 is saturated
 warpx.mag_LLG_coupling = 1
@@ -75,7 +75,7 @@ warpx.Ez_external_grid_function(x,y,z) = 0.
 
 warpx.E_excitation_on_grid_style = "parse_E_excitation_grid_function"
 warpx.Ex_excitation_grid_function(x,y,z,t) = "0.0"
-warpx.Ey_excitation_grid_function(x,y,z,t) = "(exp((t-3*TP)**2/(2*TP**2))*cos(2*pi*c/wavelength*t)) * (z>=h && z<h+1.0e-4)"
+warpx.Ey_excitation_grid_function(x,y,z,t) = "(exp((t-3*TP)**2/(2*TP**2))*cos(2*pi*c/wavelength*t)) * (z>=h) * (z<h+1.0e-4)"
 warpx.Ez_excitation_grid_function(x,y,z,t) = "0.0"
 
 warpx.H_ext_grid_init_style = parse_H_ext_grid_function
