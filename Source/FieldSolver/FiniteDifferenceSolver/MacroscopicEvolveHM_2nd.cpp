@@ -299,7 +299,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
         // calculate the maximum absolute value of the Mfield_prev
         amrex::GpuArray< amrex::Real, 3 > Mfield_prev_max;
         for (int i = 0; i < 3; i++){
-            Mfield_prev_max[i] = std::max(amrex::Math::abs((*Mfield_prev[i]).max(i,0)),amrex::Math::abs((*Mfield_prev[i]).min(i,0)));
+            Mfield_prev_max[i] = amrex::max(amrex::Math::abs((*Mfield_prev[i]).max(i,0)),amrex::Math::abs((*Mfield_prev[i]).min(i,0)));
         }
 
         // begin the iteration
@@ -849,7 +849,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
             // Copy Mfield to Mfield_previous and re-calculate Mfield_prev_max
             for (int i = 0; i < 3; i++){
                 MultiFab::Copy(*Mfield_prev[i],*Mfield[i],0,0,3,Mfield[i]->nGrow());
-                Mfield_prev_max[i] = std::max(amrex::Math::abs((*Mfield_prev[i]).max(i,0)),amrex::Math::abs((*Mfield_prev[i]).min(i,0)));
+                Mfield_prev_max[i] = amrex::max(amrex::Math::abs((*Mfield_prev[i]).max(i,0)),amrex::Math::abs((*Mfield_prev[i]).min(i,0)));
             }
         }
 
