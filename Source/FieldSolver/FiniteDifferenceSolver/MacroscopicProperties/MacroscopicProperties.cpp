@@ -145,7 +145,9 @@ MacroscopicProperties::InitData ()
     // all magnetic macroparameters are stored on cell nodes
     m_mag_Ms_mf = std::make_unique<MultiFab>(amrex::convert(ba,amrex::IntVect::TheUnitVector()), dmap, 1, ng);
     m_mag_alpha_mf = std::make_unique<MultiFab>(amrex::convert(ba,amrex::IntVect::TheUnitVector()), dmap, 1, ng);
-    m_mag_gamma_mf = std::make_unique<MultiFab>(amrex::convert(ba,amrex::IntVect::TheUnitVector()), dmap, 1, ng);
+    m_mag_gamma_mf[0] = std::make_unique<MultiFab>(amrex::convert(ba,IntVect(1,0,0)), dmap, 1, 0);
+    m_mag_gamma_mf[1] = std::make_unique<MultiFab>(amrex::convert(ba,IntVect(0,1,0)), dmap, 1, 0);
+    m_mag_gamma_mf[2] = std::make_unique<MultiFab>(amrex::convert(ba,IntVect(0,0,1)), dmap, 1, 0);
 #endif
 
     // Initialize sigma
@@ -200,13 +202,19 @@ MacroscopicProperties::InitData ()
 
     // mag_gamma - defined at node
     if (m_mag_gamma_s == "constant") {
-        m_mag_gamma_mf->setVal(m_mag_gamma);
+        m_mag_gamma_mf[0]->setVal(m_mag_gamma);
+        m_mag_gamma_mf[1]->setVal(m_mag_gamma);
+        m_mag_gamma_mf[2]->setVal(m_mag_gamma);
 
     }
     else if (m_mag_gamma_s == "parse_mag_gamma_function"){
-        InitializeMacroMultiFabUsingParser(m_mag_gamma_mf.get(), getParser(m_mag_gamma_parser), lev);
+        InitializeMacroMultiFabUsingParser(m_mag_gamma_mf[0].get(), getParser(m_mag_gamma_parser), lev);
+        InitializeMacroMultiFabUsingParser(m_mag_gamma_mf[1].get(), getParser(m_mag_gamma_parser), lev);
+        InitializeMacroMultiFabUsingParser(m_mag_gamma_mf[2].get(), getParser(m_mag_gamma_parser), lev);
     }
-    if (m_mag_gamma_mf->max(0,m_mag_gamma_mf->nGrow()) > 0) {
+    if (m_mag_gamma_mf[0]->max(0,m_mag_gamma_mf[0]->nGrow()) > 0 ||
+        m_mag_gamma_mf[1]->max(0,m_mag_gamma_mf[1]->nGrow()) > 0 ||
+        m_mag_gamma_mf[2]->max(0,m_mag_gamma_mf[2]->nGrow()) > 0 ) {
         amrex::Abort("gamma should be negative, but the user input has positive values");
     }
 #endif

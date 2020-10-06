@@ -63,11 +63,15 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
         {
             auto& mag_Ms_mf = macroscopic_properties->getmag_Ms_mf();
             auto& mag_alpha_mf = macroscopic_properties->getmag_alpha_mf();
-            auto& mag_gamma_mf = macroscopic_properties->getmag_gamma_mf();
+            auto& mag_gammax_mf = macroscopic_properties->getmag_gamma_mf(0);
+            auto& mag_gammay_mf = macroscopic_properties->getmag_gamma_mf(1);
+            auto& mag_gammaz_mf = macroscopic_properties->getmag_gamma_mf(2);
             // extract material properties
             Array4<Real> const& mag_Ms_arr = mag_Ms_mf.array(mfi);
             Array4<Real> const& mag_alpha_arr = mag_alpha_mf.array(mfi);
-            Array4<Real> const& mag_gamma_arr = mag_gamma_mf.array(mfi);
+            Array4<Real> const& mag_gamma_arrx = mag_gammax_mf.array(mfi);
+            Array4<Real> const& mag_gamma_arry = mag_gammay_mf.array(mfi);
+            Array4<Real> const& mag_gamma_arrz = mag_gammaz_mf.array(mfi);
 
             // extract field data
             Array4<Real> const& M_xface = Mfield[0]->array(mfi); // note M_xface include x,y,z components at |_x faces
@@ -118,7 +122,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
 
               // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
               // keep the interpolation. The IntVect is (1,0,0) to interpolate values to the x-face.
-              Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_gamma_arr)
+              Real mag_gamma_interp = mag_gamma_arrx(i,j,k)
                                     / (1.0 + std::pow(MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_alpha_arr), 2.0));
 
               Real M_magnitude = (M_normalization == 0) ?
@@ -196,7 +200,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
 
               // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
               // keep the interpolation. The IntVect is (0,1,0) to interpolate values to the y-face.
-              Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_gamma_arr)
+              Real mag_gamma_interp = mag_gamma_arry(i,j,k)
                                     / (1.0 + std::pow(MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_alpha_arr), 2.0));
 
               Real M_magnitude = (M_normalization == 0) ?
@@ -275,7 +279,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
 
               // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
               // keep the interpolation. The IntVect is (0,0,1) to interpolate values to the z-face.
-              Real mag_gamma_interp = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_gamma_arr)
+              Real mag_gamma_interp = mag_gamma_arrz(i,j,k)
                                     / (1.0 + std::pow(MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_alpha_arr), 2.0));
 
               Real M_magnitude = (M_normalization == 0) ?
