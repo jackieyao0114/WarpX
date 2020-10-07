@@ -159,7 +159,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
 
               // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
               Real M_magnitude = (M_normalization == 0) ? std::sqrt( std::pow(M_xface(i, j, k, 0),2.0) + std::pow(M_xface(i, j, k, 1),2.0) + std::pow(M_xface(i, j, k, 2),2.0) )
-                                                        : MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr);
+                                                        : mag_Ms_arrx(i,j,k);
               // a_temp_static_coeff does not change in the current step for SATURATED materials; but it does change for UNSATURATED ones
               Real a_temp_static_coeff = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_alpha_arr) / M_magnitude;
 
