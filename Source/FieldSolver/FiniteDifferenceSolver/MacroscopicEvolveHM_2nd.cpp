@@ -141,162 +141,158 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
             Box const& tbz = mfi.tilebox(Hfield[2]->ixType().toIntVect());
 
             // loop over cells and update fields
-            amrex::ParallelFor(tbx, tby, tbz,
-            [=] AMREX_GPU_DEVICE (int i, int j, int k){
+            amrex::ParallelFor(tbx, tby, tbz, [=] AMREX_GPU_DEVICE (int i, int j, int k){
                 // determine if the material is nonmagnetic or not
                 if (mag_Ms_arrx(i,j,k) != 0 && mag_alpha_arrx(i,j,k) != 0 && mag_gamma_arrx(i,j,k) != 0)
                 {
+                    // when working on M_xface(i,j,k, 0:2) we have direct access to M_xface(i,j,k,0:2) and Hx(i,j,k)
+                    // Hy and Hz can be acquired by interpolation
 
-              // when working on M_xface(i,j,k, 0:2) we have direct access to M_xface(i,j,k,0:2) and Hx(i,j,k)
-              // Hy and Hz can be acquired by interpolation
+                    // H_bias
+                    Real Hx_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(1,0,0), Hx_bias);
+                    Real Hy_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(1,0,0), Hy_bias);
+                    Real Hz_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(1,0,0), Hz_bias);
 
-              // H_bias
-              Real Hx_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(1,0,0), Hx_bias);
-              Real Hy_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(1,0,0), Hy_bias);
-              Real Hz_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(1,0,0), Hz_bias);
+                    if (coupling == 1) {
+                        // H_eff = H_maxwell + H_bias + H_exchange + H_anisotropy ... (only the first two terms are considered here)
 
-              if (coupling == 1) {
-                  // H_eff = H_maxwell + H_bias + H_exchange + H_anisotropy ... (only the first two terms are considered here)
+                        // H_maxwell
+                        Hx_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(1,0,0), Hx_old);
+                        Hy_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(1,0,0), Hy_old);
+                        Hz_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(1,0,0), Hz_old);
+                    }
 
-                  // H_maxwell
-                  Hx_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(1,0,0), Hx_old);
-                  Hy_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(1,0,0), Hy_old);
-                  Hz_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(1,0,0), Hz_old);
-              }
+                    // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
+                    Real M_magnitude = (M_normalization == 0) ? std::sqrt( std::pow(M_xface(i, j, k, 0),2.0) + std::pow(M_xface(i, j, k, 1),2.0) + std::pow(M_xface(i, j, k, 2),2.0) )
+                        : mag_Ms_arrx(i,j,k);
+                    // a_temp_static_coeff does not change in the current step for SATURATED materials; but it does change for UNSATURATED ones
+                    Real a_temp_static_coeff = mag_alpha_arrx(i,j,k) / M_magnitude;
 
-              // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
-              Real M_magnitude = (M_normalization == 0) ? std::sqrt( std::pow(M_xface(i, j, k, 0),2.0) + std::pow(M_xface(i, j, k, 1),2.0) + std::pow(M_xface(i, j, k, 2),2.0) )
-                                                        : mag_Ms_arrx(i,j,k);
-              // a_temp_static_coeff does not change in the current step for SATURATED materials; but it does change for UNSATURATED ones
-              Real a_temp_static_coeff = mag_alpha_arrx(i,j,k) / M_magnitude;
+                    // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
+                    Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_arrx(i,j,k) / 2.0;
 
-              // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
-              Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_arrx(i,j,k) / 2.0;
+                    // calculate a_temp_static_xface
+                    // x component on x-faces of grid
+                    a_temp_static_xface(i, j, k, 0) = a_temp_static_coeff * M_xface(i, j, k, 0);
 
-              // calculate a_temp_static_xface
-              // x component on x-faces of grid
-              a_temp_static_xface(i, j, k, 0) = a_temp_static_coeff * M_xface(i, j, k, 0);
+                    // y component on x-faces of grid
+                    a_temp_static_xface(i, j, k, 1) = a_temp_static_coeff * M_xface(i, j, k, 1);
 
-              // y component on x-faces of grid
-              a_temp_static_xface(i, j, k, 1) = a_temp_static_coeff * M_xface(i, j, k, 1);
+                    // z component on x-faces of grid
+                    a_temp_static_xface(i, j, k, 2) = a_temp_static_coeff * M_xface(i, j, k, 2);
 
-              // z component on x-faces of grid
-              a_temp_static_xface(i, j, k, 2) = a_temp_static_coeff * M_xface(i, j, k, 2);
+                    // calculate b_temp_static_xface
+                    // x component on x-faces of grid
+                    b_temp_static_xface(i, j, k, 0) = M_xface(i, j, k, 0) + dt * b_temp_static_coeff * ( M_xface(i, j, k, 1) * Hz_eff - M_xface(i, j, k, 2) * Hy_eff);
 
-              // calculate b_temp_static_xface
-              // x component on x-faces of grid
-              b_temp_static_xface(i, j, k, 0) = M_xface(i, j, k, 0) + dt * b_temp_static_coeff * ( M_xface(i, j, k, 1) * Hz_eff - M_xface(i, j, k, 2) * Hy_eff);
+                    // y component on x-faces of grid
+                    b_temp_static_xface(i, j, k, 1) = M_xface(i, j, k, 1) + dt * b_temp_static_coeff * ( M_xface(i, j, k, 2) * Hx_eff - M_xface(i, j, k, 0) * Hz_eff);
 
-              // y component on x-faces of grid
-              b_temp_static_xface(i, j, k, 1) = M_xface(i, j, k, 1) + dt * b_temp_static_coeff * ( M_xface(i, j, k, 2) * Hx_eff - M_xface(i, j, k, 0) * Hz_eff);
-
-              // z component on x-faces of grid
-              b_temp_static_xface(i, j, k, 2) = M_xface(i, j, k, 2) + dt * b_temp_static_coeff * ( M_xface(i, j, k, 0) * Hy_eff - M_xface(i, j, k, 1) * Hx_eff);
-              }
+                    // z component on x-faces of grid
+                    b_temp_static_xface(i, j, k, 2) = M_xface(i, j, k, 2) + dt * b_temp_static_coeff * ( M_xface(i, j, k, 0) * Hy_eff - M_xface(i, j, k, 1) * Hx_eff);
+                }
             },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
                 // determine if the material is nonmagnetic or not
                 if (mag_Ms_arry(i,j,k) != 0 && mag_alpha_arry(i,j,k) != 0 && mag_gamma_arry(i,j,k) != 0)
                 {
+                    // when working on M_yface(i,j,k,0:2) we have direct access to M_yface(i,j,k,0:2) and Hy(i,j,k)
+                    // Hy and Hz can be acquired by interpolation
 
-              // when working on M_yface(i,j,k,0:2) we have direct access to M_yface(i,j,k,0:2) and Hy(i,j,k)
-              // Hy and Hz can be acquired by interpolation
+                    // H_bias
+                    Real Hx_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(0,1,0), Hx_bias);
+                    Real Hy_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(0,1,0), Hy_bias);
+                    Real Hz_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(0,1,0), Hz_bias);
 
-              // H_bias
-              Real Hx_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(0,1,0), Hx_bias);
-              Real Hy_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(0,1,0), Hy_bias);
-              Real Hz_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(0,1,0), Hz_bias);
+                    if (coupling == 1) {
+                        // H_eff = H_maxwell + H_bias + H_exchange + H_anisotropy ... (only the first two terms are considered here)
 
-              if (coupling == 1) {
-                  // H_eff = H_maxwell + H_bias + H_exchange + H_anisotropy ... (only the first two terms are considered here)
+                        // H_maxwell
+                        Hx_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(0,1,0), Hx_old);
+                        Hy_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(0,1,0), Hy_old);
+                        Hz_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(0,1,0), Hz_old);
+                    }
 
-                  // H_maxwell
-                  Hx_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(0,1,0), Hx_old);
-                  Hy_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(0,1,0), Hy_old);
-                  Hz_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(0,1,0), Hz_old);
-              }
+                    // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
+                    Real M_magnitude = (M_normalization == 0) ? std::sqrt( std::pow(M_yface(i, j, k, 0),2.0) + std::pow(M_yface(i, j, k, 1),2.0) + std::pow(M_yface(i, j, k, 2),2.0) )
+                        : mag_Ms_arry(i,j,k);
+                    Real a_temp_static_coeff = mag_alpha_arry(i,j,k) / M_magnitude;
 
-              // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
-              Real M_magnitude = (M_normalization == 0) ? std::sqrt( std::pow(M_yface(i, j, k, 0),2.0) + std::pow(M_yface(i, j, k, 1),2.0) + std::pow(M_yface(i, j, k, 2),2.0) )
-                                                        : mag_Ms_arry(i,j,k);
-              Real a_temp_static_coeff = mag_alpha_arry(i,j,k) / M_magnitude;
+                    // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
+                    Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_arry(i,j,k) / 2.0;
 
-              // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
-              Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_arry(i,j,k) / 2.0;
+                    // calculate a_temp_static_yface
+                    // x component on y-faces of grid
+                    a_temp_static_yface(i, j, k, 0) = a_temp_static_coeff * M_yface(i, j, k, 0);
 
-              // calculate a_temp_static_yface
-              // x component on y-faces of grid
-              a_temp_static_yface(i, j, k, 0) = a_temp_static_coeff * M_yface(i, j, k, 0);
+                    // y component on y-faces of grid
+                    a_temp_static_yface(i, j, k, 1) = a_temp_static_coeff * M_yface(i, j, k, 1);
 
-              // y component on y-faces of grid
-              a_temp_static_yface(i, j, k, 1) = a_temp_static_coeff * M_yface(i, j, k, 1);
+                    // z component on y-faces of grid
+                    a_temp_static_yface(i, j, k, 2) = a_temp_static_coeff * M_yface(i, j, k, 2);
 
-              // z component on y-faces of grid
-              a_temp_static_yface(i, j, k, 2) = a_temp_static_coeff * M_yface(i, j, k, 2);
+                    // calculate b_temp_static_yface
+                    // x component on y-faces of grid
+                    b_temp_static_yface(i, j, k, 0) = M_yface(i, j, k, 0) + dt * b_temp_static_coeff * ( M_yface(i, j, k, 1) * Hz_eff - M_yface(i, j, k, 2) * Hy_eff);
 
-              // calculate b_temp_static_yface
-              // x component on y-faces of grid
-              b_temp_static_yface(i, j, k, 0) = M_yface(i, j, k, 0) + dt * b_temp_static_coeff * ( M_yface(i, j, k, 1) * Hz_eff - M_yface(i, j, k, 2) * Hy_eff);
+                    // y component on y-faces of grid
+                    b_temp_static_yface(i, j, k, 1) = M_yface(i, j, k, 1) + dt * b_temp_static_coeff * ( M_yface(i, j, k, 2) * Hx_eff - M_yface(i, j, k, 0) * Hz_eff);
 
-              // y component on y-faces of grid
-              b_temp_static_yface(i, j, k, 1) = M_yface(i, j, k, 1) + dt * b_temp_static_coeff * ( M_yface(i, j, k, 2) * Hx_eff - M_yface(i, j, k, 0) * Hz_eff);
-
-              // z component on y-faces of grid
-              b_temp_static_yface(i, j, k, 2) = M_yface(i, j, k, 2) + dt * b_temp_static_coeff * ( M_yface(i, j, k, 0) * Hy_eff - M_yface(i, j, k, 1) * Hx_eff);
-              }
+                    // z component on y-faces of grid
+                    b_temp_static_yface(i, j, k, 2) = M_yface(i, j, k, 2) + dt * b_temp_static_coeff * ( M_yface(i, j, k, 0) * Hy_eff - M_yface(i, j, k, 1) * Hx_eff);
+                }
             },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
                 // determine if the material is nonmagnetic or not
                 if (mag_Ms_arrz(i,j,k) != 0 && mag_alpha_arrz(i,j,k) != 0 && mag_gamma_arrz(i,j,k) != 0)
                 {
+                    // when working on M_zface(i,j,k,0:2) we have direct access to M_zface(i,j,k,0:2) and Hz(i,j,k)
+                    // Hy and Hz can be acquired by interpolation
 
-              // when working on M_zface(i,j,k,0:2) we have direct access to M_zface(i,j,k,0:2) and Hz(i,j,k)
-              // Hy and Hz can be acquired by interpolation
+                    // H_bias
+                    Real Hx_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(0,0,1), Hx_bias);
+                    Real Hy_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(0,0,1), Hy_bias);
+                    Real Hz_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(0,0,1), Hz_bias);
 
-              // H_bias
-              Real Hx_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(0,0,1), Hx_bias);
-              Real Hy_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(0,0,1), Hy_bias);
-              Real Hz_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(0,0,1), Hz_bias);
+                    if (coupling == 1) {
+                        // H_eff = H_maxwell + H_bias + H_exchange + H_anisotropy ... (only the first two terms are considered here)
 
-              if (coupling == 1) {
-                  // H_eff = H_maxwell + H_bias + H_exchange + H_anisotropy ... (only the first two terms are considered here)
+                        // H_maxwell
+                        Hx_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(0,0,1), Hx_old);
+                        Hy_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(0,0,1), Hy_old);
+                        Hz_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(0,0,1), Hz_old);
+                    }
 
-                  // H_maxwell
-                  Hx_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(0,0,1), Hx_old);
-                  Hy_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(0,0,1), Hy_old);
-                  Hz_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(0,0,1), Hz_old);
-              }
+                    // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
+                    Real M_magnitude = (M_normalization == 0) ? std::sqrt( std::pow(M_zface(i, j, k, 0),2.0) + std::pow(M_zface(i, j, k, 1),2.0) + std::pow(M_zface(i, j, k, 2),2.0) )
+                        : mag_Ms_arrz(i,j,k);
+                    Real a_temp_static_coeff = mag_alpha_arrz(i,j,k) / M_magnitude;
 
-              // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
-              Real M_magnitude = (M_normalization == 0) ? std::sqrt( std::pow(M_zface(i, j, k, 0),2.0) + std::pow(M_zface(i, j, k, 1),2.0) + std::pow(M_zface(i, j, k, 2),2.0) )
-                                                        : mag_Ms_arrz(i,j,k);
-              Real a_temp_static_coeff = mag_alpha_arrz(i,j,k) / M_magnitude;
+                    // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
+                    Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_arrz(i,j,k) / 2.0;
 
-              // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
-              Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_arrz(i,j,k) / 2.0;
+                    // calculate a_temp_static_zface
+                    // x component on z-faces of grid
+                    a_temp_static_zface(i, j, k, 0) = a_temp_static_coeff * M_zface(i, j, k, 0);
 
-              // calculate a_temp_static_zface
-              // x component on z-faces of grid
-              a_temp_static_zface(i, j, k, 0) = a_temp_static_coeff * M_zface(i, j, k, 0);
+                    // y component on z-faces of grid
+                    a_temp_static_zface(i, j, k, 1) = a_temp_static_coeff * M_zface(i, j, k, 1);
 
-              // y component on z-faces of grid
-              a_temp_static_zface(i, j, k, 1) = a_temp_static_coeff * M_zface(i, j, k, 1);
+                    // z component on z-faces of grid
+                    a_temp_static_zface(i, j, k, 2) = a_temp_static_coeff * M_zface(i, j, k, 2);
 
-              // z component on z-faces of grid
-              a_temp_static_zface(i, j, k, 2) = a_temp_static_coeff * M_zface(i, j, k, 2);
+                    // calculate b_temp_static_zface
+                    // x component on z-faces of grid
+                    b_temp_static_zface(i, j, k, 0) = M_zface(i, j, k, 0) + dt * b_temp_static_coeff * ( M_zface(i, j, k, 1) * Hz_eff - M_zface(i, j, k, 2) * Hy_eff);
 
-              // calculate b_temp_static_zface
-              // x component on z-faces of grid
-              b_temp_static_zface(i, j, k, 0) = M_zface(i, j, k, 0) + dt * b_temp_static_coeff * ( M_zface(i, j, k, 1) * Hz_eff - M_zface(i, j, k, 2) * Hy_eff);
+                    // y component on z-faces of grid
+                    b_temp_static_zface(i, j, k, 1) = M_zface(i, j, k, 1) + dt * b_temp_static_coeff * ( M_zface(i, j, k, 2) * Hx_eff - M_zface(i, j, k, 0) * Hz_eff);
 
-              // y component on z-faces of grid
-              b_temp_static_zface(i, j, k, 1) = M_zface(i, j, k, 1) + dt * b_temp_static_coeff * ( M_zface(i, j, k, 2) * Hx_eff - M_zface(i, j, k, 0) * Hz_eff);
-
-              // z component on z-faces of grid
-              b_temp_static_zface(i, j, k, 2) = M_zface(i, j, k, 2) + dt * b_temp_static_coeff * ( M_zface(i, j, k, 0) * Hy_eff - M_zface(i, j, k, 1) * Hx_eff);
-              }
+                    // z component on z-faces of grid
+                    b_temp_static_zface(i, j, k, 2) = M_zface(i, j, k, 2) + dt * b_temp_static_coeff * ( M_zface(i, j, k, 0) * Hy_eff - M_zface(i, j, k, 1) * Hx_eff);
+                }
             });
         }
 
@@ -380,12 +376,11 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
             Box const& tbz = mfi.tilebox(Hfield[2]->ixType().toIntVect());
 
             // loop over cells and update fields
-            amrex::ParallelFor(tbx, tby, tbz,
-            [=] AMREX_GPU_DEVICE (int i, int j, int k){
+            amrex::ParallelFor(tbx, tby, tbz, [=] AMREX_GPU_DEVICE (int i, int j, int k){
                 // determine if the material is nonmagnetic or not
                 if (mag_Ms_arrx(i,j,k) == 0 || mag_alpha_arrx(i,j,k) == 0 || mag_gamma_arrx(i,j,k) == 0)
                 {
-                    //no update on M; set the iterative error to zero to terminate the iteration
+                    // no update on M; set the iterative error to zero to terminate the iteration
                     M_error_xface(i, j, k, 0) = 0;
                     M_error_xface(i, j, k, 1) = 0;
                     M_error_xface(i, j, k, 2) = 0;
@@ -494,216 +489,216 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
                 // determine if the material is nonmagnetic or not
                 if (mag_Ms_arry(i,j,k) == 0 || mag_alpha_arry(i,j,k) == 0 || mag_gamma_arry(i,j,k) == 0)
                 {
-                    //no update on M; set the iterative error to zero to terminate the iteration
+                    // no update on M; set the iterative error to zero to terminate the iteration
                     M_error_yface(i, j, k, 0) = 0;
                     M_error_yface(i, j, k, 1) = 0;
                     M_error_yface(i, j, k, 2) = 0;
                 }
                 else
                 {
-              // when working on M_yface(i,j,k,0:2) we have direct access to M_yface(i,j,k,0:2) and Hy(i,j,k)
-              // Hy and Hz can be acquired by interpolation
+                    // when working on M_yface(i,j,k,0:2) we have direct access to M_yface(i,j,k,0:2) and Hy(i,j,k)
+                    // Hy and Hz can be acquired by interpolation
 
-              // H_bias
-              Real Hx_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(0,1,0), Hx_bias);
-              Real Hy_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(0,1,0), Hy_bias);
-              Real Hz_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(0,1,0), Hz_bias);
+                    // H_bias
+                    Real Hx_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(0,1,0), Hx_bias);
+                    Real Hy_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(0,1,0), Hy_bias);
+                    Real Hz_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(0,1,0), Hz_bias);
 
-              if (coupling == 1) {
-                  // H_eff = H_maxwell + H_bias + H_exchange + H_anisotropy ... (only the first two terms are considered here)
+                    if (coupling == 1) {
+                        // H_eff = H_maxwell + H_bias + H_exchange + H_anisotropy ... (only the first two terms are considered here)
 
-                  // H_maxwell
-                  Hx_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(0,1,0), Hx);
-                  Hy_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(0,1,0), Hy);
-                  Hz_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(0,1,0), Hz);
-              }
+                        // H_maxwell
+                        Hx_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(0,1,0), Hx);
+                        Hy_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(0,1,0), Hy);
+                        Hz_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(0,1,0), Hz);
+                    }
 
-              // calculate the a_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
-              Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_arry(i,j,k)) / 2.0;
+                    // calculate the a_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
+                    Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_arry(i,j,k)) / 2.0;
 
-              // calculate a_temp_yface
-              // x component on y-faces of grid
-              a_temp_yface(i, j, k, 0) = (M_normalization != 0) ?
-                    -( dt * a_temp_dynamic_coeff * Hx_eff + a_temp_static_yface(i, j, k, 0) )
-                  : -( dt * a_temp_dynamic_coeff * Hx_eff + 0.5 * a_temp_static_yface(i, j, k, 0) 
-                       + 0.5 * mag_alpha_arry(i,j,k)
-                    * 1./std::sqrt( std::pow(M_yface(i, j, k, 0),2.0) + std::pow(M_yface(i, j, k, 1),2.0) + std::pow(M_yface(i, j, k, 2),2.0) ) * M_old_yface(i, j, k, 0));
+                    // calculate a_temp_yface
+                    // x component on y-faces of grid
+                    a_temp_yface(i, j, k, 0) = (M_normalization != 0) ?
+                        -( dt * a_temp_dynamic_coeff * Hx_eff + a_temp_static_yface(i, j, k, 0) )
+                        : -( dt * a_temp_dynamic_coeff * Hx_eff + 0.5 * a_temp_static_yface(i, j, k, 0) 
+                             + 0.5 * mag_alpha_arry(i,j,k)
+                             * 1./std::sqrt( std::pow(M_yface(i, j, k, 0),2.0) + std::pow(M_yface(i, j, k, 1),2.0) + std::pow(M_yface(i, j, k, 2),2.0) ) * M_old_yface(i, j, k, 0));
 
-              // y component on y-faces of grid
-              a_temp_yface(i, j, k, 1) = (M_normalization != 0) ?
-                    -( dt * a_temp_dynamic_coeff * Hy_eff + a_temp_static_yface(i, j, k, 1) )
-                  : -( dt * a_temp_dynamic_coeff * Hy_eff + 0.5 * a_temp_static_yface(i, j, k, 1) 
-                       + 0.5 * mag_alpha_arry(i,j,k)
-                    * 1./std::sqrt( std::pow(M_yface(i, j, k, 0),2.0) + std::pow(M_yface(i, j, k, 1),2.0) + std::pow(M_yface(i, j, k, 2),2.0) ) * M_old_yface(i, j, k, 1));
+                    // y component on y-faces of grid
+                    a_temp_yface(i, j, k, 1) = (M_normalization != 0) ?
+                        -( dt * a_temp_dynamic_coeff * Hy_eff + a_temp_static_yface(i, j, k, 1) )
+                        : -( dt * a_temp_dynamic_coeff * Hy_eff + 0.5 * a_temp_static_yface(i, j, k, 1) 
+                             + 0.5 * mag_alpha_arry(i,j,k)
+                             * 1./std::sqrt( std::pow(M_yface(i, j, k, 0),2.0) + std::pow(M_yface(i, j, k, 1),2.0) + std::pow(M_yface(i, j, k, 2),2.0) ) * M_old_yface(i, j, k, 1));
 
-              // z component on y-faces of grid
-              a_temp_yface(i, j, k, 2) = (M_normalization != 0) ?
-                    -( dt * a_temp_dynamic_coeff * Hz_eff + a_temp_static_yface(i, j, k, 2) )
-                  : -( dt * a_temp_dynamic_coeff * Hz_eff + 0.5 * a_temp_static_yface(i, j, k, 2) 
-                       + 0.5 * mag_alpha_arry(i,j,k)
-                    * 1./std::sqrt( std::pow(M_yface(i, j, k, 0),2.0) + std::pow(M_yface(i, j, k, 1),2.0) + std::pow(M_yface(i, j, k, 2),2.0) ) * M_old_yface(i, j, k, 2));
+                    // z component on y-faces of grid
+                    a_temp_yface(i, j, k, 2) = (M_normalization != 0) ?
+                        -( dt * a_temp_dynamic_coeff * Hz_eff + a_temp_static_yface(i, j, k, 2) )
+                        : -( dt * a_temp_dynamic_coeff * Hz_eff + 0.5 * a_temp_static_yface(i, j, k, 2) 
+                             + 0.5 * mag_alpha_arry(i,j,k)
+                             * 1./std::sqrt( std::pow(M_yface(i, j, k, 0),2.0) + std::pow(M_yface(i, j, k, 1),2.0) + std::pow(M_yface(i, j, k, 2),2.0) ) * M_old_yface(i, j, k, 2));
 
-              // update M_yface from a and b using the updateM_field
-              // x component on y-faces of grid
-              M_yface(i, j, k, 0) = MacroscopicProperties::updateM_field(i, j, k, 0, a_temp_yface, b_temp_static_yface);
+                    // update M_yface from a and b using the updateM_field
+                    // x component on y-faces of grid
+                    M_yface(i, j, k, 0) = MacroscopicProperties::updateM_field(i, j, k, 0, a_temp_yface, b_temp_static_yface);
 
-              // y component on y-faces of grid
-              M_yface(i, j, k, 1) = MacroscopicProperties::updateM_field(i, j, k, 1, a_temp_yface, b_temp_static_yface);
+                    // y component on y-faces of grid
+                    M_yface(i, j, k, 1) = MacroscopicProperties::updateM_field(i, j, k, 1, a_temp_yface, b_temp_static_yface);
 
-              // z component on y-faces of grid
-              M_yface(i, j, k, 2) = MacroscopicProperties::updateM_field(i, j, k, 2, a_temp_yface, b_temp_static_yface);
+                    // z component on y-faces of grid
+                    M_yface(i, j, k, 2) = MacroscopicProperties::updateM_field(i, j, k, 2, a_temp_yface, b_temp_static_yface);
 
-              // temporary normalized magnitude of M_yface field at the fixed point
-              // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
-              amrex::Real M_magnitude_normalized = std::sqrt( std::pow(M_yface(i, j, k, 0),2.0) + std::pow(M_yface(i, j, k, 1),2.0) +
-                                                              std::pow(M_yface(i, j, k, 2),2.0) ) / mag_Ms_arry(i,j,k);
+                    // temporary normalized magnitude of M_yface field at the fixed point
+                    // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
+                    amrex::Real M_magnitude_normalized = std::sqrt( std::pow(M_yface(i, j, k, 0),2.0) + std::pow(M_yface(i, j, k, 1),2.0) +
+                                                                    std::pow(M_yface(i, j, k, 2),2.0) ) / mag_Ms_arry(i,j,k);
 
-              if (M_normalization == 1) {
-                  // saturated case; if |M| has drifted from M_s too much, abort.  Otherwise, normalize
-                  // check the normalized error
-                  if ( amrex::Math::abs(1._rt-M_magnitude_normalized) > mag_normalized_error ){
-                      printf("i = %d, j=%d, k=%d\n", i, j, k);
-                      printf("M_magnitude_normalized = %f, mag_normalized_error=%f\n",M_magnitude_normalized, mag_normalized_error);
-                      amrex::Abort("Exceed the normalized error of the M_yface field");
-                  }
-                  // normalize the M_yface field
-                  M_yface(i,j,k,0) /= M_magnitude_normalized;
-                  M_yface(i,j,k,1) /= M_magnitude_normalized;
-                  M_yface(i,j,k,2) /= M_magnitude_normalized;
-              }
-              else if (M_normalization == 0){
-                  // check the normalized error
-                  if (M_magnitude_normalized > 1._rt + mag_normalized_error){
-                      printf("i = %d, j=%d, k=%d\n", i, j, k);
-                      printf("M_magnitude_normalized = %f, Ms = %f\n", M_magnitude_normalized, mag_Ms_arry(i,j,k));
-                      amrex::Abort("Caution: Unsaturated material has M_yface exceeding the saturation magnetization");
-                  }
-                  else if (M_magnitude_normalized > 1._rt && M_magnitude_normalized <= 1._rt + mag_normalized_error){
-                      // normalize the M_yface field
-                      M_yface(i, j, k, 0) /= M_magnitude_normalized;
-                      M_yface(i, j, k, 1) /= M_magnitude_normalized;
-                      M_yface(i, j, k, 2) /= M_magnitude_normalized;
-                  }
-              }
+                    if (M_normalization == 1) {
+                        // saturated case; if |M| has drifted from M_s too much, abort.  Otherwise, normalize
+                        // check the normalized error
+                        if ( amrex::Math::abs(1._rt-M_magnitude_normalized) > mag_normalized_error ){
+                            printf("i = %d, j=%d, k=%d\n", i, j, k);
+                            printf("M_magnitude_normalized = %f, mag_normalized_error=%f\n",M_magnitude_normalized, mag_normalized_error);
+                            amrex::Abort("Exceed the normalized error of the M_yface field");
+                        }
+                        // normalize the M_yface field
+                        M_yface(i,j,k,0) /= M_magnitude_normalized;
+                        M_yface(i,j,k,1) /= M_magnitude_normalized;
+                        M_yface(i,j,k,2) /= M_magnitude_normalized;
+                    }
+                    else if (M_normalization == 0){
+                        // check the normalized error
+                        if (M_magnitude_normalized > 1._rt + mag_normalized_error){
+                            printf("i = %d, j=%d, k=%d\n", i, j, k);
+                            printf("M_magnitude_normalized = %f, Ms = %f\n", M_magnitude_normalized, mag_Ms_arry(i,j,k));
+                            amrex::Abort("Caution: Unsaturated material has M_yface exceeding the saturation magnetization");
+                        }
+                        else if (M_magnitude_normalized > 1._rt && M_magnitude_normalized <= 1._rt + mag_normalized_error){
+                            // normalize the M_yface field
+                            M_yface(i, j, k, 0) /= M_magnitude_normalized;
+                            M_yface(i, j, k, 1) /= M_magnitude_normalized;
+                            M_yface(i, j, k, 2) /= M_magnitude_normalized;
+                        }
+                    }
 
-              // calculate M_error_yface
-              // x component on y-faces of grid
-              M_error_yface(i, j, k, 0) = amrex::Math::abs((M_yface(i, j, k, 0) - M_prev_yface(i, j, k, 0))) / mag_Ms_arry(i,j,k);
+                    // calculate M_error_yface
+                    // x component on y-faces of grid
+                    M_error_yface(i, j, k, 0) = amrex::Math::abs((M_yface(i, j, k, 0) - M_prev_yface(i, j, k, 0))) / mag_Ms_arry(i,j,k);
 
-              // y component on y-faces of grid
-              M_error_yface(i, j, k, 1) = amrex::Math::abs((M_yface(i, j, k, 1) - M_prev_yface(i, j, k, 1))) / mag_Ms_arry(i,j,k);
+                    // y component on y-faces of grid
+                    M_error_yface(i, j, k, 1) = amrex::Math::abs((M_yface(i, j, k, 1) - M_prev_yface(i, j, k, 1))) / mag_Ms_arry(i,j,k);
 
-              // z component on y-faces of grid
-              M_error_yface(i, j, k, 2) = amrex::Math::abs((M_yface(i, j, k, 2) - M_prev_yface(i, j, k, 2))) / mag_Ms_arry(i,j,k);
-              }
+                    // z component on y-faces of grid
+                    M_error_yface(i, j, k, 2) = amrex::Math::abs((M_yface(i, j, k, 2) - M_prev_yface(i, j, k, 2))) / mag_Ms_arry(i,j,k);
+                }
             },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
                 // determine if the material is nonmagnetic or not
                 if (mag_Ms_arrz(i,j,k) == 0 || mag_alpha_arrz(i,j,k) == 0 || mag_gamma_arrz(i,j,k) == 0)
                 {
-                    //no update on M; set the iterative error to zero to terminate the iteration
+                    // no update on M; set the iterative error to zero to terminate the iteration
                     M_error_zface(i, j, k, 0) = 0;
                     M_error_zface(i, j, k, 1) = 0;
                     M_error_zface(i, j, k, 2) = 0;
                 }
                 else
                 {
-              // when working on M_zface(i,j,k,0:2) we have direct access to M_zface(i,j,k,0:2) and Hz(i,j,k)
-              // Hy and Hz can be acquired by interpolation
+                    // when working on M_zface(i,j,k,0:2) we have direct access to M_zface(i,j,k,0:2) and Hz(i,j,k)
+                    // Hy and Hz can be acquired by interpolation
 
-              // H_bias
-              Real Hx_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(0,0,1), Hx_bias);
-              Real Hy_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(0,0,1), Hy_bias);
-              Real Hz_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(0,0,1), Hz_bias);
+                    // H_bias
+                    Real Hx_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(0,0,1), Hx_bias);
+                    Real Hy_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(0,0,1), Hy_bias);
+                    Real Hz_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(0,0,1), Hz_bias);
 
-              if (coupling == 1) {
-                  // H_eff = H_maxwell + H_bias + H_exchange + H_anisotropy ... (only the first two terms are considered here)
+                    if (coupling == 1) {
+                        // H_eff = H_maxwell + H_bias + H_exchange + H_anisotropy ... (only the first two terms are considered here)
 
-                  // H_maxwell
-                  Hx_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(0,0,1), Hx);
-                  Hy_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(0,0,1), Hy);
-                  Hz_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(0,0,1), Hz);
-              }
+                        // H_maxwell
+                        Hx_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1,0,0), amrex::IntVect(0,0,1), Hx);
+                        Hy_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,1,0), amrex::IntVect(0,0,1), Hy);
+                        Hz_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0,0,1), amrex::IntVect(0,0,1), Hz);
+                    }
 
-              // calculate the a_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
-              Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_arrz(i,j,k)) / 2.0;
+                    // calculate the a_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
+                    Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_arrz(i,j,k)) / 2.0;
 
-              // calculate a_temp_zface
-              // x component on z-faces of grid
-              a_temp_zface(i, j, k, 0) = (M_normalization != 0) ?
-                    -( dt * a_temp_dynamic_coeff * Hx_eff + a_temp_static_zface(i, j, k, 0) )
-                  : -( dt * a_temp_dynamic_coeff * Hx_eff + 0.5 * a_temp_static_zface(i, j, k, 0) 
-                       + 0.5 * mag_alpha_arrz(i,j,k)
-                    * 1./std::sqrt( std::pow(M_zface(i, j, k, 0),2.0) + std::pow(M_zface(i, j, k, 1),2.0) + std::pow(M_zface(i, j, k, 2),2.0) ) * M_old_zface(i, j, k, 0));
+                    // calculate a_temp_zface
+                    // x component on z-faces of grid
+                    a_temp_zface(i, j, k, 0) = (M_normalization != 0) ?
+                        -( dt * a_temp_dynamic_coeff * Hx_eff + a_temp_static_zface(i, j, k, 0) )
+                        : -( dt * a_temp_dynamic_coeff * Hx_eff + 0.5 * a_temp_static_zface(i, j, k, 0) 
+                             + 0.5 * mag_alpha_arrz(i,j,k)
+                             * 1./std::sqrt( std::pow(M_zface(i, j, k, 0),2.0) + std::pow(M_zface(i, j, k, 1),2.0) + std::pow(M_zface(i, j, k, 2),2.0) ) * M_old_zface(i, j, k, 0));
 
-              // y component on z-faces of grid
-              a_temp_zface(i, j, k, 1) = (M_normalization != 0) ?
-                    -( dt * a_temp_dynamic_coeff * Hy_eff + a_temp_static_zface(i, j, k, 1) )
-                  : -( dt * a_temp_dynamic_coeff * Hy_eff + 0.5 * a_temp_static_zface(i, j, k, 1) 
-                       + 0.5 * mag_alpha_arrz(i,j,k)
-                    * 1./std::sqrt( std::pow(M_zface(i, j, k, 0),2.0) + std::pow(M_zface(i, j, k, 1),2.0) + std::pow(M_zface(i, j, k, 2),2.0) ) * M_old_zface(i, j, k, 1));
+                    // y component on z-faces of grid
+                    a_temp_zface(i, j, k, 1) = (M_normalization != 0) ?
+                        -( dt * a_temp_dynamic_coeff * Hy_eff + a_temp_static_zface(i, j, k, 1) )
+                        : -( dt * a_temp_dynamic_coeff * Hy_eff + 0.5 * a_temp_static_zface(i, j, k, 1) 
+                             + 0.5 * mag_alpha_arrz(i,j,k)
+                             * 1./std::sqrt( std::pow(M_zface(i, j, k, 0),2.0) + std::pow(M_zface(i, j, k, 1),2.0) + std::pow(M_zface(i, j, k, 2),2.0) ) * M_old_zface(i, j, k, 1));
 
-              // z component on z-faces of grid
-              a_temp_zface(i, j, k, 2) = (M_normalization != 0) ?
-                    -( dt * a_temp_dynamic_coeff * Hz_eff + a_temp_static_zface(i, j, k, 2) )
-                  : -( dt * a_temp_dynamic_coeff * Hz_eff + 0.5 * a_temp_static_zface(i, j, k, 2) 
-                       + 0.5 * mag_alpha_arrz(i,j,k)
-                    * 1./std::sqrt( std::pow(M_zface(i, j, k, 0),2.0) + std::pow(M_zface(i, j, k, 1),2.0) + std::pow(M_zface(i, j, k, 2),2.0) ) * M_old_zface(i, j, k, 2));
+                    // z component on z-faces of grid
+                    a_temp_zface(i, j, k, 2) = (M_normalization != 0) ?
+                        -( dt * a_temp_dynamic_coeff * Hz_eff + a_temp_static_zface(i, j, k, 2) )
+                        : -( dt * a_temp_dynamic_coeff * Hz_eff + 0.5 * a_temp_static_zface(i, j, k, 2) 
+                             + 0.5 * mag_alpha_arrz(i,j,k)
+                             * 1./std::sqrt( std::pow(M_zface(i, j, k, 0),2.0) + std::pow(M_zface(i, j, k, 1),2.0) + std::pow(M_zface(i, j, k, 2),2.0) ) * M_old_zface(i, j, k, 2));
 
-              // update M_zface from a and b using the updateM_field
-              // x component on z-faces of grid
-              M_zface(i, j, k, 0) = MacroscopicProperties::updateM_field(i, j, k, 0, a_temp_zface, b_temp_static_zface);
+                    // update M_zface from a and b using the updateM_field
+                    // x component on z-faces of grid
+                    M_zface(i, j, k, 0) = MacroscopicProperties::updateM_field(i, j, k, 0, a_temp_zface, b_temp_static_zface);
 
-              // y component on z-faces of grid
-              M_zface(i, j, k, 1) = MacroscopicProperties::updateM_field(i, j, k, 1, a_temp_zface, b_temp_static_zface);
+                    // y component on z-faces of grid
+                    M_zface(i, j, k, 1) = MacroscopicProperties::updateM_field(i, j, k, 1, a_temp_zface, b_temp_static_zface);
 
-              // z component on z-faces of grid
-              M_zface(i, j, k, 2) = MacroscopicProperties::updateM_field(i, j, k, 2, a_temp_zface, b_temp_static_zface);
+                    // z component on z-faces of grid
+                    M_zface(i, j, k, 2) = MacroscopicProperties::updateM_field(i, j, k, 2, a_temp_zface, b_temp_static_zface);
 
-              // temporary normalized magnitude of M_zface field at the fixed point
-              // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
-              amrex::Real M_magnitude_normalized = std::sqrt( std::pow(M_zface(i, j, k, 0),2.0_rt) + std::pow(M_zface(i, j, k, 1),2.0_rt) +
-                                                              std::pow(M_zface(i, j, k, 2),2.0_rt) ) / mag_Ms_arrz(i,j,k);
+                    // temporary normalized magnitude of M_zface field at the fixed point
+                    // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
+                    amrex::Real M_magnitude_normalized = std::sqrt( std::pow(M_zface(i, j, k, 0),2.0_rt) + std::pow(M_zface(i, j, k, 1),2.0_rt) +
+                                                                    std::pow(M_zface(i, j, k, 2),2.0_rt) ) / mag_Ms_arrz(i,j,k);
 
-              if (M_normalization == 1) {
-                  // saturated case; if |M| has drifted from M_s too much, abort.  Otherwise, normalize
-                  // check the normalized error
-                  if ( amrex::Math::abs(1.-M_magnitude_normalized) > mag_normalized_error ){
-                      printf("i = %d, j=%d, k=%d\n", i, j, k);
-                      printf("M_magnitude_normalized = %f, mag_normalized_error=%f\n", M_magnitude_normalized, mag_normalized_error);
-                      amrex::Abort("Exceed the normalized error of the M_zface field");
-                  }
-                  // normalize the M_zface field
-                  M_zface(i,j,k,0) /= M_magnitude_normalized;
-                  M_zface(i,j,k,1) /= M_magnitude_normalized;
-                  M_zface(i,j,k,2) /= M_magnitude_normalized;
-              }
-              else if (M_normalization == 0){
-                  // check the normalized error
-                  if (M_magnitude_normalized > 1._rt + mag_normalized_error){
-                      printf("i = %d, j=%d, k=%d\n", i, j, k);
-                      printf("M_magnitude_normalized = %f, Ms = %f\n", M_magnitude_normalized, mag_Ms_arrz(i,j,k));
-                      amrex::Abort("Caution: Unsaturated material has M_zface exceeding the saturation magnetization");
-                  }
-                  else if (M_magnitude_normalized > 1._rt && M_magnitude_normalized <= 1._rt + mag_normalized_error){
-                      // normalize the M_zface field
-                      M_zface(i, j, k, 0) /= M_magnitude_normalized;
-                      M_zface(i, j, k, 1) /= M_magnitude_normalized;
-                      M_zface(i, j, k, 2) /= M_magnitude_normalized;
-                  }
-              }
+                    if (M_normalization == 1) {
+                        // saturated case; if |M| has drifted from M_s too much, abort.  Otherwise, normalize
+                        // check the normalized error
+                        if ( amrex::Math::abs(1.-M_magnitude_normalized) > mag_normalized_error ){
+                            printf("i = %d, j=%d, k=%d\n", i, j, k);
+                            printf("M_magnitude_normalized = %f, mag_normalized_error=%f\n", M_magnitude_normalized, mag_normalized_error);
+                            amrex::Abort("Exceed the normalized error of the M_zface field");
+                        }
+                        // normalize the M_zface field
+                        M_zface(i,j,k,0) /= M_magnitude_normalized;
+                        M_zface(i,j,k,1) /= M_magnitude_normalized;
+                        M_zface(i,j,k,2) /= M_magnitude_normalized;
+                    }
+                    else if (M_normalization == 0){
+                        // check the normalized error
+                        if (M_magnitude_normalized > 1._rt + mag_normalized_error){
+                            printf("i = %d, j=%d, k=%d\n", i, j, k);
+                            printf("M_magnitude_normalized = %f, Ms = %f\n", M_magnitude_normalized, mag_Ms_arrz(i,j,k));
+                            amrex::Abort("Caution: Unsaturated material has M_zface exceeding the saturation magnetization");
+                        }
+                        else if (M_magnitude_normalized > 1._rt && M_magnitude_normalized <= 1._rt + mag_normalized_error){
+                            // normalize the M_zface field
+                            M_zface(i, j, k, 0) /= M_magnitude_normalized;
+                            M_zface(i, j, k, 1) /= M_magnitude_normalized;
+                            M_zface(i, j, k, 2) /= M_magnitude_normalized;
+                        }
+                    }
 
-              // calculate M_error_zface
-              // x component on z-faces of grid
-              M_error_zface(i, j, k, 0) = amrex::Math::abs((M_zface(i, j, k, 0) - M_prev_zface(i, j, k, 0))) / mag_Ms_arrz(i,j,k);
+                    // calculate M_error_zface
+                    // x component on z-faces of grid
+                    M_error_zface(i, j, k, 0) = amrex::Math::abs((M_zface(i, j, k, 0) - M_prev_zface(i, j, k, 0))) / mag_Ms_arrz(i,j,k);
 
-              // y component on z-faces of grid
-              M_error_zface(i, j, k, 1) = amrex::Math::abs((M_zface(i, j, k, 1) - M_prev_zface(i, j, k, 1))) / mag_Ms_arrz(i,j,k);
+                    // y component on z-faces of grid
+                    M_error_zface(i, j, k, 1) = amrex::Math::abs((M_zface(i, j, k, 1) - M_prev_zface(i, j, k, 1))) / mag_Ms_arrz(i,j,k);
 
-              // z component on z-faces of grid
-              M_error_zface(i, j, k, 2) = amrex::Math::abs((M_zface(i, j, k, 2) - M_prev_zface(i, j, k, 2))) / mag_Ms_arrz(i,j,k);
-              }
+                    // z component on z-faces of grid
+                    M_error_zface(i, j, k, 2) = amrex::Math::abs((M_zface(i, j, k, 2) - M_prev_zface(i, j, k, 2))) / mag_Ms_arrz(i,j,k);
+                }
             });
         }
 
@@ -741,43 +736,38 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
             Box const &tbz = mfi.tilebox(Hfield[2]->ixType().toIntVect());
 
             // Loop over the cells and update the fields
-            amrex::ParallelFor(
-                tbx, tby, tbz,
-
-                [=] AMREX_GPU_DEVICE(int i, int j, int k) {
-                    if (coupling == 1) {
-                        Hx(i, j, k) = Hx_old(i, j, k) + 1 / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k) 
-                                    - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k) - M_xface(i, j, k, 0) + M_xface_old(i, j, k, 0);
-                    }
-                    else{
-                        Hx(i, j, k) = Hx_old(i, j, k) + 1 / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k) 
-                                    - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k);
-                    }
-                },
-
-                [=] AMREX_GPU_DEVICE(int i, int j, int k) {
-                    if (coupling == 1){
-                        Hy(i, j, k) = Hy_old(i, j, k) + 1 / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k) 
-                                    - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k) - M_yface(i, j, k, 1) + M_yface_old(i, j, k, 1);
-                    }
-                    else {
-                        Hy(i, j, k) = Hy_old(i, j, k) + 1 / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k) 
-                                    - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k);
-                    }
-                },
-
-                [=] AMREX_GPU_DEVICE(int i, int j, int k) {
-                    if (coupling == 1){
-                        Hz(i, j, k) = Hz_old(i, j, k) + 1 / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k) 
-                                    - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k) - M_zface(i, j, k, 2) + M_zface_old(i, j, k, 2);
-                    }
-                    else{
-                        Hz(i, j, k) = Hz_old(i, j, k) + 1 / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k) 
-                                    - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k);
-                    }
+            amrex::ParallelFor(tbx, tby, tbz, [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+                if (coupling == 1) {
+                    Hx(i, j, k) = Hx_old(i, j, k) + 1 / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k) 
+                        - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k) - M_xface(i, j, k, 0) + M_xface_old(i, j, k, 0);
                 }
+                else {
+                    Hx(i, j, k) = Hx_old(i, j, k) + 1 / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k) 
+                        - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k);
+                }
+            },
 
-            );
+            [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+                if (coupling == 1){
+                    Hy(i, j, k) = Hy_old(i, j, k) + 1 / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k) 
+                        - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k) - M_yface(i, j, k, 1) + M_yface_old(i, j, k, 1);
+                }
+                else {
+                    Hy(i, j, k) = Hy_old(i, j, k) + 1 / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k) 
+                        - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k);
+                }
+            },
+
+            [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+                if (coupling == 1){
+                    Hz(i, j, k) = Hz_old(i, j, k) + 1 / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k) 
+                        - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k) - M_zface(i, j, k, 2) + M_zface_old(i, j, k, 2);
+                }
+                else {
+                    Hz(i, j, k) = Hz_old(i, j, k) + 1 / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k) 
+                        - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k);
+                }
+            });
         }
 
         // Check the error between Mfield and Mfield_prev and decide whether another iteration is needed
@@ -819,74 +809,72 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
                     Box const& tbz = mfi.tilebox(Hfield[2]->ixType().toIntVect());
 
                     // loop over cells and update fields
-                    amrex::ParallelFor(tbx, tby, tbz,
-                    [=] AMREX_GPU_DEVICE (int i, int j, int k){
+                    amrex::ParallelFor(tbx, tby, tbz, [=] AMREX_GPU_DEVICE (int i, int j, int k) {
                         if (mag_Ms_arrx(i,j,k) != 0)
                         {
-                        // temporary normalized magnitude of M_xface field at the fixed point
-                        // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
-                        amrex::Real M_magnitude_normalized = std::sqrt( std::pow(M_xface(i, j, k, 0),2.0) + std::pow(M_xface(i, j, k, 1),2.0) +
-                                                                std::pow(M_xface(i, j, k, 2),2.0) )
-                            / mag_Ms_arrx(i,j,k);
+                            // temporary normalized magnitude of M_xface field at the fixed point
+                            // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
+                            amrex::Real M_magnitude_normalized = std::sqrt( std::pow(M_xface(i, j, k, 0),2.0) + std::pow(M_xface(i, j, k, 1),2.0) +
+                                                                            std::pow(M_xface(i, j, k, 2),2.0) )
+                                / mag_Ms_arrx(i,j,k);
 
-                        // check the normalized error
-                        if ( amrex::Math::abs(1._rt-M_magnitude_normalized) > mag_normalized_error ){
-                            printf("i = %d, j=%d, k=%d\n", i, j, k);
-                            printf("M_magnitude_normalized = %f, mag_normalized_error=%f\n", M_magnitude_normalized, mag_normalized_error);
-                            amrex::Abort("Exceed the normalized error of the M_xface field");
+                            // check the normalized error
+                            if ( amrex::Math::abs(1._rt-M_magnitude_normalized) > mag_normalized_error ){
+                                printf("i = %d, j=%d, k=%d\n", i, j, k);
+                                printf("M_magnitude_normalized = %f, mag_normalized_error=%f\n", M_magnitude_normalized, mag_normalized_error);
+                                amrex::Abort("Exceed the normalized error of the M_xface field");
+                            }
+                            // normalize the M_xface field
+                            M_xface(i,j,k,0) /= M_magnitude_normalized;
+                            M_xface(i,j,k,1) /= M_magnitude_normalized;
+                            M_xface(i,j,k,2) /= M_magnitude_normalized;
                         }
-                        // normalize the M_xface field
-                        M_xface(i,j,k,0) /= M_magnitude_normalized;
-                        M_xface(i,j,k,1) /= M_magnitude_normalized;
-                        M_xface(i,j,k,2) /= M_magnitude_normalized;
-                    }
                     },
 
                     [=] AMREX_GPU_DEVICE (int i, int j, int k){
                         if (mag_Ms_arry(i,j,k) != 0)
                         {
-                        // temporary normalized magnitude of M_yface field at the fixed point
-                        // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
-                        amrex::Real M_magnitude_normalized = std::sqrt( std::pow(M_yface(i, j, k, 0),2.0) + std::pow(M_yface(i, j, k, 1),2.0) +
-                                                                std::pow(M_yface(i, j, k, 2),2.0) )
-                            / mag_Ms_arry(i,j,k);
+                            // temporary normalized magnitude of M_yface field at the fixed point
+                            // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
+                            amrex::Real M_magnitude_normalized = std::sqrt( std::pow(M_yface(i, j, k, 0),2.0) + std::pow(M_yface(i, j, k, 1),2.0) +
+                                                                            std::pow(M_yface(i, j, k, 2),2.0) )
+                                / mag_Ms_arry(i,j,k);
 
-                        // check the normalized error
-                        if ( amrex::Math::abs(1._rt-M_magnitude_normalized) > mag_normalized_error ){
-                            printf("i = %d, j=%d, k=%d\n", i, j, k);
-                            printf("M_magnitude_normalized = %f, mag_normalized_error=%f\n",M_magnitude_normalized, mag_normalized_error);
-                            amrex::Abort("Exceed the normalized error of the M_yface field");
+                            // check the normalized error
+                            if ( amrex::Math::abs(1._rt-M_magnitude_normalized) > mag_normalized_error ){
+                                printf("i = %d, j=%d, k=%d\n", i, j, k);
+                                printf("M_magnitude_normalized = %f, mag_normalized_error=%f\n",M_magnitude_normalized, mag_normalized_error);
+                                amrex::Abort("Exceed the normalized error of the M_yface field");
+                            }
+                            // normalize the M_yface field
+                            M_yface(i,j,k,0) /= M_magnitude_normalized;
+                            M_yface(i,j,k,1) /= M_magnitude_normalized;
+                            M_yface(i,j,k,2) /= M_magnitude_normalized;
                         }
-                        // normalize the M_yface field
-                        M_yface(i,j,k,0) /= M_magnitude_normalized;
-                        M_yface(i,j,k,1) /= M_magnitude_normalized;
-                        M_yface(i,j,k,2) /= M_magnitude_normalized;
-
-                    }
                     },
 
                     [=] AMREX_GPU_DEVICE (int i, int j, int k){
                         if (mag_Ms_arrz(i,j,k) != 0)
                         {
-                        // temporary normalized magnitude of M_zface field at the fixed point
-                        // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
-                        amrex::Real M_magnitude_normalized = std::sqrt( std::pow(M_zface(i, j, k, 0),2.0_rt) + std::pow(M_zface(i, j, k, 1),2.0_rt) +
-                                                                std::pow(M_zface(i, j, k, 2),2.0_rt) )
-                            / mag_Ms_arrz(i,j,k);
+                            // temporary normalized magnitude of M_zface field at the fixed point
+                            // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
+                            amrex::Real M_magnitude_normalized = std::sqrt( std::pow(M_zface(i, j, k, 0),2.0_rt) + std::pow(M_zface(i, j, k, 1),2.0_rt) +
+                                                                            std::pow(M_zface(i, j, k, 2),2.0_rt) )
+                                / mag_Ms_arrz(i,j,k);
 
-                        // check the normalized error
-                        if ( amrex::Math::abs(1.-M_magnitude_normalized) > mag_normalized_error ){
-                            printf("i = %d, j=%d, k=%d\n", i, j, k);
-                            printf("M_magnitude_normalized = %f, mag_normalized_error=%f\n", M_magnitude_normalized, mag_normalized_error);
-                            amrex::Abort("Exceed the normalized error of the M_zface field");
+                            // check the normalized error
+                            if ( amrex::Math::abs(1.-M_magnitude_normalized) > mag_normalized_error ){
+                                printf("i = %d, j=%d, k=%d\n", i, j, k);
+                                printf("M_magnitude_normalized = %f, mag_normalized_error=%f\n", M_magnitude_normalized, mag_normalized_error);
+                                amrex::Abort("Exceed the normalized error of the M_zface field");
+                            }
+                            // normalize the M_zface field
+                            M_zface(i,j,k,0) /= M_magnitude_normalized;
+                            M_zface(i,j,k,1) /= M_magnitude_normalized;
+                            M_zface(i,j,k,2) /= M_magnitude_normalized;
                         }
-                        // normalize the M_zface field
-                        M_zface(i,j,k,0) /= M_magnitude_normalized;
-                        M_zface(i,j,k,1) /= M_magnitude_normalized;
-                        M_zface(i,j,k,2) /= M_magnitude_normalized;
-                    }
                     });
-                }
+                } // end MFIter
             }
         }
         else {
@@ -934,22 +922,15 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
         Box const &tbz = mfi.tilebox(Bfield[2]->ixType().toIntVect());
 
         // Loop over the cells and update the fields
-        amrex::ParallelFor(
-            tbx, tby, tbz,
-
-            [=] AMREX_GPU_DEVICE(int i, int j, int k) {
-                Bx(i, j, k) = PhysConst::mu0 * (M_xface(i, j, k, 0) + Hx(i, j, k));
-            },
-
-            [=] AMREX_GPU_DEVICE(int i, int j, int k) {
-                By(i, j, k) = PhysConst::mu0 * (M_yface(i, j, k, 1) + Hy(i, j, k));
-            },
-
-            [=] AMREX_GPU_DEVICE(int i, int j, int k) {
-                Bz(i, j, k) = PhysConst::mu0 * (M_zface(i, j, k, 2) + Hz(i, j, k));
-            }
-
-        );
+        amrex::ParallelFor(tbx, tby, tbz, [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+            Bx(i, j, k) = PhysConst::mu0 * (M_xface(i, j, k, 0) + Hx(i, j, k));
+        },
+        [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+            By(i, j, k) = PhysConst::mu0 * (M_yface(i, j, k, 1) + Hy(i, j, k));
+        },
+        [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+            Bz(i, j, k) = PhysConst::mu0 * (M_zface(i, j, k, 2) + Hz(i, j, k));
+        });
     }
 }
 #endif
