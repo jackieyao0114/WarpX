@@ -1802,7 +1802,7 @@ WarpX::PicsarVersion ()
             // loop over cells and output fields
             amrex::ParallelFor(tbx, tby, tbz,
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
-            if(i==2 && j==4 && k==4){
+            if(i==0 && j==0 && k==0){
             std::ofstream ofs1("./Mfield_xface_left.txt", std::ofstream::app);
             amrex::Print(ofs1).SetPrecision(16) << time << " " << M_xface(i,j,k,0) << " " << M_xface(i,j,k,1) << " " << M_xface(i,j,k,2) << " "
                                                                    << M_yface(i,j,k,0) << " " << M_yface(i,j,k,1) << " " << M_yface(i,j,k,2) << " "
@@ -1818,7 +1818,7 @@ WarpX::PicsarVersion ()
             amrex::Print(ofs1_4).SetPrecision(16) << time << " " << Hx(i,j,k) << " " << Hy(i,j,k) << " " << Hz(i,j,k) << " " << std::endl;
             ofs1_4.close();
             } 
-            if(i==6 && j==4 && k==4){
+            if(i==32 && j==32 && k==32){
             std::ofstream ofs2("./Mfield_xface_right.txt", std::ofstream::app);
             amrex::Print(ofs2).SetPrecision(16) << time << " " << M_xface(i,j,k,0) << " " << M_xface(i,j,k,1) << " " << M_xface(i,j,k,2) << " "
                                                                    << M_yface(i,j,k,0) << " " << M_yface(i,j,k,1) << " " << M_yface(i,j,k,2) << " "
