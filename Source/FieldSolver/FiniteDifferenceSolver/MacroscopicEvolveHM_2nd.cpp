@@ -208,8 +208,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
 
               // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
               Real M_magnitude = (M_normalization == 0) ? std::sqrt( std::pow(M_yface(i, j, k, 0),2.0) + std::pow(M_yface(i, j, k, 1),2.0) + std::pow(M_yface(i, j, k, 2),2.0) )
-                                                        : MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_Ms_arr);
-              Real a_temp_static_coeff = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_alpha_arr) / M_magnitude;
+                                                        : mag_Ms_arry(i,j,k);
+              Real a_temp_static_coeff = mag_alpha_arry(i,j,k) / M_magnitude;
 
               // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
               Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_arry(i,j,k) / 2.0;
