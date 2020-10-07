@@ -132,6 +132,9 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
         amrex::ParallelFor(
             tbx, tby, tbz,
             [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+                // determine if the material is nonmagnetic or not
+                if (mag_Ms_arrx(i,j,k) != 0 && mag_alpha_arrx(i,j,k) != 0 && mag_gamma_arrx(i,j,k) != 0)
+                {
                 // when working on M_xface(i,j,k, 0:2) we have direct access to M_xface(i,j,k,0:2) and Hx(i,j,k)
                 // Hy and Hz can be acquired by interpolation
 
@@ -149,26 +152,26 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                     Hz_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0, 0, 1), amrex::IntVect(1, 0, 0), Hz);
                 }
 
-                // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
-                // keep the interpolation. The IntVect is (1,0,0) to interpolate values to the x-face.
-                Real mag_gamma_interp = mag_gamma_arrx(i,j,k) / (1.0 + std::pow(mag_alpha_arrx(i,j,k), 2.0));
+                // magnetic material properties mag_alpha and mag_Ms are defined at cell face center
+                // removed the interpolation. The IntVect is (1,0,0) to interpolate values to the x-face.
+                Real mag_gamma = mag_gamma_arrx(i,j,k) / (1.0 + std::pow(mag_alpha_arrx(i,j,k), 2.0));
 
                 // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
                 Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) + std::pow(M_xface(i, j, k, 2), 2.0))
                                                           : mag_Ms_arrx(i,j,k);
-                Real Gil_damp = PhysConst::mu0 * mag_gamma_interp * mag_alpha_arrx(i,j,k) / M_magnitude;
+                Real Gil_damp = PhysConst::mu0 * mag_gamma * mag_alpha_arrx(i,j,k) / M_magnitude;
 
                 // now you have access to use M_xface(i,j,k,0) M_xface(i,j,k,1), M_xface(i,j,k,2), Hx(i,j,k), Hy, Hz on the RHS of these update lines below
                 // x component on x-faces of grid
-                M_xface(i, j, k, 0) += dt * (PhysConst::mu0 * mag_gamma_interp) * (M_xface_old(i, j, k, 1) * Hz_eff - M_xface_old(i, j, k, 2) * Hy_eff) 
+                M_xface(i, j, k, 0) += dt * (PhysConst::mu0 * mag_gamma) * (M_xface_old(i, j, k, 1) * Hz_eff - M_xface_old(i, j, k, 2) * Hy_eff) 
                                      + dt * Gil_damp * (M_xface_old(i, j, k, 1) * (M_xface_old(i, j, k, 0) * Hy_eff - M_xface_old(i, j, k, 1) * Hx_eff) - M_xface_old(i, j, k, 2) * (M_xface_old(i, j, k, 2) * Hx_eff - M_xface_old(i, j, k, 0) * Hz_eff));
 
                 // y component on x-faces of grid
-                M_xface(i, j, k, 1) += dt * (PhysConst::mu0 * mag_gamma_interp) * (M_xface_old(i, j, k, 2) * Hx_eff - M_xface_old(i, j, k, 0) * Hz_eff) 
+                M_xface(i, j, k, 1) += dt * (PhysConst::mu0 * mag_gamma) * (M_xface_old(i, j, k, 2) * Hx_eff - M_xface_old(i, j, k, 0) * Hz_eff) 
                                      + dt * Gil_damp * (M_xface_old(i, j, k, 2) * (M_xface_old(i, j, k, 1) * Hz_eff - M_xface_old(i, j, k, 2) * Hy_eff) - M_xface_old(i, j, k, 0) * (M_xface_old(i, j, k, 0) * Hy_eff - M_xface_old(i, j, k, 1) * Hx_eff));
 
                 // z component on x-faces of grid
-                M_xface(i, j, k, 2) += dt * (PhysConst::mu0 * mag_gamma_interp) * (M_xface_old(i, j, k, 0) * Hy_eff - M_xface_old(i, j, k, 1) * Hx_eff) 
+                M_xface(i, j, k, 2) += dt * (PhysConst::mu0 * mag_gamma) * (M_xface_old(i, j, k, 0) * Hy_eff - M_xface_old(i, j, k, 1) * Hx_eff) 
                                      + dt * Gil_damp * (M_xface_old(i, j, k, 0) * (M_xface_old(i, j, k, 2) * Hx_eff - M_xface_old(i, j, k, 0) * Hz_eff) - M_xface_old(i, j, k, 1) * (M_xface_old(i, j, k, 1) * Hz_eff - M_xface_old(i, j, k, 2) * Hy_eff));
 
                 // temporary normalized magnitude of M_xface field at the fixed point
@@ -207,9 +210,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                         M_xface(i, j, k, 2) /= M_magnitude_normalized;
                     }
                 }
+            }
             },
 
             [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+                // determine if the material is nonmagnetic or not
+                if (mag_Ms_arry(i,j,k) != 0 && mag_alpha_arry(i,j,k) != 0 && mag_gamma_arry(i,j,k) != 0)
+                {
                 // when working on M_yface(i,j,k,0:2) we have direct access to M_yface(i,j,k,0:2) and Hy(i,j,k)
                 // Hy and Hz can be acquired by interpolation
 
@@ -227,25 +234,25 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                     Hz_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0, 0, 1), amrex::IntVect(0, 1, 0), Hz);
                 }
 
-                // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
-                // keep the interpolation. The IntVect is (0,1,0) to interpolate values to the y-face.
-                Real mag_gamma_interp = mag_gamma_arry(i,j,k) / (1.0 + std::pow(mag_alpha_arry(i,j,k), 2.0));
+                // magnetic material properties mag_alpha and mag_Ms are defined at cell face center
+                // removed the interpolation. The IntVect is (0,1,0) to interpolate values to the y-face.
+                Real mag_gamma = mag_gamma_arry(i,j,k) / (1.0 + std::pow(mag_alpha_arry(i,j,k), 2.0));
 
                 // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
                 Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_yface(i, j, k, 0), 2.0) + std::pow(M_yface(i, j, k, 1), 2.0) + std::pow(M_yface(i, j, k, 2), 2.0))
                                                           : mag_Ms_arry(i,j,k);
-                Real Gil_damp = PhysConst::mu0 * mag_gamma_interp * mag_alpha_arry(i,j,k) / M_magnitude;
+                Real Gil_damp = PhysConst::mu0 * mag_gamma * mag_alpha_arry(i,j,k) / M_magnitude;
 
                 // x component on y-faces of grid
-                M_yface(i, j, k, 0) += dt * (PhysConst::mu0 * mag_gamma_interp) * (M_yface_old(i, j, k, 1) * Hz_eff - M_yface_old(i, j, k, 2) * Hy_eff) 
+                M_yface(i, j, k, 0) += dt * (PhysConst::mu0 * mag_gamma) * (M_yface_old(i, j, k, 1) * Hz_eff - M_yface_old(i, j, k, 2) * Hy_eff) 
                                      + dt * Gil_damp * (M_yface_old(i, j, k, 1) * (M_yface_old(i, j, k, 0) * Hy_eff - M_yface_old(i, j, k, 1) * Hx_eff) - M_yface_old(i, j, k, 2) * (M_yface_old(i, j, k, 2) * Hx_eff - M_yface_old(i, j, k, 0) * Hz_eff));
 
                 // y component on y-faces of grid
-                M_yface(i, j, k, 1) += dt * (PhysConst::mu0 * mag_gamma_interp) * (M_yface_old(i, j, k, 2) * Hx_eff - M_yface_old(i, j, k, 0) * Hz_eff) 
+                M_yface(i, j, k, 1) += dt * (PhysConst::mu0 * mag_gamma) * (M_yface_old(i, j, k, 2) * Hx_eff - M_yface_old(i, j, k, 0) * Hz_eff) 
                                      + dt * Gil_damp * (M_yface_old(i, j, k, 2) * (M_yface_old(i, j, k, 1) * Hz_eff - M_yface_old(i, j, k, 2) * Hy_eff) - M_yface_old(i, j, k, 0) * (M_yface_old(i, j, k, 0) * Hy_eff - M_yface_old(i, j, k, 1) * Hx_eff));
 
                 // z component on y-faces of grid
-                M_yface(i, j, k, 2) += dt * (PhysConst::mu0 * mag_gamma_interp) * (M_yface_old(i, j, k, 0) * Hy_eff - M_yface_old(i, j, k, 1) * Hx_eff) 
+                M_yface(i, j, k, 2) += dt * (PhysConst::mu0 * mag_gamma) * (M_yface_old(i, j, k, 0) * Hy_eff - M_yface_old(i, j, k, 1) * Hx_eff) 
                                      + dt * Gil_damp * (M_yface_old(i, j, k, 0) * (M_yface_old(i, j, k, 2) * Hx_eff - M_yface_old(i, j, k, 0) * Hz_eff) - M_yface_old(i, j, k, 1) * (M_yface_old(i, j, k, 1) * Hz_eff - M_yface_old(i, j, k, 2) * Hy_eff));
 
                 // temporary normalized magnitude of M_yface field at the fixed point
@@ -284,9 +291,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                         M_yface(i, j, k, 2) /= M_magnitude_normalized;
                     }
                 }
+            }
             },
 
             [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+                // determine if the material is nonmagnetic or not
+                if (mag_Ms_arrz(i,j,k) != 0 && mag_alpha_arrz(i,j,k) != 0 && mag_gamma_arrz(i,j,k) != 0)
+                {
                 // when working on M_zface(i,j,k,0:2) we have direct access to M_zface(i,j,k,0:2) and Hz(i,j,k)
                 // Hy and Hz can be acquired by interpolation
 
@@ -305,25 +316,25 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                     Hz_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0, 0, 1), amrex::IntVect(0, 0, 1), Hz);
                 }
 
-                // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
-                // keep the interpolation. The IntVect is (0,0,1) to interpolate values to the z-face.
-                Real mag_gamma_interp = mag_gamma_arrz(i,j,k) / (1.0 + std::pow(mag_alpha_arrz(i,j,k), 2.0));
+                // magnetic material properties mag_alpha and mag_Ms are defined at cell face center
+                // removed the interpolation. The IntVect is (0,0,1) to interpolate values to the z-face.
+                Real mag_gamma = mag_gamma_arrz(i,j,k) / (1.0 + std::pow(mag_alpha_arrz(i,j,k), 2.0));
 
                 // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
                 Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_zface(i, j, k, 0), 2.0_rt) + std::pow(M_zface(i, j, k, 1), 2.0_rt) + std::pow(M_zface(i, j, k, 2), 2.0_rt))
                                                           : mag_Ms_arrz(i,j,k);
-                Real Gil_damp = PhysConst::mu0 * mag_gamma_interp * mag_alpha_arrz(i,j,k) / M_magnitude;
+                Real Gil_damp = PhysConst::mu0 * mag_gamma * mag_alpha_arrz(i,j,k) / M_magnitude;
 
                 // x component on z-faces of grid
-                M_zface(i, j, k, 0) += dt * (PhysConst::mu0 * mag_gamma_interp) * (M_zface_old(i, j, k, 1) * Hz_eff - M_zface_old(i, j, k, 2) * Hy_eff) 
+                M_zface(i, j, k, 0) += dt * (PhysConst::mu0 * mag_gamma) * (M_zface_old(i, j, k, 1) * Hz_eff - M_zface_old(i, j, k, 2) * Hy_eff) 
                                      + dt * Gil_damp * (M_zface_old(i, j, k, 1) * (M_zface_old(i, j, k, 0) * Hy_eff - M_zface_old(i, j, k, 1) * Hx_eff) - M_zface_old(i, j, k, 2) * (M_zface_old(i, j, k, 2) * Hx_eff - M_zface_old(i, j, k, 0) * Hz_eff));
 
                 // y component on z-faces of grid
-                M_zface(i, j, k, 1) += dt * (PhysConst::mu0 * mag_gamma_interp) * (M_zface_old(i, j, k, 2) * Hx_eff - M_zface_old(i, j, k, 0) * Hz_eff) 
+                M_zface(i, j, k, 1) += dt * (PhysConst::mu0 * mag_gamma) * (M_zface_old(i, j, k, 2) * Hx_eff - M_zface_old(i, j, k, 0) * Hz_eff) 
                                      + dt * Gil_damp * (M_zface_old(i, j, k, 2) * (M_zface_old(i, j, k, 1) * Hz_eff - M_zface_old(i, j, k, 2) * Hy_eff) - M_zface_old(i, j, k, 0) * (M_zface_old(i, j, k, 0) * Hy_eff - M_zface_old(i, j, k, 1) * Hx_eff));
 
                 // z component on z-faces of grid
-                M_zface(i, j, k, 2) += dt * (PhysConst::mu0 * mag_gamma_interp) * (M_zface_old(i, j, k, 0) * Hy_eff - M_zface_old(i, j, k, 1) * Hx_eff) 
+                M_zface(i, j, k, 2) += dt * (PhysConst::mu0 * mag_gamma) * (M_zface_old(i, j, k, 0) * Hy_eff - M_zface_old(i, j, k, 1) * Hx_eff) 
                                      + dt * Gil_damp * (M_zface_old(i, j, k, 0) * (M_zface_old(i, j, k, 2) * Hx_eff - M_zface_old(i, j, k, 0) * Hz_eff) - M_zface_old(i, j, k, 1) * (M_zface_old(i, j, k, 1) * Hz_eff - M_yface_old(i, j, k, 2) * Hy_eff));
 
                 // temporary normalized magnitude of M_zface field at the fixed point
@@ -362,6 +373,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                         M_zface(i, j, k, 2) /= M_magnitude_normalized;
                     }
                 }
+            }
             });
     }
 
