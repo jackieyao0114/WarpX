@@ -889,6 +889,12 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
                 }
             }
         }
+        else {
+            // Copy Mfield to Mfield_previous 
+            for (int i = 0; i < 3; i++){
+                MultiFab::Copy(*Mfield_prev[i],*Mfield[i],0,0,3,Mfield[i]->nGrow());
+            }
+        }
 
         if (M_iter >= M_max_iter) {
             amrex::Abort("The M_iter exceeds the M_max_iter");
