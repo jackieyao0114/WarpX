@@ -91,8 +91,12 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
         auto &mag_gammay_mf = macroscopic_properties->getmag_gamma_mf(1);
         auto &mag_gammaz_mf = macroscopic_properties->getmag_gamma_mf(2);
         // extract material properties
-        Array4<Real> const &mag_Ms_arr = mag_Ms_mf.array(mfi);
-        Array4<Real> const &mag_alpha_arr = mag_alpha_mf.array(mfi);
+        Array4<Real> const &mag_Ms_arrx = mag_Msx_mf.array(mfi);
+        Array4<Real> const &mag_Ms_arry = mag_Msy_mf.array(mfi);
+        Array4<Real> const &mag_Ms_arrz = mag_Msz_mf.array(mfi);
+        Array4<Real> const &mag_alpha_arrx = mag_alphax_mf.array(mfi);
+        Array4<Real> const &mag_alpha_arry = mag_alphay_mf.array(mfi);
+        Array4<Real> const &mag_alpha_arrz = mag_alphaz_mf.array(mfi);
         Array4<Real> const &mag_gamma_arrx = mag_gammax_mf.array(mfi);
         Array4<Real> const &mag_gamma_arry = mag_gammay_mf.array(mfi);
         Array4<Real> const &mag_gamma_arrz = mag_gammaz_mf.array(mfi);
