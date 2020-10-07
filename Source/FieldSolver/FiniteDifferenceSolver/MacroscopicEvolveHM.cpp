@@ -152,7 +152,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                 // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
                 // keep the interpolation. The IntVect is (1,0,0) to interpolate values to the x-face.
                 Real mag_gamma_interp = mag_gamma_arrx(i,j,k)
-                                      / (1.0 + std::pow(MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_alpha_arr), 2.0));
+                                      / (1.0 + std::pow(mag_alpha_arrx(i,j,k), 2.0));
 
                 // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
                 Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) + std::pow(M_xface(i, j, k, 2), 2.0))
