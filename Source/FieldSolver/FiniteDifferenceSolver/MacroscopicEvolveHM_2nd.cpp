@@ -308,12 +308,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
         amrex::Real M_tol = macroscopic_properties->getmag_tol();
         int stop_iter = 0;
 
-        // calculate the maximum absolute value of the Mfield_prev
-        amrex::GpuArray< amrex::Real, 3 > Mfield_prev_max;
-        for (int i = 0; i < 3; i++){
-            Mfield_prev_max[i] = amrex::max(amrex::Math::abs((*Mfield_prev[i]).max(i,0)),amrex::Math::abs((*Mfield_prev[i]).min(i,0)));
-        }
-
         // begin the iteration
         while (!stop_iter) {
 
@@ -485,13 +479,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
 
               // calculate M_error_xface
               // x component on x-faces of grid
-              M_error_xface(i, j, k, 0) = amrex::Math::abs((M_xface(i, j, k, 0) - M_prev_xface(i, j, k, 0))) / Mfield_prev_max[0];
+              M_error_xface(i, j, k, 0) = amrex::Math::abs((M_xface(i, j, k, 0) - M_prev_xface(i, j, k, 0))) / mag_Ms_arrx(i,j,k);
 
               // y component on x-faces of grid
-              M_error_xface(i, j, k, 1) = amrex::Math::abs((M_xface(i, j, k, 1) - M_prev_xface(i, j, k, 1))) / Mfield_prev_max[1];
+              M_error_xface(i, j, k, 1) = amrex::Math::abs((M_xface(i, j, k, 1) - M_prev_xface(i, j, k, 1))) / mag_Ms_arrx(i,j,k);
 
               // z component on x-faces of grid
-              M_error_xface(i, j, k, 2) = amrex::Math::abs((M_xface(i, j, k, 2) - M_prev_xface(i, j, k, 2))) / Mfield_prev_max[2];
+              M_error_xface(i, j, k, 2) = amrex::Math::abs((M_xface(i, j, k, 2) - M_prev_xface(i, j, k, 2))) / mag_Ms_arrx(i,j,k);
 
               }
             },
@@ -594,13 +588,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
 
               // calculate M_error_yface
               // x component on y-faces of grid
-              M_error_yface(i, j, k, 0) = amrex::Math::abs((M_yface(i, j, k, 0) - M_prev_yface(i, j, k, 0))) / Mfield_prev_max[0];
+              M_error_yface(i, j, k, 0) = amrex::Math::abs((M_yface(i, j, k, 0) - M_prev_yface(i, j, k, 0))) / mag_Ms_arry(i,j,k);
 
               // y component on y-faces of grid
-              M_error_yface(i, j, k, 1) = amrex::Math::abs((M_yface(i, j, k, 1) - M_prev_yface(i, j, k, 1))) / Mfield_prev_max[1];
+              M_error_yface(i, j, k, 1) = amrex::Math::abs((M_yface(i, j, k, 1) - M_prev_yface(i, j, k, 1))) / mag_Ms_arry(i,j,k);
 
               // z component on y-faces of grid
-              M_error_yface(i, j, k, 2) = amrex::Math::abs((M_yface(i, j, k, 2) - M_prev_yface(i, j, k, 2))) / Mfield_prev_max[2];
+              M_error_yface(i, j, k, 2) = amrex::Math::abs((M_yface(i, j, k, 2) - M_prev_yface(i, j, k, 2))) / mag_Ms_arry(i,j,k);
               }
             },
 
@@ -702,13 +696,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
 
               // calculate M_error_zface
               // x component on z-faces of grid
-              M_error_zface(i, j, k, 0) = amrex::Math::abs((M_zface(i, j, k, 0) - M_prev_zface(i, j, k, 0))) / Mfield_prev_max[0];
+              M_error_zface(i, j, k, 0) = amrex::Math::abs((M_zface(i, j, k, 0) - M_prev_zface(i, j, k, 0))) / mag_Ms_arrz(i,j,k);
 
               // y component on z-faces of grid
-              M_error_zface(i, j, k, 1) = amrex::Math::abs((M_zface(i, j, k, 1) - M_prev_zface(i, j, k, 1))) / Mfield_prev_max[1];
+              M_error_zface(i, j, k, 1) = amrex::Math::abs((M_zface(i, j, k, 1) - M_prev_zface(i, j, k, 1))) / mag_Ms_arrz(i,j,k);
 
               // z component on z-faces of grid
-              M_error_zface(i, j, k, 2) = amrex::Math::abs((M_zface(i, j, k, 2) - M_prev_zface(i, j, k, 2))) / Mfield_prev_max[2];
+              M_error_zface(i, j, k, 2) = amrex::Math::abs((M_zface(i, j, k, 2) - M_prev_zface(i, j, k, 2))) / mag_Ms_arrz(i,j,k);
               }
             });
         }
@@ -893,12 +887,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd (
                     }
                     });
                 }
-            }
-        } else {
-            // Copy Mfield to Mfield_previous and re-calculate Mfield_prev_max
-            for (int i = 0; i < 3; i++){
-                MultiFab::Copy(*Mfield_prev[i],*Mfield[i],0,0,3,Mfield[i]->nGrow());
-                Mfield_prev_max[i] = amrex::max(amrex::Math::abs((*Mfield_prev[i]).max(i,0)),amrex::Math::abs((*Mfield_prev[i]).min(i,0)));
             }
         }
 
