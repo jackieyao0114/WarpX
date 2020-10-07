@@ -130,7 +130,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
                   Hz_eff += MacroscopicProperties::getH_Maxwell(i, j, k, 2, amrex::IntVect(0,0,1), amrex::IntVect(1,0,0), Bz, M_xface);
               }
 
-              // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
+              // magnetic material properties mag_alpha and mag_Ms are defined at cell face centers
               // removed the interpolation. The IntVect is (1,0,0) to interpolate values to the x-face.
               Real mag_gamma = mag_gamma_arrx(i,j,k) / (1.0 + std::pow(mag_alpha_arrx(i,j,k), 2.0));
 
@@ -209,7 +209,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
                   Hz_eff += MacroscopicProperties::getH_Maxwell(i, j, k, 2, amrex::IntVect(0,0,1), amrex::IntVect(0,1,0), Bz, M_yface);
               }
 
-              // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
+              // magnetic material properties mag_alpha and mag_Ms are defined at cell face centers
               // removed the interpolation. The IntVect is (0,1,0) to interpolate values to the y-face.
               Real mag_gamma = mag_gamma_arry(i,j,k) / (1.0 + std::pow(mag_alpha_arry(i,j,k), 2.0));
 
@@ -289,7 +289,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
                   Hz_eff += MacroscopicProperties::getH_Maxwell(i, j, k, 2, amrex::IntVect(0,0,1), amrex::IntVect(0,0,1), Bz, M_zface);
               }
 
-              // magnetic material properties mag_alpha and mag_Ms are defined at cell nodes
+              // magnetic material properties mag_alpha and mag_Ms are defined at cell face centers
               // removed the interpolation. The IntVect is (0,0,1) to interpolate values to the z-face.
               Real mag_gamma = mag_gamma_arrz(i,j,k) / (1.0 + std::pow(mag_alpha_arrz(i,j,k), 2.0));
 
