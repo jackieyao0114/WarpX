@@ -49,9 +49,9 @@ public:
      amrex::GpuArray<int, 3> macro_cr_ratio;
 
 #ifdef WARPX_MAG_LLG
-     amrex::MultiFab& getmag_Ms_mf () {return (*m_mag_Ms_mf);}
-     amrex::MultiFab& getmag_alpha_mf () {return (*m_mag_alpha_mf);}
-     amrex::MultiFab& getmag_gamma_mf () {return (*m_mag_gamma_mf);}
+     amrex::MultiFab& getmag_Ms_mf    (int dir) {return (*m_mag_Ms_mf[dir]);}
+     amrex::MultiFab& getmag_alpha_mf (int dir) {return (*m_mag_alpha_mf[dir]);}
+     amrex::MultiFab& getmag_gamma_mf (int dir) {return (*m_mag_gamma_mf[dir]);}
 
      amrex::Real getmag_normalized_error () {return m_mag_normalized_error;}
      int getmag_max_iter () {return m_mag_max_iter;}
@@ -207,11 +207,11 @@ private:
 
 #ifdef WARPX_MAG_LLG
      /** Multifab storing spatially varying saturation magnetization */
-     std::unique_ptr<amrex::MultiFab> m_mag_Ms_mf;
+     std::array< std::unique_ptr<amrex::MultiFab>, 3 > m_mag_Ms_mf;
      /** Multifab storing spatially varying Gilbert damping */
-     std::unique_ptr<amrex::MultiFab> m_mag_alpha_mf;
+     std::array< std::unique_ptr<amrex::MultiFab>, 3 > m_mag_alpha_mf;
      /** Multifab storing spatially varying gyromagnetic ratio */
-     std::unique_ptr<amrex::MultiFab> m_mag_gamma_mf;
+     std::array< std::unique_ptr<amrex::MultiFab>, 3 > m_mag_gamma_mf;
 #endif
 
      /** Stores initialization type for conductivity : constant or parser */
