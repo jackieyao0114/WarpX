@@ -152,8 +152,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                     Hz_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0, 0, 1), amrex::IntVect(1, 0, 0), Hz);
                 }
 
-                // magnetic material properties mag_alpha and mag_Ms are defined at cell face center
-                // removed the interpolation. The IntVect is (1,0,0) to interpolate values to the x-face.
+                // magnetic material properties mag_alpha and mag_Ms are defined at faces
+                // removed the interpolation from version with cell-centered material properties
                 Real mag_gamma = mag_gamma_arrx(i,j,k) / (1.0 + std::pow(mag_alpha_arrx(i,j,k), 2.0));
 
                 // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
@@ -234,8 +234,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                     Hz_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0, 0, 1), amrex::IntVect(0, 1, 0), Hz);
                 }
 
-                // magnetic material properties mag_alpha and mag_Ms are defined at cell face center
-                // removed the interpolation. The IntVect is (0,1,0) to interpolate values to the y-face.
+                // magnetic material properties mag_alpha and mag_Ms are defined at faces
+                // removed the interpolation from version with cell-centered material properties
                 Real mag_gamma = mag_gamma_arry(i,j,k) / (1.0 + std::pow(mag_alpha_arry(i,j,k), 2.0));
 
                 // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
@@ -291,7 +291,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                         M_yface(i, j, k, 2) /= M_magnitude_normalized;
                     }
                 }
-            }
+                }
             },
 
             [=] AMREX_GPU_DEVICE(int i, int j, int k) {
@@ -316,8 +316,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                     Hz_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0, 0, 1), amrex::IntVect(0, 0, 1), Hz);
                 }
 
-                // magnetic material properties mag_alpha and mag_Ms are defined at cell face center
-                // removed the interpolation. The IntVect is (0,0,1) to interpolate values to the z-face.
+                // magnetic material properties mag_alpha and mag_Ms are defined at faces
+                // removed the interpolation from version with cell-centered material properties
                 Real mag_gamma = mag_gamma_arrz(i,j,k) / (1.0 + std::pow(mag_alpha_arrz(i,j,k), 2.0));
 
                 // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
@@ -373,7 +373,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                         M_zface(i, j, k, 2) /= M_magnitude_normalized;
                     }
                 }
-            }
+                }
             });
     }
 
