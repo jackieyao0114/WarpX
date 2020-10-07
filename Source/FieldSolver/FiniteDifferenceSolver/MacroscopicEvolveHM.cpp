@@ -135,8 +135,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                 // determine if the material is nonmagnetic or not
                 if (mag_Ms_arrx(i,j,k) != 0 && mag_alpha_arrx(i,j,k) != 0 && mag_gamma_arrx(i,j,k) != 0)
                 {
-                // when working on M_xface(i,j,k, 0:2) we have direct access to M_xface(i,j,k,0:2) and Hx(i,j,k)
-                // Hy and Hz can be acquired by interpolation
+                    // when working on M_xface(i,j,k, 0:2) we have direct access to M_xface(i,j,k,0:2) and Hx(i,j,k)
+                    // Hy and Hz can be acquired by interpolation
 
                 // H_bias
                 Real Hx_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1, 0, 0), amrex::IntVect(1, 0, 0), Hx_bias);
