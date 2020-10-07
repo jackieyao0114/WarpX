@@ -81,8 +81,12 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
 
     for (MFIter mfi(*Mfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi) /* remember to FIX */
     {
-        auto &mag_Ms_mf = macroscopic_properties->getmag_Ms_mf();
-        auto &mag_alpha_mf = macroscopic_properties->getmag_alpha_mf();
+        auto &mag_Msx_mf = macroscopic_properties->getmag_Ms_mf(0);
+        auto &mag_Msy_mf = macroscopic_properties->getmag_Ms_mf(1);
+        auto &mag_Msz_mf = macroscopic_properties->getmag_Ms_mf(2);
+        auto &mag_alphax_mf = macroscopic_properties->getmag_alpha_mf(0);
+        auto &mag_alphay_mf = macroscopic_properties->getmag_alpha_mf(1);
+        auto &mag_alphaz_mf = macroscopic_properties->getmag_alpha_mf(2);
         auto &mag_gammax_mf = macroscopic_properties->getmag_gamma_mf(0);
         auto &mag_gammay_mf = macroscopic_properties->getmag_gamma_mf(1);
         auto &mag_gammaz_mf = macroscopic_properties->getmag_gamma_mf(2);
