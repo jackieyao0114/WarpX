@@ -24,8 +24,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM(
     std::array<std::unique_ptr<amrex::MultiFab>, 3> &H_biasfield, // H bias
     std::array<std::unique_ptr<amrex::MultiFab>, 3> const &Bfield,
     amrex::Real const dt,
-    std::unique_ptr<MacroscopicProperties> const &macroscopic_properties)
-{
+    std::unique_ptr<MacroscopicProperties> const &macroscopic_properties) {
 
     if (m_fdtd_algo == MaxwellSolverAlgo::Yee)
     {
