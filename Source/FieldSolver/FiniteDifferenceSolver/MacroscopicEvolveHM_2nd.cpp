@@ -69,7 +69,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
         Mfield_prev[i].reset(new MultiFab(Mfield[i]->boxArray(), Mfield[i]->DistributionMap(), 3, Mfield[i]->nGrow()));
         Mfield_error[i].reset(new MultiFab(Mfield[i]->boxArray(), Mfield[i]->DistributionMap(), 3, Mfield[i]->nGrow()));
         Mfield_error[i]->setVal(0.); // reset Mfield_error to zero
-        MultiFab::Copy(*Hfield_old[i], *Hfield[i], 0, 0, 3, Hfield[i]->nGrow());
+        MultiFab::Copy(*Hfield_old[i], *Hfield[i], 0, 0, 1, Hfield[i]->nGrow());
         MultiFab::Copy(*Mfield_old[i], *Mfield[i], 0, 0, 3, Mfield[i]->nGrow());
         MultiFab::Copy(*Mfield_prev[i], *Mfield[i], 0, 0, 3, Mfield[i]->nGrow());
     }
