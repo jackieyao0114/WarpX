@@ -741,8 +741,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
             }
         } else {
             // Copy Mfield to Mfield_previous
-            for (int i = 0; i < 3; i++)
-            {
+            for (int i = 0; i < 3; i++) {
                 MultiFab::Copy(*Mfield_prev[i], *Mfield[i], 0, 0, 3, Mfield[i]->nGrow());
             }
         }
