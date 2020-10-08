@@ -158,8 +158,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian(
                     amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) +
                                                                    std::pow(M_xface(i, j, k, 2), 2.0)) / mag_Ms_arrx(i, j, k);
 
-                    if (M_normalization > 0)
-                    {
+                    if (M_normalization > 0) {
                         // check the normalized error
                         if (amrex::Math::abs(1._rt - M_magnitude_normalized) > mag_normalized_error)
                         {
