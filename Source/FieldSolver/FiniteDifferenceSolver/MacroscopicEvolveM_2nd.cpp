@@ -639,8 +639,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
             }
         }
 
-        if (M_iter_maxerror <= M_tol)
-        {
+        if (M_iter_maxerror <= M_tol) {
 
             stop_iter = 1;
 
