@@ -718,8 +718,22 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                         Hz(i, j, k) = Hz_old(i, j, k) + 1 / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k) - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k);
                     }
                 }
+                else {
+                    Hy(i, j, k) = Hy_old(i, j, k) + 1 / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k) 
+                        - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k);
+                }
+            },
 
-            );
+            [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+                if (coupling == 1){
+                    Hz(i, j, k) = Hz_old(i, j, k) + 1 / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k) 
+                        - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k) - M_zface(i, j, k, 2) + M_zface_old(i, j, k, 2);
+                }
+                else {
+                    Hz(i, j, k) = Hz_old(i, j, k) + 1 / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k) 
+                        - 1 / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k);
+                }
+            });
         }
 
         // Check the error between Mfield and Mfield_prev and decide whether another iteration is needed
