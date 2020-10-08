@@ -330,8 +330,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian(
                             printf("M_magnitude_normalized = %f, Ms = %f\n", M_magnitude_normalized, mag_Ms_arrz(i, j, k));
                             amrex::Abort("Caution: Unsaturated material has M_zface exceeding the saturation magnetization");
                         }
-                        else if (M_magnitude_normalized > 1._rt && M_magnitude_normalized <= 1._rt + mag_normalized_error)
-                        {
+                        else if (M_magnitude_normalized > 1._rt && M_magnitude_normalized <= 1._rt + mag_normalized_error) {
                             // normalize the M_zface field
                             M_zface(i, j, k, 0) /= M_magnitude_normalized;
                             M_zface(i, j, k, 1) /= M_magnitude_normalized;
