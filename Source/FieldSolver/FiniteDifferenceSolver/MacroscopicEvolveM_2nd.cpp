@@ -746,8 +746,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
             }
         }
 
-        if (M_iter >= M_max_iter)
-        {
+        if (M_iter >= M_max_iter) {
             amrex::Abort("The M_iter exceeds the M_max_iter");
             amrex::Print() << "The M_iter = " << M_iter << " exceeds the M_max_iter = " << M_max_iter << std::endl;
         } else {
