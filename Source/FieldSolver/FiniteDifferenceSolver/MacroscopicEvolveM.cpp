@@ -160,8 +160,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian(
 
                     if (M_normalization > 0) {
                         // check the normalized error
-                        if (amrex::Math::abs(1._rt - M_magnitude_normalized) > mag_normalized_error)
-                        {
+                        if (amrex::Math::abs(1._rt - M_magnitude_normalized) > mag_normalized_error) {
                             printf("i = %d, j=%d, k=%d\n", i, j, k);
                             printf("M_magnitude_normalized = %f, mag_normalized_error=%f\n", M_magnitude_normalized, mag_normalized_error);
                             amrex::Abort("Exceed the normalized error of the M_xface field");
