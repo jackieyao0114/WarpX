@@ -170,8 +170,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian(
                         M_xface(i, j, k, 1) /= M_magnitude_normalized;
                         M_xface(i, j, k, 2) /= M_magnitude_normalized;
                     }
-                    else if (M_normalization == 0)
-                    {
+                    else if (M_normalization == 0) {
                         // check the normalized error
                         if (M_magnitude_normalized > 1._rt + mag_normalized_error)
                         {
