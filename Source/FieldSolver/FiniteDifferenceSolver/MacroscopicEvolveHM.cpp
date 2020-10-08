@@ -322,7 +322,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                     }
 
                     // magnetic material properties mag_alpha and mag_Ms are defined at faces
-                    // removed the interpolation from version with cell-centered material properties
+                    // removed the interpolation from version with cell-nodal material properties
                     Real mag_gammaL = mag_gamma_arrz(i, j, k) / (1.0 + std::pow(mag_alpha_arrz(i, j, k), 2.0));
 
                     // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
