@@ -30,8 +30,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM(
     {
         MacroscopicEvolveMCartesian<CartesianYeeAlgorithm>(Mfield, H_biasfield, Bfield, dt, macroscopic_properties);
     }
-    else
-    {
+    else {
         amrex::Abort("Only yee algorithm is compatible for M updates.");
     }
 } // closes function EvolveM
