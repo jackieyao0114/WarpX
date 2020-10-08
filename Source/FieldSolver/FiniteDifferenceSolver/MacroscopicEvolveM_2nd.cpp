@@ -633,8 +633,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
         for (int i = 0; i < 1; i++) {
             for (int j = 0; j < 3; j++) {
                 Real M_iter_error = Mfield_error[i]->norm0(j);
-                if (M_iter_error >= M_iter_maxerror)
-                {
+                if (M_iter_error >= M_iter_maxerror) {
                     M_iter_maxerror = M_iter_error;
                 }
             }
