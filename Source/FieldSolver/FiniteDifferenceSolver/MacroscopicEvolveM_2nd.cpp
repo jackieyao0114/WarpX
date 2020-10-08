@@ -74,7 +74,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
     }
 
     // calculate the b_temp_static, a_temp_static
-    for (MFIter mfi(*Mfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi) /* remember to FIX */{
+    for (MFIter mfi(*Mfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi) /* remember to FIX */
+    {
         auto &mag_Msx_mf = macroscopic_properties->getmag_Ms_mf(0);
         auto &mag_Msy_mf = macroscopic_properties->getmag_Ms_mf(1);
         auto &mag_Msz_mf = macroscopic_properties->getmag_Ms_mf(2);
@@ -404,8 +405,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                         // temporary normalized magnitude of M_xface field at the fixed point
                         // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
                         amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) +
-                                                                       std::pow(M_xface(i, j, k, 2), 2.0)) /
-                                                             mag_Ms_arrx(i, j, k);
+                                                                       std::pow(M_xface(i, j, k, 2), 2.0)) / mag_Ms_arrx(i, j, k);
 
                         if (M_normalization == 1)
                         {
@@ -495,8 +495,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                         // temporary normalized magnitude of M_yface field at the fixed point
                         // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
                         amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_yface(i, j, k, 0), 2.0) + std::pow(M_yface(i, j, k, 1), 2.0) +
-                                                                       std::pow(M_yface(i, j, k, 2), 2.0)) /
-                                                             mag_Ms_arry(i, j, k);
+                                                                       std::pow(M_yface(i, j, k, 2), 2.0)) / mag_Ms_arry(i, j, k);
 
                         if (M_normalization == 1)
                         {
@@ -586,8 +585,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                         // temporary normalized magnitude of M_zface field at the fixed point
                         // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
                         amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_zface(i, j, k, 0), 2.0_rt) + std::pow(M_zface(i, j, k, 1), 2.0_rt) +
-                                                                       std::pow(M_zface(i, j, k, 2), 2.0_rt)) /
-                                                             mag_Ms_arrz(i, j, k);
+                                                                       std::pow(M_zface(i, j, k, 2), 2.0_rt)) / mag_Ms_arrz(i, j, k);
 
                         if (M_normalization == 1)
                         {
