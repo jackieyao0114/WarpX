@@ -142,18 +142,10 @@ MacroscopicProperties::InitData ()
     m_mu_mf = std::make_unique<MultiFab>(amrex::convert(ba,IntVect::TheUnitVector()), dmap, 1, ng);
 
 #ifdef WARPX_MAG_LLG
-    // all magnetic macroparameters are stored on cell faces
-    m_mag_Ms_mf[0] = std::make_unique<MultiFab>(amrex::convert(ba,IntVect(1,0,0)), dmap, 1, ng);
-    m_mag_Ms_mf[1] = std::make_unique<MultiFab>(amrex::convert(ba,IntVect(0,1,0)), dmap, 1, ng);
-    m_mag_Ms_mf[2] = std::make_unique<MultiFab>(amrex::convert(ba,IntVect(0,0,1)), dmap, 1, ng);
-    
-    m_mag_alpha_mf[0] = std::make_unique<MultiFab>(amrex::convert(ba,IntVect(1,0,0)), dmap, 1, ng);
-    m_mag_alpha_mf[1] = std::make_unique<MultiFab>(amrex::convert(ba,IntVect(0,1,0)), dmap, 1, ng);
-    m_mag_alpha_mf[2] = std::make_unique<MultiFab>(amrex::convert(ba,IntVect(0,0,1)), dmap, 1, ng);
-
-    m_mag_gamma_mf[0] = std::make_unique<MultiFab>(amrex::convert(ba,IntVect(1,0,0)), dmap, 1, ng);
-    m_mag_gamma_mf[1] = std::make_unique<MultiFab>(amrex::convert(ba,IntVect(0,1,0)), dmap, 1, ng);
-    m_mag_gamma_mf[2] = std::make_unique<MultiFab>(amrex::convert(ba,IntVect(0,0,1)), dmap, 1, ng);
+    // all magnetic macroparameters are stored on cell nodes
+    m_mag_Ms_mf = std::make_unique<MultiFab>(amrex::convert(ba,amrex::IntVect::TheUnitVector()), dmap, 1, ng);
+    m_mag_alpha_mf = std::make_unique<MultiFab>(amrex::convert(ba,amrex::IntVect::TheUnitVector()), dmap, 1, ng);
+    m_mag_gamma_mf = std::make_unique<MultiFab>(amrex::convert(ba,amrex::IntVect::TheUnitVector()), dmap, 1, ng);
 #endif
 
     // Initialize sigma
@@ -187,49 +179,34 @@ MacroscopicProperties::InitData ()
     }
 
 #ifdef WARPX_MAG_LLG
-    // mag_Ms - defined at faces
+    // mag_Ms - defined at node
     if (m_mag_Ms_s == "constant") {
-        m_mag_Ms_mf[0]->setVal(m_mag_Ms);
-        m_mag_Ms_mf[1]->setVal(m_mag_Ms);
-        m_mag_Ms_mf[2]->setVal(m_mag_Ms);
+        m_mag_Ms_mf->setVal(m_mag_Ms);
     }
     else if (m_mag_Ms_s == "parse_mag_Ms_function"){
-        InitializeMacroMultiFabUsingParser(m_mag_Ms_mf[0].get(), getParser(m_mag_Ms_parser), lev);
-        InitializeMacroMultiFabUsingParser(m_mag_Ms_mf[1].get(), getParser(m_mag_Ms_parser), lev);
-        InitializeMacroMultiFabUsingParser(m_mag_Ms_mf[2].get(), getParser(m_mag_Ms_parser), lev);
+        InitializeMacroMultiFabUsingParser(m_mag_Ms_mf.get(), getParser(m_mag_Ms_parser), lev);
     }
 
-    // mag_alpha - defined at faces
+    // mag_alpha - defined at node
     if (m_mag_alpha_s == "constant") {
-        m_mag_alpha_mf[0]->setVal(m_mag_alpha);
-        m_mag_alpha_mf[1]->setVal(m_mag_alpha);
-        m_mag_alpha_mf[2]->setVal(m_mag_alpha);
+        m_mag_alpha_mf->setVal(m_mag_alpha);
     }
     else if (m_mag_alpha_s == "parse_mag_alpha_function"){
-        InitializeMacroMultiFabUsingParser(m_mag_alpha_mf[0].get(), getParser(m_mag_alpha_parser), lev);
-        InitializeMacroMultiFabUsingParser(m_mag_alpha_mf[1].get(), getParser(m_mag_alpha_parser), lev);
-        InitializeMacroMultiFabUsingParser(m_mag_alpha_mf[2].get(), getParser(m_mag_alpha_parser), lev);
+        InitializeMacroMultiFabUsingParser(m_mag_alpha_mf.get(), getParser(m_mag_alpha_parser), lev);
     }
-    if (m_mag_alpha_mf[0]->min(0,m_mag_alpha_mf[0]->nGrow()) < 0 ||
-        m_mag_alpha_mf[1]->min(0,m_mag_alpha_mf[1]->nGrow()) < 0 ||
-        m_mag_alpha_mf[2]->min(0,m_mag_alpha_mf[2]->nGrow()) < 0  ) {
+    if (m_mag_alpha_mf->min(0,m_mag_alpha_mf->nGrow()) < 0) {
         amrex::Abort("alpha should be positive, but the user input has negative values");
     }
 
-    // mag_gamma - defined at faces
+    // mag_gamma - defined at node
     if (m_mag_gamma_s == "constant") {
-        m_mag_gamma_mf[0]->setVal(m_mag_gamma);
-        m_mag_gamma_mf[1]->setVal(m_mag_gamma);
-        m_mag_gamma_mf[2]->setVal(m_mag_gamma);
+        m_mag_gamma_mf->setVal(m_mag_gamma);
+
     }
     else if (m_mag_gamma_s == "parse_mag_gamma_function"){
-        InitializeMacroMultiFabUsingParser(m_mag_gamma_mf[0].get(), getParser(m_mag_gamma_parser), lev);
-        InitializeMacroMultiFabUsingParser(m_mag_gamma_mf[1].get(), getParser(m_mag_gamma_parser), lev);
-        InitializeMacroMultiFabUsingParser(m_mag_gamma_mf[2].get(), getParser(m_mag_gamma_parser), lev);
+        InitializeMacroMultiFabUsingParser(m_mag_gamma_mf.get(), getParser(m_mag_gamma_parser), lev);
     }
-    if (m_mag_gamma_mf[0]->max(0,m_mag_gamma_mf[0]->nGrow()) > 0 ||
-        m_mag_gamma_mf[1]->max(0,m_mag_gamma_mf[1]->nGrow()) > 0 ||
-        m_mag_gamma_mf[2]->max(0,m_mag_gamma_mf[2]->nGrow()) > 0 ) {
+    if (m_mag_gamma_mf->max(0,m_mag_gamma_mf->nGrow()) > 0) {
         amrex::Abort("gamma should be negative, but the user input has positive values");
     }
 #endif
