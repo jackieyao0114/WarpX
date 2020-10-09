@@ -123,8 +123,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian(
                         Hz_eff += MacroscopicProperties::getH_Maxwell(i, j, k, 2, amrex::IntVect(0, 0, 1), amrex::IntVect(1, 0, 0), Bz, M_xface);
                     }
 
-                    // magnetic material properties mag_alpha and mag_Ms are defined at cell face centers
-                    // removed the interpolation. The IntVect is (1,0,0) to interpolate values to the x-face.
                     Real mag_gamma = mag_gamma_arrx / (1.0 + std::pow(mag_alpha_arrx, 2.0));
 
                     Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) + std::pow(M_xface(i, j, k, 2), 2.0)) : mag_Ms_arrx;
@@ -205,8 +203,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian(
                         Hz_eff += MacroscopicProperties::getH_Maxwell(i, j, k, 2, amrex::IntVect(0, 0, 1), amrex::IntVect(0, 1, 0), Bz, M_yface);
                     }
 
-                    // magnetic material properties mag_alpha and mag_Ms are defined at cell face centers
-                    // removed the interpolation. The IntVect is (0,1,0) to interpolate values to the y-face.
                     Real mag_gamma = mag_gamma_arry / (1.0 + std::pow(mag_alpha_arry, 2.0));
 
                     Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_yface(i, j, k, 0), 2.0) + std::pow(M_yface(i, j, k, 1), 2.0) + std::pow(M_yface(i, j, k, 2), 2.0)) : mag_Ms_arry;
@@ -287,8 +283,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian(
                         Hz_eff += MacroscopicProperties::getH_Maxwell(i, j, k, 2, amrex::IntVect(0, 0, 1), amrex::IntVect(0, 0, 1), Bz, M_zface);
                     }
 
-                    // magnetic material properties mag_alpha and mag_Ms are defined at cell face centers
-                    // removed the interpolation. The IntVect is (0,0,1) to interpolate values to the z-face.
                     Real mag_gamma = mag_gamma_arrz / (1.0 + std::pow(mag_alpha_arrz, 2.0));
 
                     Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_zface(i, j, k, 0), 2.0_rt) + std::pow(M_zface(i, j, k, 1), 2.0_rt) + std::pow(M_zface(i, j, k, 2), 2.0_rt)) : mag_Ms_arrz;
