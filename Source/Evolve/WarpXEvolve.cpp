@@ -368,7 +368,9 @@ WarpX::OneStep_nosub (Real cur_time)
         EvolveF(0.5*dt[0], DtType::FirstHalf);
         FillBoundaryF(guard_cells.ng_FieldSolverF);
 
+#ifndef WARPX_MAG_LLG
         EvolveB(0.5*dt[0]); // We now have B^{n+1/2}
+#endif
         FillBoundaryB(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
 
 #ifdef WARPX_MAG_LLG
@@ -398,9 +400,9 @@ WarpX::OneStep_nosub (Real cur_time)
 
         FillBoundaryE(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
         EvolveF(0.5*dt[0], DtType::SecondHalf);
-
+#ifndef WARPX_MAG_LLG
         EvolveB(0.5*dt[0]); // We now have B^{n+1}
-
+#endif
         //why not implementing FillBoundary here? possibly: implemented in if{safe_guard_cells} Line 452
         if (do_pml) {
             FillBoundaryF(guard_cells.ng_alloc_F);
@@ -434,7 +436,7 @@ WarpX::OneStep_nosub (Real cur_time)
             FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
         }
 #endif //
-#endif // end for PSATD
+#endif // end for #if PSATD
     }
 
 /* for output */
