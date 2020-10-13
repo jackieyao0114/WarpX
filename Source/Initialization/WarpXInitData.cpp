@@ -710,6 +710,8 @@ WarpX::InitLevelData (int lev, Real /*time*/)
                                  makeParser(str_Mz_ext_grid_function,{"x","y","z"})));
 
         {   // use this brace so Mx, My, Mz go out of scope
+            // we need 1 more ghost cell than Mfield_fp has because
+            // we are averaging to faces, including the ghost faces
             MultiFab Mx(boxArray(lev), DistributionMap(lev), 1, Mfield_fp[lev][0]->nGrow()+1);
             MultiFab My(boxArray(lev), DistributionMap(lev), 1, Mfield_fp[lev][1]->nGrow()+1);
             MultiFab Mz(boxArray(lev), DistributionMap(lev), 1, Mfield_fp[lev][2]->nGrow()+1);
@@ -759,6 +761,8 @@ WarpX::InitLevelData (int lev, Real /*time*/)
 
         if (lev > 0) {
             {   // use this brace so Mx, My, Mz go out of scope
+                // we need 1 more ghost cell than Mfield_fp has because
+                // we are averaging to faces, including the ghost faces
                 MultiFab Mx(boxArray(lev), DistributionMap(lev), 1, Mfield_fp[lev][0]->nGrow()+1);
                 MultiFab My(boxArray(lev), DistributionMap(lev), 1, Mfield_fp[lev][1]->nGrow()+1);
                 MultiFab Mz(boxArray(lev), DistributionMap(lev), 1, Mfield_fp[lev][2]->nGrow()+1);
@@ -806,6 +810,8 @@ WarpX::InitLevelData (int lev, Real /*time*/)
             }
 
             {   // use this brace so Mx, My, Mz go out of scope
+                // we need 1 more ghost cell than Mfield_fp has because
+                // we are averaging to faces, including the ghost faces
                 MultiFab Mx(boxArray(lev), DistributionMap(lev), 1, Mfield_fp[lev][0]->nGrow()+1);
                 MultiFab My(boxArray(lev), DistributionMap(lev), 1, Mfield_fp[lev][1]->nGrow()+1);
                 MultiFab Mz(boxArray(lev), DistributionMap(lev), 1, Mfield_fp[lev][2]->nGrow()+1);
