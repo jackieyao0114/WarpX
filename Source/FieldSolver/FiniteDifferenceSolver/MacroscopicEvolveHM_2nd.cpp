@@ -6,8 +6,6 @@ blank
 #include "Utils/WarpXAlgorithmSelection.H"
 #include "FiniteDifferenceSolver.H"
 #include "FiniteDifferenceAlgorithms/CartesianYeeAlgorithm.H"
-#include "FiniteDifferenceAlgorithms/CartesianCKCAlgorithm.H"
-#include "FiniteDifferenceAlgorithms/CartesianNodalAlgorithm.H"
 
 #include "Utils/WarpXConst.H"
 #include <AMReX_Gpu.H>
@@ -56,15 +54,15 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
     // build temporary vector<multifab,3> Mfield_prev, Mfield_error, a_temp, a_temp_static, b_temp_static
     std::array<std::unique_ptr<amrex::MultiFab>, 3> Hfield_old;    // H^n before the current time step
     std::array<std::unique_ptr<amrex::MultiFab>, 3> Mfield_old;    // M^n before the current time step
-    std::array<std::unique_ptr<amrex::MultiFab>, 3> Mfield_prev;   // M^(n+1) of the (r-1)th iteration
-    std::array<std::unique_ptr<amrex::MultiFab>, 3> Mfield_error;  // The error of the M field between the twoiterations
+    std::array<std::unique_ptr<amrex::MultiFab>, 3> Mfield_prev;   // M^(n+1/2) of the (r-1)th iteration
+    std::array<std::unique_ptr<amrex::MultiFab>, 3> Mfield_error;  // The error of the M field between the two consecutive iterations
     std::array<std::unique_ptr<amrex::MultiFab>, 3> a_temp;        // right-hand side of vector a, see the documentation
     std::array<std::unique_ptr<amrex::MultiFab>, 3> a_temp_static; // α M^n/|M| in the right-hand side of vector a, see the documentation
     std::array<std::unique_ptr<amrex::MultiFab>, 3> b_temp_static; // right-hand side of vector b, see the documentation
 
-    // initialize Mfield_previous
+    // Initialize Hfield_old (H^n), Mfield_old (M^n), Mfield_prev (M^[n+1/2,r-1]), Mfield_error 
     for (int i = 0; i < 3; i++){
-        Hfield_old[i].reset(new MultiFab(Hfield[i]->boxArray(), Hfield[i]->DistributionMap(), 3, Hfield[i]->nGrow()));
+        Hfield_old[i].reset(new MultiFab(Hfield[i]->boxArray(), Hfield[i]->DistributionMap(), 1, Hfield[i]->nGrow()));
         Mfield_old[i].reset(new MultiFab(Mfield[i]->boxArray(), Mfield[i]->DistributionMap(), 3, Mfield[i]->nGrow()));
         Mfield_prev[i].reset(new MultiFab(Mfield[i]->boxArray(), Mfield[i]->DistributionMap(), 3, Mfield[i]->nGrow()));
         Mfield_error[i].reset(new MultiFab(Mfield[i]->boxArray(), Mfield[i]->DistributionMap(), 3, Mfield[i]->nGrow()));
@@ -73,7 +71,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
         MultiFab::Copy(*Mfield_old[i], *Mfield[i], 0, 0, 3, Mfield[i]->nGrow());
         MultiFab::Copy(*Mfield_prev[i], *Mfield[i], 0, 0, 3, Mfield[i]->nGrow());
     }
-    // initialize a_temp, b_temp_static
+    // initialize a_temp, a_temp_static, b_temp_static
     for (int i = 0; i < 3; i++){
         a_temp[i].reset(new MultiFab(Mfield[i]->boxArray(), Mfield[i]->DistributionMap(), 3, Mfield[i]->nGrow()));
         a_temp_static[i].reset(new MultiFab(Mfield[i]->boxArray(), Mfield[i]->DistributionMap(), 3, Mfield[i]->nGrow()));
@@ -97,9 +95,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
         Array4<Real> const &Hx_bias = H_biasfield[0]->array(mfi); // Hx_bias is the x component at |_x faces
         Array4<Real> const &Hy_bias = H_biasfield[1]->array(mfi); // Hy_bias is the y component at |_y faces
         Array4<Real> const &Hz_bias = H_biasfield[2]->array(mfi); // Hz_bias is the z component at |_z faces
-        Array4<Real> const &Hx = Hfield[0]->array(mfi);           // Hx is the x component at |_x faces
-        Array4<Real> const &Hy = Hfield[1]->array(mfi);           // Hy is the y component at |_y faces
-        Array4<Real> const &Hz = Hfield[2]->array(mfi);           // Hz is the z component at |_z faces
         Array4<Real> const &Hx_old = Hfield_old[0]->array(mfi);   // Hx_old is the x component at |_x faces
         Array4<Real> const &Hy_old = Hfield_old[1]->array(mfi);   // Hy_old is the y component at |_y faces
         Array4<Real> const &Hz_old = Hfield_old[2]->array(mfi);   // Hz_old is the z component at |_z faces
@@ -121,9 +116,9 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
         int const n_coefs_z = m_stencil_coefs_z.size();
 
         // extract tileboxes for which to loop
-        Box const &tbx = mfi.tilebox(Hfield[0]->ixType().toIntVect()); /* just define which grid type */
-        Box const &tby = mfi.tilebox(Hfield[1]->ixType().toIntVect());
-        Box const &tbz = mfi.tilebox(Hfield[2]->ixType().toIntVect());
+        Box const &tbx = mfi.tilebox(Mfield[0]->ixType().toIntVect()); /* just define which grid type */
+        Box const &tby = mfi.tilebox(Mfield[1]->ixType().toIntVect());
+        Box const &tbz = mfi.tilebox(Mfield[2]->ixType().toIntVect());
 
         // loop over cells and update fields
         amrex::ParallelFor(tbx, tby, tbz,
@@ -162,15 +157,11 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                     // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
                     Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_arrx / 2.0;
 
-                    // calculate a_temp_static_xface
-                    // x component on x-faces of grid
-                    a_temp_static_xface(i, j, k, 0) = a_temp_static_coeff * M_xface(i, j, k, 0);
-
-                    // y component on x-faces of grid
-                    a_temp_static_xface(i, j, k, 1) = a_temp_static_coeff * M_xface(i, j, k, 1);
-
-                    // z component on x-faces of grid
-                    a_temp_static_xface(i, j, k, 2) = a_temp_static_coeff * M_xface(i, j, k, 2);
+                    for (int comp=0; comp<3; ++comp) {
+                        // calculate a_temp_static_xface
+                        // all components on x-faces of grid
+                        a_temp_static_xface(i, j, k, comp) = a_temp_static_coeff * M_xface(i, j, k, comp);
+                    }
 
                     // calculate b_temp_static_xface
                     // x component on x-faces of grid
@@ -218,15 +209,11 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                     // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
                     Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_arry / 2.0;
 
-                    // calculate a_temp_static_yface
-                    // x component on y-faces of grid
-                    a_temp_static_yface(i, j, k, 0) = a_temp_static_coeff * M_yface(i, j, k, 0);
-
-                    // y component on y-faces of grid
-                    a_temp_static_yface(i, j, k, 1) = a_temp_static_coeff * M_yface(i, j, k, 1);
-
-                    // z component on y-faces of grid
-                    a_temp_static_yface(i, j, k, 2) = a_temp_static_coeff * M_yface(i, j, k, 2);
+                    for (int comp=0; comp<3; ++comp) {
+                        // calculate a_temp_static_yface
+                        // all component on y-faces of grid
+                        a_temp_static_yface(i, j, k, comp) = a_temp_static_coeff * M_yface(i, j, k, comp);
+                    }
 
                     // calculate b_temp_static_yface
                     // x component on y-faces of grid
@@ -274,15 +261,11 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                     // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
                     Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_arrz / 2.0;
 
-                    // calculate a_temp_static_zface
-                    // x component on z-faces of grid
-                    a_temp_static_zface(i, j, k, 0) = a_temp_static_coeff * M_zface(i, j, k, 0);
-
-                    // y component on z-faces of grid
-                    a_temp_static_zface(i, j, k, 1) = a_temp_static_coeff * M_zface(i, j, k, 1);
-
-                    // z component on z-faces of grid
-                    a_temp_static_zface(i, j, k, 2) = a_temp_static_coeff * M_zface(i, j, k, 2);
+                    for (int comp=0; comp<3; ++comp) {
+                        // calculate a_temp_static_zface
+                        // all components on z-faces of grid
+                        a_temp_static_zface(i, j, k, comp) = a_temp_static_coeff * M_zface(i, j, k, comp);
+                    }
 
                     // calculate b_temp_static_zface
                     // x component on z-faces of grid
@@ -393,31 +376,24 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                         // calculate the a_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
                         Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_arrx) / 2.0;
 
-                        // calculate a_temp_xface
-                        // x component on x-faces of grid
-                        a_temp_xface(i, j, k, 0) = (M_normalization != 0) ? -(dt * a_temp_dynamic_coeff * Hx_eff + a_temp_static_xface(i, j, k, 0))
-                                                                          : -(dt * a_temp_dynamic_coeff * Hx_eff + 0.5 * a_temp_static_xface(i, j, k, 0) 
-                                                                            + 0.5 * mag_alpha_arrx * 1. / std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) + std::pow(M_xface(i, j, k, 2), 2.0)) * M_old_xface(i, j, k, 0));
+                        amrex::GpuArray<amrex::Real,3> H_eff;
+                        H_eff[0] = Hx_eff;
+                        H_eff[1] = Hy_eff;
+                        H_eff[2] = Hz_eff;
 
-                        // y component on x-faces of grid
-                        a_temp_xface(i, j, k, 1) = (M_normalization != 0) ? -(dt * a_temp_dynamic_coeff * Hy_eff + a_temp_static_xface(i, j, k, 1))
-                                                                          : -(dt * a_temp_dynamic_coeff * Hy_eff + 0.5 * a_temp_static_xface(i, j, k, 1) 
-                                                                            + 0.5 * mag_alpha_arrx * 1. / std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) + std::pow(M_xface(i, j, k, 2), 2.0)) * M_old_xface(i, j, k, 1));
+                        for (int comp=0; comp<3; ++comp) {
+                            // calculate a_temp_xface
+                            // all components on x-faces of grid
+                            a_temp_xface(i, j, k, comp) = (M_normalization != 0) ? -(dt * a_temp_dynamic_coeff * H_eff[comp] + a_temp_static_xface(i, j, k, comp))
+                                                                                 : -(dt * a_temp_dynamic_coeff * H_eff[comp] + 0.5 * a_temp_static_xface(i, j, k, comp)
+                                                                                     + 0.5 * mag_alpha_arrx * 1. / std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) + std::pow(M_xface(i, j, k, 2), 2.0)) * M_old_xface(i, j, k, comp));
+                        }
 
-                        // z component on x-faces of grid
-                        a_temp_xface(i, j, k, 2) = (M_normalization != 0) ? -(dt * a_temp_dynamic_coeff * Hz_eff + a_temp_static_xface(i, j, k, 2))
-                                                                          : -(dt * a_temp_dynamic_coeff * Hz_eff + 0.5 * a_temp_static_xface(i, j, k, 2) 
-                                                                            + 0.5 * mag_alpha_arrx * 1. / std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) + std::pow(M_xface(i, j, k, 2), 2.0)) * M_old_xface(i, j, k, 2));
-
-                        // update M_xface from a and b using the updateM_field
-                        // x component on x-faces of grid
-                        M_xface(i, j, k, 0) = MacroscopicProperties::updateM_field(i, j, k, 0, a_temp_xface, b_temp_static_xface);
-
-                        // y component on x-faces of grid
-                        M_xface(i, j, k, 1) = MacroscopicProperties::updateM_field(i, j, k, 1, a_temp_xface, b_temp_static_xface);
-
-                        // z component on x-faces of grid
-                        M_xface(i, j, k, 2) = MacroscopicProperties::updateM_field(i, j, k, 2, a_temp_xface, b_temp_static_xface);
+                        for (int comp=0; comp<3; ++comp) {
+                            // update M_xface from a and b using the updateM_field
+                            // all components on x-faces of grid
+                            M_xface(i, j, k, comp) = MacroscopicProperties::updateM_field(i, j, k, comp, a_temp_xface, b_temp_static_xface);
+                        }
 
                         // temporary normalized magnitude of M_xface field at the fixed point
                         // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
@@ -438,7 +414,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                         }
                         else if (M_normalization == 0){
                             // check the normalized error
-                            if (M_magnitude_normalized > 1._rt + mag_normalized_error){
+                            if (M_magnitude_normalized > (1._rt + mag_normalized_error)){
                                 printf("i = %d, j=%d, k=%d\n", i, j, k);
                                 printf("M_magnitude_normalized = %f, Ms = %f\n", M_magnitude_normalized, mag_Ms_arrx);
                                 amrex::Abort("Caution: Unsaturated material has M_xface exceeding the saturation magnetization");
@@ -452,14 +428,10 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                         }
 
                         // calculate M_error_xface
-                        // x component on x-faces of grid
-                        M_error_xface(i, j, k, 0) = amrex::Math::abs((M_xface(i, j, k, 0) - M_prev_xface(i, j, k, 0))) / mag_Ms_arrx;
-
-                        // y component on x-faces of grid
-                        M_error_xface(i, j, k, 1) = amrex::Math::abs((M_xface(i, j, k, 1) - M_prev_xface(i, j, k, 1))) / mag_Ms_arrx;
-
-                        // z component on x-faces of grid
-                        M_error_xface(i, j, k, 2) = amrex::Math::abs((M_xface(i, j, k, 2) - M_prev_xface(i, j, k, 2))) / mag_Ms_arrx;
+                        // x,y,z component on M-error on x-faces of grid
+                        for (int icomp = 0; icomp < 3; ++icomp) {
+                            M_error_xface(i, j, k, icomp) = amrex::Math::abs((M_xface(i, j, k, icomp) - M_prev_xface(i, j, k, icomp))) / mag_Ms_arrx;
+                        }
                     }
                 },
 
@@ -491,31 +463,24 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                         // calculate the a_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
                         Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_arry) / 2.0;
 
-                        // calculate a_temp_yface
-                        // x component on y-faces of grid
-                        a_temp_yface(i, j, k, 0) = (M_normalization != 0) ? -(dt * a_temp_dynamic_coeff * Hx_eff + a_temp_static_yface(i, j, k, 0))
-                                                                          : -(dt * a_temp_dynamic_coeff * Hx_eff + 0.5 * a_temp_static_yface(i, j, k, 0) 
-                                                                            + 0.5 * mag_alpha_arry * 1. / std::sqrt(std::pow(M_yface(i, j, k, 0), 2.0) + std::pow(M_yface(i, j, k, 1), 2.0) + std::pow(M_yface(i, j, k, 2), 2.0)) * M_old_yface(i, j, k, 0));
+                        amrex::GpuArray<amrex::Real,3> H_eff;
+                        H_eff[0] = Hx_eff;
+                        H_eff[1] = Hy_eff;
+                        H_eff[2] = Hz_eff;
+                        
+                        for (int comp=0; comp<3; ++comp) {
+                            // calculate a_temp_yface
+                            // all components on y-faces of grid
+                            a_temp_yface(i, j, k, comp) = (M_normalization != 0) ? -(dt * a_temp_dynamic_coeff * H_eff[comp] + a_temp_static_yface(i, j, k, comp))
+                                                                                 : -(dt * a_temp_dynamic_coeff * H_eff[comp] + 0.5 * a_temp_static_yface(i, j, k, comp)
+                                                                                     + 0.5 * mag_alpha_arry * 1. / std::sqrt(std::pow(M_yface(i, j, k, 0), 2.0) + std::pow(M_yface(i, j, k, 1), 2.0) + std::pow(M_yface(i, j, k, 2), 2.0)) * M_old_yface(i, j, k, comp));
+                        }
 
-                        // y component on y-faces of grid
-                        a_temp_yface(i, j, k, 1) = (M_normalization != 0) ? -(dt * a_temp_dynamic_coeff * Hy_eff + a_temp_static_yface(i, j, k, 1))
-                                                                          : -(dt * a_temp_dynamic_coeff * Hy_eff + 0.5 * a_temp_static_yface(i, j, k, 1) 
-                                                                            + 0.5 * mag_alpha_arry * 1. / std::sqrt(std::pow(M_yface(i, j, k, 0), 2.0) + std::pow(M_yface(i, j, k, 1), 2.0) + std::pow(M_yface(i, j, k, 2), 2.0)) * M_old_yface(i, j, k, 1));
-
-                        // z component on y-faces of grid
-                        a_temp_yface(i, j, k, 2) = (M_normalization != 0) ? -(dt * a_temp_dynamic_coeff * Hz_eff + a_temp_static_yface(i, j, k, 2))
-                                                                          : -(dt * a_temp_dynamic_coeff * Hz_eff + 0.5 * a_temp_static_yface(i, j, k, 2) 
-                                                                            + 0.5 * mag_alpha_arry * 1. / std::sqrt(std::pow(M_yface(i, j, k, 0), 2.0) + std::pow(M_yface(i, j, k, 1), 2.0) + std::pow(M_yface(i, j, k, 2), 2.0)) * M_old_yface(i, j, k, 2));
-
-                        // update M_yface from a and b using the updateM_field
-                        // x component on y-faces of grid
-                        M_yface(i, j, k, 0) = MacroscopicProperties::updateM_field(i, j, k, 0, a_temp_yface, b_temp_static_yface);
-
-                        // y component on y-faces of grid
-                        M_yface(i, j, k, 1) = MacroscopicProperties::updateM_field(i, j, k, 1, a_temp_yface, b_temp_static_yface);
-
-                        // z component on y-faces of grid
-                        M_yface(i, j, k, 2) = MacroscopicProperties::updateM_field(i, j, k, 2, a_temp_yface, b_temp_static_yface);
+                        for (int comp=0; comp<3; ++comp) {
+                            // update M_yface from a and b using the updateM_field
+                            // all components on y-faces of grid
+                            M_yface(i, j, k, comp) = MacroscopicProperties::updateM_field(i, j, k, comp, a_temp_yface, b_temp_static_yface);
+                        }
 
                         // temporary normalized magnitude of M_yface field at the fixed point
                         // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
@@ -550,14 +515,10 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                         }
 
                         // calculate M_error_yface
-                        // x component on y-faces of grid
-                        M_error_yface(i, j, k, 0) = amrex::Math::abs((M_yface(i, j, k, 0) - M_prev_yface(i, j, k, 0))) / mag_Ms_arry;
-
-                        // y component on y-faces of grid
-                        M_error_yface(i, j, k, 1) = amrex::Math::abs((M_yface(i, j, k, 1) - M_prev_yface(i, j, k, 1))) / mag_Ms_arry;
-
-                        // z component on y-faces of grid
-                        M_error_yface(i, j, k, 2) = amrex::Math::abs((M_yface(i, j, k, 2) - M_prev_yface(i, j, k, 2))) / mag_Ms_arry;
+                        // x,y,z component on y-faces of grid
+                        for (int icomp = 0; icomp < 3; ++icomp) {
+                            M_error_yface(i, j, k, icomp) = amrex::Math::abs((M_yface(i, j, k, icomp) - M_prev_yface(i, j, k, icomp))) / mag_Ms_arry;
+                        }
                     }
                 },
 
@@ -589,31 +550,24 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                         // calculate the a_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
                         Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_arrz) / 2.0;
 
-                        // calculate a_temp_zface
-                        // x component on z-faces of grid
-                        a_temp_zface(i, j, k, 0) = (M_normalization != 0) ? -(dt * a_temp_dynamic_coeff * Hx_eff + a_temp_static_zface(i, j, k, 0))
-                                                                          : -(dt * a_temp_dynamic_coeff * Hx_eff + 0.5 * a_temp_static_zface(i, j, k, 0) 
-                                                                            + 0.5 * mag_alpha_arrz * 1. / std::sqrt(std::pow(M_zface(i, j, k, 0), 2.0) + std::pow(M_zface(i, j, k, 1), 2.0) + std::pow(M_zface(i, j, k, 2), 2.0)) * M_old_zface(i, j, k, 0));
+                        amrex::GpuArray<amrex::Real,3> H_eff;
+                        H_eff[0] = Hx_eff;
+                        H_eff[1] = Hy_eff;
+                        H_eff[2] = Hz_eff;
+                        
+                        for (int comp=0; comp<3; ++comp) {
+                            // calculate a_temp_zface
+                            // all components on z-faces of grid
+                            a_temp_zface(i, j, k, comp) = (M_normalization != 0) ? -(dt * a_temp_dynamic_coeff * H_eff[comp] + a_temp_static_zface(i, j, k, comp))
+                                                                              : -(dt * a_temp_dynamic_coeff * H_eff[comp] + 0.5 * a_temp_static_zface(i, j, k, comp) 
+                                                                                  + 0.5 * mag_alpha_arrz * 1. / std::sqrt(std::pow(M_zface(i, j, k, 0), 2.0) + std::pow(M_zface(i, j, k, 1), 2.0) + std::pow(M_zface(i, j, k, 2), 2.0)) * M_old_zface(i, j, k, comp));
+                        }
 
-                        // y component on z-faces of grid
-                        a_temp_zface(i, j, k, 1) = (M_normalization != 0) ? -(dt * a_temp_dynamic_coeff * Hy_eff + a_temp_static_zface(i, j, k, 1))
-                                                                          : -(dt * a_temp_dynamic_coeff * Hy_eff + 0.5 * a_temp_static_zface(i, j, k, 1) 
-                                                                            + 0.5 * mag_alpha_arrz * 1. / std::sqrt(std::pow(M_zface(i, j, k, 0), 2.0) + std::pow(M_zface(i, j, k, 1), 2.0) + std::pow(M_zface(i, j, k, 2), 2.0)) * M_old_zface(i, j, k, 1));
-
-                        // z component on z-faces of grid
-                        a_temp_zface(i, j, k, 2) = (M_normalization != 0) ? -(dt * a_temp_dynamic_coeff * Hz_eff + a_temp_static_zface(i, j, k, 2))
-                                                                          : -(dt * a_temp_dynamic_coeff * Hz_eff + 0.5 * a_temp_static_zface(i, j, k, 2) 
-                                                                            + 0.5 * mag_alpha_arrz * 1. / std::sqrt(std::pow(M_zface(i, j, k, 0), 2.0) + std::pow(M_zface(i, j, k, 1), 2.0) + std::pow(M_zface(i, j, k, 2), 2.0)) * M_old_zface(i, j, k, 2));
-
-                        // update M_zface from a and b using the updateM_field
-                        // x component on z-faces of grid
-                        M_zface(i, j, k, 0) = MacroscopicProperties::updateM_field(i, j, k, 0, a_temp_zface, b_temp_static_zface);
-
-                        // y component on z-faces of grid
-                        M_zface(i, j, k, 1) = MacroscopicProperties::updateM_field(i, j, k, 1, a_temp_zface, b_temp_static_zface);
-
-                        // z component on z-faces of grid
-                        M_zface(i, j, k, 2) = MacroscopicProperties::updateM_field(i, j, k, 2, a_temp_zface, b_temp_static_zface);
+                        for (int comp=0; comp<3; ++comp) {
+                            // update M_zface from a and b using the updateM_field
+                            // all components on z-faces of grid
+                            M_zface(i, j, k, comp) = MacroscopicProperties::updateM_field(i, j, k, comp, a_temp_zface, b_temp_static_zface);
+                        }
 
                         // temporary normalized magnitude of M_zface field at the fixed point
                         // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
@@ -648,14 +602,10 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                         }
 
                         // calculate M_error_zface
-                        // x component on z-faces of grid
-                        M_error_zface(i, j, k, 0) = amrex::Math::abs((M_zface(i, j, k, 0) - M_prev_zface(i, j, k, 0))) / mag_Ms_arrz;
-
-                        // y component on z-faces of grid
-                        M_error_zface(i, j, k, 1) = amrex::Math::abs((M_zface(i, j, k, 1) - M_prev_zface(i, j, k, 1))) / mag_Ms_arrz;
-
-                        // z component on z-faces of grid
-                        M_error_zface(i, j, k, 2) = amrex::Math::abs((M_zface(i, j, k, 2) - M_prev_zface(i, j, k, 2))) / mag_Ms_arrz;
+                        // x,y,z component on z-faces of grid
+                        for (int icomp = 0; icomp < 3; ++icomp) {
+                            M_error_zface(i, j, k, icomp) = amrex::Math::abs((M_zface(i, j, k, icomp) - M_prev_zface(i, j, k, icomp))) / mag_Ms_arrz;
+                        }
                     }
                 });
         }
@@ -692,36 +642,28 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
             Box const &tby = mfi.tilebox(Hfield[1]->ixType().toIntVect());
             Box const &tbz = mfi.tilebox(Hfield[2]->ixType().toIntVect());
 
+            amrex::Real const mu0_inv = 1. / PhysConst::mu0;
             // Loop over the cells and update the fields
             amrex::ParallelFor(tbx, tby, tbz,
 
                 [=] AMREX_GPU_DEVICE(int i, int j, int k) {
-                    if (coupling == 1){
-                        Hx(i, j, k) = Hx_old(i, j, k) + 1. / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k) - 1. / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k) 
-                                                      - M_xface(i, j, k, 0) + M_xface_old(i, j, k, 0);
-                    }
-                    else{
-                        Hx(i, j, k) = Hx_old(i, j, k) + 1. / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k) - 1. / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k);
+                    Hx(i, j, k) = Hx_old(i, j, k) + mu0_inv * dt * T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k) - mu0_inv * dt * T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k);
+                    if (coupling == 1) {
+                        Hx(i, j, k) += - M_xface(i, j, k, 0) + M_xface_old(i, j, k, 0);
                     }
                 },
 
                 [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+                    Hy(i, j, k) = Hy_old(i, j, k) + mu0_inv * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k) - mu0_inv * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k);
                     if (coupling == 1){
-                        Hy(i, j, k) = Hy_old(i, j, k) + 1. / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k) - 1. / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k) 
-                                                      - M_yface(i, j, k, 1) + M_yface_old(i, j, k, 1);
-                    }
-                    else{
-                        Hy(i, j, k) = Hy_old(i, j, k) + 1. / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k) - 1. / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k);
+                        Hy(i, j, k) += - M_yface(i, j, k, 1) + M_yface_old(i, j, k, 1);
                     }
                 },
 
                 [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+                    Hz(i, j, k) = Hz_old(i, j, k) + mu0_inv * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k) - mu0_inv * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k);
                     if (coupling == 1){
-                        Hz(i, j, k) = Hz_old(i, j, k) + 1. / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k) - 1. / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k) 
-                                                      - M_zface(i, j, k, 2) + M_zface_old(i, j, k, 2);
-                    }
-                    else{
-                        Hz(i, j, k) = Hz_old(i, j, k) + 1. / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k) - 1. / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k);
+                        Hz(i, j, k) += - M_zface(i, j, k, 2) + M_zface_old(i, j, k, 2);
                     }
                 }
 

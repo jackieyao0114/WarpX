@@ -17,14 +17,14 @@
 using namespace amrex;
 
 /**
- * \brief Update H and M fields with iterative correction, over one time step
+ * \brief Update H and M fields with iterative correction, over timestep, dt
  */
 
 #ifdef WARPX_MAG_LLG
-// update M field over one timestep
+// update M field over timestep, dt
 
 void FiniteDifferenceSolver::MacroscopicEvolveHM(
-    // The MField here is a vector of three multifabs, with M on each face, and each multifab is a three-component multifab.
+    // The MField here is a vector of three multifabs, with M on each face.
     // Each M-multifab has three components, one for each component in x, y, z. (All multifabs are four dimensional, (i,j,k,n)), where, n=1 for E, B, but, n=3 for M_xface, M_yface, M_zface
     std::array<std::unique_ptr<amrex::MultiFab>, 3> &Mfield,
     std::array<std::unique_ptr<amrex::MultiFab>, 3> &Hfield, // H Maxwell
@@ -61,14 +61,14 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
     auto &warpx = WarpX::GetInstance();
     int coupling = warpx.mag_LLG_coupling;
     int M_normalization = warpx.mag_M_normalization;
-
+    // temporary Multifab storing M from previous timestep (n) before updating to M(n+1/2)
     std::array<std::unique_ptr<amrex::MultiFab>, 3> Mfield_old; // Mfield_old is M(n)
 
     for (int i = 0; i < 3; i++)
     {
         // Mfield_old is M(n)
         Mfield_old[i].reset(new MultiFab(Mfield[i]->boxArray(), Mfield[i]->DistributionMap(), 3, Mfield[i]->nGrow()));
-        // initialize Mfield_old
+        // initialize temporary multifab, Mfield_old, with values from Mfield(n)
         MultiFab::Copy(*Mfield_old[i], *Mfield[i], 0, 0, 3, Mfield[i]->nGrow());
     }
 
@@ -120,9 +120,9 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
         amrex::ParallelFor(tbx, tby, tbz,
             [=] AMREX_GPU_DEVICE(int i, int j, int k) {
 
-                Real mag_Ms_arrx    = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr);
-                Real mag_alpha_arrx = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_alpha_arr);
-                Real mag_gamma_arrx = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_gamma_arr);
+                amrex::Real mag_Ms_arrx    = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr);
+                amrex::Real mag_alpha_arrx = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_alpha_arr);
+                amrex::Real mag_gamma_arrx = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_gamma_arr);
                 
                 // determine if the material is nonmagnetic or not
                 if (mag_Ms_arrx != 0 && mag_alpha_arrx != 0 && mag_gamma_arrx != 0)
@@ -131,9 +131,9 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                     // Hy and Hz can be acquired by interpolation
 
                     // H_bias
-                    Real Hx_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1, 0, 0), amrex::IntVect(1, 0, 0), Hx_bias);
-                    Real Hy_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0, 1, 0), amrex::IntVect(1, 0, 0), Hy_bias);
-                    Real Hz_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0, 0, 1), amrex::IntVect(1, 0, 0), Hz_bias);
+                    amrex::Real Hx_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(1, 0, 0), amrex::IntVect(1, 0, 0), Hx_bias);
+                    amrex::Real Hy_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0, 1, 0), amrex::IntVect(1, 0, 0), Hy_bias);
+                    amrex::Real Hz_eff = MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0, 0, 1), amrex::IntVect(1, 0, 0), Hz_bias);
                     if (coupling == 1)
                     {
                         // H_eff = H_maxwell + H_bias + H_exchange + H_anisotropy ... (only the first two terms are considered here)
@@ -146,12 +146,12 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
 
                     // magnetic material properties mag_alpha and mag_Ms are defined at faces
                     // removed the interpolation from version with cell-nodal material properties
-                    Real mag_gammaL = mag_gamma_arrx / (1.0 + std::pow(mag_alpha_arrx, 2.0));
+                    amrex::Real mag_gammaL = mag_gamma_arrx / (1.0 + std::pow(mag_alpha_arrx, 2.0));
 
                     // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
-                    Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) + std::pow(M_xface(i, j, k, 2), 2.0))
+                    amrex::Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) + std::pow(M_xface(i, j, k, 2), 2.0))
                                                               : mag_Ms_arrx;
-                    Real Gil_damp = PhysConst::mu0 * mag_gammaL * mag_alpha_arrx / M_magnitude;
+                    amrex::Real Gil_damp = PhysConst::mu0 * mag_gammaL * mag_alpha_arrx / M_magnitude;
 
                     // now you have access to use M_xface(i,j,k,0) M_xface(i,j,k,1), M_xface(i,j,k,2), Hx(i,j,k), Hy, Hz on the RHS of these update lines below
                     // x component on x-faces of grid
@@ -191,13 +191,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                     else if (M_normalization == 0)
                     {
                         // check the normalized error
-                        if (M_magnitude_normalized > 1._rt + mag_normalized_error)
+                        if (M_magnitude_normalized > (1._rt + mag_normalized_error))
                         {
                             printf("i = %d, j=%d, k=%d\n", i, j, k);
                             printf("M_magnitude_normalized = %f, Ms = %f\n", M_magnitude_normalized, mag_Ms_arrx);
                             amrex::Abort("Caution: Unsaturated material has M_xface exceeding the saturation magnetization");
                         }
-                        else if (M_magnitude_normalized > 1._rt && M_magnitude_normalized <= 1._rt + mag_normalized_error)
+                        else if (M_magnitude_normalized > 1._rt && M_magnitude_normalized <= (1._rt + mag_normalized_error) )
                         {
                             // normalize the M_xface field
                             M_xface(i, j, k, 0) /= M_magnitude_normalized;
@@ -387,7 +387,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                 } // end if (mag_Ms_arrz(i,j,k) != 0...
             });
     }
-
+    // Update H(n+1/2) = f(H(n), M(n+1/2), M(n), E(n))
     for (MFIter mfi(*Hfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         // Extract field data for this grid/tile
@@ -417,33 +417,29 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
         Box const &tby = mfi.tilebox(Hfield[1]->ixType().toIntVect());
         Box const &tbz = mfi.tilebox(Hfield[2]->ixType().toIntVect());
 
+        amrex::Real mu0_inv = 1. / PhysConst::mu0;
+        
         // Loop over the cells and update the fields
         amrex::ParallelFor(tbx, tby, tbz,
             [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+                Hx(i, j, k) += mu0_inv * dt * T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k) 
+                             - mu0_inv * dt * T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k);
                 if (coupling == 1) {
-                    Hx(i, j, k) += 1. / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k) 
-                                 - 1. / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k) - M_xface(i, j, k, 0) + M_xface_old(i, j, k, 0);
-                } else {
-                    Hx(i, j, k) += 1. / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k) 
-                                 - 1. / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k);
+                    Hx(i, j, k) += - M_xface(i, j, k, 0) + M_xface_old(i, j, k, 0);
                 } 
             },
             [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+                Hy(i, j, k) += mu0_inv * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k) 
+                             - mu0_inv * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k);
                 if (coupling == 1) {
-                    Hy(i, j, k) += 1. / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k) 
-                                 - 1. / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k) - M_yface(i, j, k, 1) + M_yface_old(i, j, k, 1);
-                } else {
-                    Hy(i, j, k) += 1. / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k) 
-                                 - 1. / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k);
+                    Hy(i, j, k) +=  - M_yface(i, j, k, 1) + M_yface_old(i, j, k, 1);
                 }
             },
             [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+                Hz(i, j, k) += mu0_inv * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k)
+                             - mu0_inv * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k);
                 if (coupling == 1) {
-                    Hz(i, j, k) += 1. / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k) 
-                                 - 1. / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k) - M_zface(i, j, k, 2) + M_zface_old(i, j, k, 2);
-                } else {
-                    Hz(i, j, k) += 1. / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k) 
-                                 - 1. / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k);
+                    Hz(i, j, k) += - M_zface(i, j, k, 2) + M_zface_old(i, j, k, 2);
                 }
             });
     }
