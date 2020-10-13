@@ -17,11 +17,10 @@
 using namespace amrex;
 
 /**
- * \brief Update H and M fields with iterative correction, over timestep, dt
+ * \brief Update H and M fields without iterative correction, over one timestep
  */
 
 #ifdef WARPX_MAG_LLG
-// update M field over timestep, dt
 
 void FiniteDifferenceSolver::MacroscopicEvolveHM(
     // The MField here is a vector of three multifabs, with M on each face.
@@ -61,14 +60,14 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
     auto &warpx = WarpX::GetInstance();
     int coupling = warpx.mag_LLG_coupling;
     int M_normalization = warpx.mag_M_normalization;
-    // temporary Multifab storing M from previous timestep (n) before updating to M(n+1/2)
-    std::array<std::unique_ptr<amrex::MultiFab>, 3> Mfield_old; // Mfield_old is M(n)
+    // temporary Multifab storing M from previous timestep (old_time) before updating to M(new_time)
+    std::array<std::unique_ptr<amrex::MultiFab>, 3> Mfield_old; // Mfield_old is M(old_time)
 
     for (int i = 0; i < 3; i++)
     {
         // Mfield_old is M(n)
         Mfield_old[i].reset(new MultiFab(Mfield[i]->boxArray(), Mfield[i]->DistributionMap(), 3, Mfield[i]->nGrow()));
-        // initialize temporary multifab, Mfield_old, with values from Mfield(n)
+        // initialize temporary multifab, Mfield_old, with values from Mfield(old_time)
         MultiFab::Copy(*Mfield_old[i], *Mfield[i], 0, 0, 3, Mfield[i]->nGrow());
     }
 
@@ -387,7 +386,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                 } // end if (mag_Ms_arrz(i,j,k) != 0...
             });
     }
-    // Update H(n+1/2) = f(H(n), M(n+1/2), M(n), E(n))
+    // Update H(new_time) = f(H(old_time), M(new_time), M(old_time), E(old_time))
     for (MFIter mfi(*Hfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         // Extract field data for this grid/tile
