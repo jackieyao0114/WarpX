@@ -12,8 +12,11 @@ blank
 
 using namespace amrex;
 
+/**
+ * \brief Update H and M fields with iterative correction, over one timestep
+ */
+
 #ifdef WARPX_MAG_LLG
-// update M field over one timestep
 
 void FiniteDifferenceSolver::MacroscopicEvolveHM_2nd(
     // The MField here is a vector of three multifabs, with M on each face, and each multifab is a three-component multifab.
@@ -52,15 +55,15 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
     int M_normalization = warpx.mag_M_normalization;
 
     // build temporary vector<multifab,3> Mfield_prev, Mfield_error, a_temp, a_temp_static, b_temp_static
-    std::array<std::unique_ptr<amrex::MultiFab>, 3> Hfield_old;    // H^n before the current time step
-    std::array<std::unique_ptr<amrex::MultiFab>, 3> Mfield_old;    // M^n before the current time step
-    std::array<std::unique_ptr<amrex::MultiFab>, 3> Mfield_prev;   // M^(n+1/2) of the (r-1)th iteration
+    std::array<std::unique_ptr<amrex::MultiFab>, 3> Hfield_old;    // H^(old_time) before the current time step
+    std::array<std::unique_ptr<amrex::MultiFab>, 3> Mfield_old;    // M^(old_time) before the current time step
+    std::array<std::unique_ptr<amrex::MultiFab>, 3> Mfield_prev;   // M^(new_time) of the (r-1)th iteration
     std::array<std::unique_ptr<amrex::MultiFab>, 3> Mfield_error;  // The error of the M field between the two consecutive iterations
     std::array<std::unique_ptr<amrex::MultiFab>, 3> a_temp;        // right-hand side of vector a, see the documentation
-    std::array<std::unique_ptr<amrex::MultiFab>, 3> a_temp_static; // α M^n/|M| in the right-hand side of vector a, see the documentation
+    std::array<std::unique_ptr<amrex::MultiFab>, 3> a_temp_static; // α M^(old_time)/|M| in the right-hand side of vector a, see the documentation
     std::array<std::unique_ptr<amrex::MultiFab>, 3> b_temp_static; // right-hand side of vector b, see the documentation
 
-    // Initialize Hfield_old (H^n), Mfield_old (M^n), Mfield_prev (M^[n+1/2,r-1]), Mfield_error 
+    // Initialize Hfield_old (H^(old_time)), Mfield_old (M^(old_time)), Mfield_prev (M^[(new_time),r-1]), Mfield_error 
     for (int i = 0; i < 3; i++){
         Hfield_old[i].reset(new MultiFab(Hfield[i]->boxArray(), Hfield[i]->DistributionMap(), 1, Hfield[i]->nGrow()));
         Mfield_old[i].reset(new MultiFab(Mfield[i]->boxArray(), Mfield[i]->DistributionMap(), 3, Mfield[i]->nGrow()));
@@ -154,8 +157,9 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                     // a_temp_static_coeff does not change in the current step for SATURATED materials; but it does change for UNSATURATED ones
                     Real a_temp_static_coeff = mag_alpha_arrx / M_magnitude;
 
-                    // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
-                    Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_arrx / 2.0;
+                    // calculate the b_temp_static_coeff (it is divided by 2.0 because the derivation is based on an interger dt,
+                    // while in real simulations, the input dt is actually dt/2.0)
+                    Real b_temp_static_coeff = - PhysConst::mu0 * amrex::Math::abs(mag_gamma_arrx) / 2.0;
 
                     for (int comp=0; comp<3; ++comp) {
                         // calculate a_temp_static_xface
@@ -202,12 +206,14 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                     }
 
                     // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
+                    // note the unsaturated case is less usefull in real devices 
                     Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_yface(i, j, k, 0), 2.0) + std::pow(M_yface(i, j, k, 1), 2.0) + std::pow(M_yface(i, j, k, 2), 2.0))
                                                               : mag_Ms_arry;
                     Real a_temp_static_coeff = mag_alpha_arry / M_magnitude;
 
-                    // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
-                    Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_arry / 2.0;
+                    // calculate the b_temp_static_coeff (it is divided by 2.0 because the derivation is based on an interger dt,
+                    // while in real simulations, the input dt is actually dt/2.0)
+                    Real b_temp_static_coeff = - PhysConst::mu0 * amrex::Math::abs(mag_gamma_arry) / 2.0;
 
                     for (int comp=0; comp<3; ++comp) {
                         // calculate a_temp_static_yface
@@ -258,8 +264,9 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                                                               : mag_Ms_arrz;
                     Real a_temp_static_coeff = mag_alpha_arrz / M_magnitude;
 
-                    // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
-                    Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_arrz / 2.0;
+                    // calculate the b_temp_static_coeff (it is divided by 2.0 because the derivation is based on an interger dt,
+                    // while in real simulations, the input dt is actually dt/2.0)
+                    Real b_temp_static_coeff = - PhysConst::mu0 * amrex::Math::abs(mag_gamma_arrz) / 2.0;
 
                     for (int comp=0; comp<3; ++comp) {
                         // calculate a_temp_static_zface
@@ -373,7 +380,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                             Hz_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0, 0, 1), amrex::IntVect(1, 0, 0), Hz);
                         }
 
-                        // calculate the a_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
+                        // calculate the a_temp_dynamic_coeff (it is divided by 2.0 because the derivation is based on an interger dt,
+                        // while in real simulations, the input dt is actually dt/2.0)
                         Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_arrx) / 2.0;
 
                         amrex::GpuArray<amrex::Real,3> H_eff;
@@ -460,7 +468,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                             Hz_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0, 0, 1), amrex::IntVect(0, 1, 0), Hz);
                         }
 
-                        // calculate the a_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
+                        // calculate the a_temp_dynamic_coeff (it is divided by 2.0 because the derivation is based on an interger dt,
+                        // while in real simulations, the input dt is actually dt/2.0)
                         Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_arry) / 2.0;
 
                         amrex::GpuArray<amrex::Real,3> H_eff;
@@ -547,7 +556,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                             Hz_eff += MacroscopicProperties::face_avg_to_face(i, j, k, 0, amrex::IntVect(0, 0, 1), amrex::IntVect(0, 0, 1), Hz);
                         }
 
-                        // calculate the a_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
+                        // calculate the a_temp_dynamic_coeff (it is divided by 2.0 because the derivation is based on an interger dt,
+                        // while in real simulations, the input dt is actually dt/2.0)
                         Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_arrz) / 2.0;
 
                         amrex::GpuArray<amrex::Real,3> H_eff;
