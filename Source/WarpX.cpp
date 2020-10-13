@@ -1107,32 +1107,32 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
     Bfield_fp_old[lev][2] = std::make_unique<MultiFab>(amrex::convert(ba,Bz_nodal_flag),dm,ncomps,ngE+ngextra);
 #endif
 
-    Efield_fp[lev][0].reset( new MultiFab(amrex::convert(ba,Ex_nodal_flag),dm,ncomps,ngE+ngextra));
-    Efield_fp[lev][1].reset( new MultiFab(amrex::convert(ba,Ey_nodal_flag),dm,ncomps,ngE+ngextra));
-    Efield_fp[lev][2].reset( new MultiFab(amrex::convert(ba,Ez_nodal_flag),dm,ncomps,ngE+ngextra));
+    Efield_fp[lev][0] = std::make_unique<MultiFab>(amrex::convert(ba,Ex_nodal_flag),dm,ncomps,ngE+ngextra);
+    Efield_fp[lev][1] = std::make_unique<MultiFab>(amrex::convert(ba,Ey_nodal_flag),dm,ncomps,ngE+ngextra);
+    Efield_fp[lev][2] = std::make_unique<MultiFab>(amrex::convert(ba,Ez_nodal_flag),dm,ncomps,ngE+ngextra);
 
 #ifdef WARPX_MAG_LLG
     // each Mfield[] is three components
-    Mfield_fp[lev][0].reset( new MultiFab(amrex::convert(ba,Mx_nodal_flag),dm,3     ,ngE+ngextra));
-    Mfield_fp[lev][1].reset( new MultiFab(amrex::convert(ba,My_nodal_flag),dm,3     ,ngE+ngextra));
-    Mfield_fp[lev][2].reset( new MultiFab(amrex::convert(ba,Mz_nodal_flag),dm,3     ,ngE+ngextra));
+    Mfield_fp[lev][0] = std::make_unique<MultiFab>(amrex::convert(ba,Mx_nodal_flag),dm,3     ,ngE+ngextra);
+    Mfield_fp[lev][1] = std::make_unique<MultiFab>(amrex::convert(ba,My_nodal_flag),dm,3     ,ngE+ngextra);
+    Mfield_fp[lev][2] = std::make_unique<MultiFab>(amrex::convert(ba,Mz_nodal_flag),dm,3     ,ngE+ngextra);
 
-    Hfield_fp[lev][0].reset( new MultiFab(amrex::convert(ba,Hx_nodal_flag),dm,ncomps,ngE+ngextra));
-    Hfield_fp[lev][1].reset( new MultiFab(amrex::convert(ba,Hy_nodal_flag),dm,ncomps,ngE+ngextra));
-    Hfield_fp[lev][2].reset( new MultiFab(amrex::convert(ba,Hz_nodal_flag),dm,ncomps,ngE+ngextra));
+    Hfield_fp[lev][0] = std::make_unique<MultiFab>(amrex::convert(ba,Hx_nodal_flag),dm,ncomps,ngE+ngextra);
+    Hfield_fp[lev][1] = std::make_unique<MultiFab>(amrex::convert(ba,Hy_nodal_flag),dm,ncomps,ngE+ngextra);
+    Hfield_fp[lev][2] = std::make_unique<MultiFab>(amrex::convert(ba,Hz_nodal_flag),dm,ncomps,ngE+ngextra);
 
-    H_biasfield_fp[lev][0].reset( new MultiFab(amrex::convert(ba,Hx_bias_nodal_flag),dm,ncomps,ngE+ngextra));
-    H_biasfield_fp[lev][1].reset( new MultiFab(amrex::convert(ba,Hy_bias_nodal_flag),dm,ncomps,ngE+ngextra));
-    H_biasfield_fp[lev][2].reset( new MultiFab(amrex::convert(ba,Hz_bias_nodal_flag),dm,ncomps,ngE+ngextra));
+    H_biasfield_fp[lev][0] = std::make_unique<MultiFab>(amrex::convert(ba,Hx_bias_nodal_flag),dm,ncomps,ngE+ngextra);
+    H_biasfield_fp[lev][1] = std::make_unique<MultiFab>(amrex::convert(ba,Hy_bias_nodal_flag),dm,ncomps,ngE+ngextra);
+    H_biasfield_fp[lev][2] = std::make_unique<MultiFab>(amrex::convert(ba,Hz_bias_nodal_flag),dm,ncomps,ngE+ngextra);
 #endif
 
-    current_fp[lev][0].reset( new MultiFab(amrex::convert(ba,jx_nodal_flag),dm,ncomps,ngJ));
-    current_fp[lev][1].reset( new MultiFab(amrex::convert(ba,jy_nodal_flag),dm,ncomps,ngJ));
-    current_fp[lev][2].reset( new MultiFab(amrex::convert(ba,jz_nodal_flag),dm,ncomps,ngJ));
+    current_fp[lev][0] = std::make_unique<MultiFab>(amrex::convert(ba,jx_nodal_flag),dm,ncomps,ngJ);
+    current_fp[lev][1] = std::make_unique<MultiFab>(amrex::convert(ba,jy_nodal_flag),dm,ncomps,ngJ);
+    current_fp[lev][2] = std::make_unique<MultiFab>(amrex::convert(ba,jz_nodal_flag),dm,ncomps,ngJ);
 
-    Bfield_avg_fp[lev][0].reset( new MultiFab(amrex::convert(ba,Bx_nodal_flag),dm,ncomps,ngE));
-    Bfield_avg_fp[lev][1].reset( new MultiFab(amrex::convert(ba,By_nodal_flag),dm,ncomps,ngE));
-    Bfield_avg_fp[lev][2].reset( new MultiFab(amrex::convert(ba,Bz_nodal_flag),dm,ncomps,ngE));
+    Bfield_avg_fp[lev][0] = std::make_unique<MultiFab>(amrex::convert(ba,Bx_nodal_flag),dm,ncomps,ngE);
+    Bfield_avg_fp[lev][1] = std::make_unique<MultiFab>(amrex::convert(ba,By_nodal_flag),dm,ncomps,ngE);
+    Bfield_avg_fp[lev][2] = std::make_unique<MultiFab>(amrex::convert(ba,Bz_nodal_flag),dm,ncomps,ngE);
 
     Bfield_avg_fp[lev][0] = std::make_unique<MultiFab>(amrex::convert(ba,Bx_nodal_flag),dm,ncomps,ngE);
     Bfield_avg_fp[lev][1] = std::make_unique<MultiFab>(amrex::convert(ba,By_nodal_flag),dm,ncomps,ngE);
@@ -1227,13 +1227,13 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
         Mfield_aux[lev][1] = std::make_unique<MultiFab>(nba,dm,3     ,ngE);
         Mfield_aux[lev][2] = std::make_unique<MultiFab>(nba,dm,3     ,ngE);
 
-        Hfield_aux[lev][0].reset( new MultiFab(nba,dm,ncomps,ngE));
-        Hfield_aux[lev][1].reset( new MultiFab(nba,dm,ncomps,ngE));
-        Hfield_aux[lev][2].reset( new MultiFab(nba,dm,ncomps,ngE));
+        Hfield_aux[lev][0] = std::make_unique<MultiFab>(nba,dm,ncomps,ngE);
+        Hfield_aux[lev][1] = std::make_unique<MultiFab>(nba,dm,ncomps,ngE);
+        Hfield_aux[lev][2] = std::make_unique<MultiFab>(nba,dm,ncomps,ngE);
 
-        H_biasfield_aux[lev][0].reset( new MultiFab(nba,dm,ncomps,ngE));
-        H_biasfield_aux[lev][1].reset( new MultiFab(nba,dm,ncomps,ngE));
-        H_biasfield_aux[lev][2].reset( new MultiFab(nba,dm,ncomps,ngE));
+        H_biasfield_aux[lev][0] = std::make_unique<MultiFab>(nba,dm,ncomps,ngE);
+        H_biasfield_aux[lev][1] = std::make_unique<MultiFab>(nba,dm,ncomps,ngE);
+        H_biasfield_aux[lev][2] = std::make_unique<MultiFab>(nba,dm,ncomps,ngE);
 #endif
     }
     else if (lev == 0)
@@ -1262,17 +1262,17 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
         Efield_aux[lev][2] = std::make_unique<MultiFab>(amrex::convert(ba,Ez_nodal_flag),dm,ncomps,ngE);
 
 #ifdef WARPX_MAG_LLG
-        Mfield_aux[lev][0].reset( new MultiFab(amrex::convert(ba,Mx_nodal_flag),dm,3     ,ngE));
-        Mfield_aux[lev][1].reset( new MultiFab(amrex::convert(ba,My_nodal_flag),dm,3     ,ngE));
-        Mfield_aux[lev][2].reset( new MultiFab(amrex::convert(ba,Mz_nodal_flag),dm,3     ,ngE));
+        Mfield_aux[lev][0] = std::make_unique<MultiFab>(amrex::convert(ba,Mx_nodal_flag),dm,3     ,ngE);
+        Mfield_aux[lev][1] = std::make_unique<MultiFab>(amrex::convert(ba,My_nodal_flag),dm,3     ,ngE);
+        Mfield_aux[lev][2] = std::make_unique<MultiFab>(amrex::convert(ba,Mz_nodal_flag),dm,3     ,ngE);
 
-        Hfield_aux[lev][0].reset( new MultiFab(amrex::convert(ba,Hx_nodal_flag),dm,ncomps,ngE));
-        Hfield_aux[lev][1].reset( new MultiFab(amrex::convert(ba,Hy_nodal_flag),dm,ncomps,ngE));
-        Hfield_aux[lev][2].reset( new MultiFab(amrex::convert(ba,Hz_nodal_flag),dm,ncomps,ngE));
+        Hfield_aux[lev][0] = std::make_unique<MultiFab>(amrex::convert(ba,Hx_nodal_flag),dm,ncomps,ngE);
+        Hfield_aux[lev][1] = std::make_unique<MultiFab>(amrex::convert(ba,Hy_nodal_flag),dm,ncomps,ngE);
+        Hfield_aux[lev][2] = std::make_unique<MultiFab>(amrex::convert(ba,Hz_nodal_flag),dm,ncomps,ngE);
 
-        H_biasfield_aux[lev][0].reset( new MultiFab(amrex::convert(ba,Hx_bias_nodal_flag),dm,ncomps,ngE));
-        H_biasfield_aux[lev][1].reset( new MultiFab(amrex::convert(ba,Hy_bias_nodal_flag),dm,ncomps,ngE));
-        H_biasfield_aux[lev][2].reset( new MultiFab(amrex::convert(ba,Hz_bias_nodal_flag),dm,ncomps,ngE));
+        H_biasfield_aux[lev][0] = std::make_unique<MultiFab>(amrex::convert(ba,Hx_bias_nodal_flag),dm,ncomps,ngE);
+        H_biasfield_aux[lev][1] = std::make_unique<MultiFab>(amrex::convert(ba,Hy_bias_nodal_flag),dm,ncomps,ngE);
+        H_biasfield_aux[lev][2] = std::make_unique<MultiFab>(amrex::convert(ba,Hz_bias_nodal_flag),dm,ncomps,ngE);
 #endif
 
         Bfield_avg_aux[lev][0] = std::make_unique<MultiFab>(amrex::convert(ba,Bx_nodal_flag),dm,ncomps,ngE);
@@ -1306,19 +1306,19 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
 
 #ifdef WARPX_MAG_LLG
     // Create the MultiFabs for M
-        Mfield_cp[lev][0].reset( new MultiFab(amrex::convert(cba,Mx_nodal_flag),dm,3     ,ngE));
-        Mfield_cp[lev][1].reset( new MultiFab(amrex::convert(cba,My_nodal_flag),dm,3     ,ngE));
-        Mfield_cp[lev][2].reset( new MultiFab(amrex::convert(cba,Mz_nodal_flag),dm,3     ,ngE));
+        Mfield_cp[lev][0] = std::make_unique<MultiFab>(amrex::convert(cba,Mx_nodal_flag),dm,3     ,ngE);
+        Mfield_cp[lev][1] = std::make_unique<MultiFab>(amrex::convert(cba,My_nodal_flag),dm,3     ,ngE);
+        Mfield_cp[lev][2] = std::make_unique<MultiFab>(amrex::convert(cba,Mz_nodal_flag),dm,3     ,ngE);
 
         // Create the MultiFabs for H
-        Hfield_cp[lev][0].reset( new MultiFab(amrex::convert(cba,Hx_nodal_flag),dm,ncomps,ngE));
-        Hfield_cp[lev][1].reset( new MultiFab(amrex::convert(cba,Hy_nodal_flag),dm,ncomps,ngE));
-        Hfield_cp[lev][2].reset( new MultiFab(amrex::convert(cba,Hz_nodal_flag),dm,ncomps,ngE));
+        Hfield_cp[lev][0] = std::make_unique<MultiFab>(amrex::convert(cba,Hx_nodal_flag),dm,ncomps,ngE);
+        Hfield_cp[lev][1] = std::make_unique<MultiFab>(amrex::convert(cba,Hy_nodal_flag),dm,ncomps,ngE);
+        Hfield_cp[lev][2] = std::make_unique<MultiFab>(amrex::convert(cba,Hz_nodal_flag),dm,ncomps,ngE);
 
         // Create the MultiFabs for H_bias
-        H_biasfield_cp[lev][0].reset( new MultiFab(amrex::convert(cba,Hx_bias_nodal_flag),dm,ncomps,ngE));
-        H_biasfield_cp[lev][1].reset( new MultiFab(amrex::convert(cba,Hy_bias_nodal_flag),dm,ncomps,ngE));
-        H_biasfield_cp[lev][2].reset( new MultiFab(amrex::convert(cba,Hz_bias_nodal_flag),dm,ncomps,ngE));
+        H_biasfield_cp[lev][0] = std::make_unique<MultiFab>(amrex::convert(cba,Hx_bias_nodal_flag),dm,ncomps,ngE);
+        H_biasfield_cp[lev][1] = std::make_unique<MultiFab>(amrex::convert(cba,Hy_bias_nodal_flag),dm,ncomps,ngE);
+        H_biasfield_cp[lev][2] = std::make_unique<MultiFab>(amrex::convert(cba,Hz_bias_nodal_flag),dm,ncomps,ngE);
 
 #endif
         // Create the MultiFabs for B_avg
@@ -1395,15 +1395,15 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
                 Efield_cax[lev][1] = std::make_unique<MultiFab>(cnba,dm,ncomps,ngE);
                 Efield_cax[lev][2] = std::make_unique<MultiFab>(cnba,dm,ncomps,ngE);
 #ifdef WARPX_MAG_LLG
-                Mfield_cax[lev][0].reset( new MultiFab(cnba,dm,3     ,ngE));
-                Mfield_cax[lev][1].reset( new MultiFab(cnba,dm,3     ,ngE));
-                Mfield_cax[lev][2].reset( new MultiFab(cnba,dm,3     ,ngE));
-                Hfield_cax[lev][0].reset( new MultiFab(cnba,dm,ncomps,ngE));
-                Hfield_cax[lev][1].reset( new MultiFab(cnba,dm,ncomps,ngE));
-                Hfield_cax[lev][2].reset( new MultiFab(cnba,dm,ncomps,ngE));
-                H_biasfield_cax[lev][0].reset( new MultiFab(cnba,dm,ncomps,ngE));
-                H_biasfield_cax[lev][1].reset( new MultiFab(cnba,dm,ncomps,ngE));
-                H_biasfield_cax[lev][2].reset( new MultiFab(cnba,dm,ncomps,ngE));
+                Mfield_cax[lev][0] = std::make_unique<MultiFab>(cnba,dm,3     ,ngE);
+                Mfield_cax[lev][1] = std::make_unique<MultiFab>(cnba,dm,3     ,ngE);
+                Mfield_cax[lev][2] = std::make_unique<MultiFab>(cnba,dm,3     ,ngE);
+                Hfield_cax[lev][0] = std::make_unique<MultiFab>(cnba,dm,ncomps,ngE);
+                Hfield_cax[lev][1] = std::make_unique<MultiFab>(cnba,dm,ncomps,ngE);
+                Hfield_cax[lev][2] = std::make_unique<MultiFab>(cnba,dm,ncomps,ngE);
+                H_biasfield_cax[lev][0] = std::make_unique<MultiFab>(cnba,dm,ncomps,ngE);
+                H_biasfield_cax[lev][1] = std::make_unique<MultiFab>(cnba,dm,ncomps,ngE);
+                H_biasfield_cax[lev][2] = std::make_unique<MultiFab>(cnba,dm,ncomps,ngE);
 #endif
             } else {
                 // Create the MultiFabs for B
@@ -1422,14 +1422,14 @@ WarpX::AllocLevelMFs (int lev, const BoxArray& ba, const DistributionMapping& dm
                 Mfield_cax[lev][2] = std::make_unique<MultiFab>(amrex::convert(cba,Mz_nodal_flag),dm,3     ,ngE);
 
                 // Create the MultiFabs for H
-                Hfield_cax[lev][0].reset( new MultiFab(amrex::convert(cba,Hx_nodal_flag),dm,ncomps,ngE));
-                Hfield_cax[lev][1].reset( new MultiFab(amrex::convert(cba,Hy_nodal_flag),dm,ncomps,ngE));
-                Hfield_cax[lev][2].reset( new MultiFab(amrex::convert(cba,Hz_nodal_flag),dm,ncomps,ngE));
+                Hfield_cax[lev][0] = std::make_unique<MultiFab>(amrex::convert(cba,Hx_nodal_flag),dm,ncomps,ngE);
+                Hfield_cax[lev][1] = std::make_unique<MultiFab>(amrex::convert(cba,Hy_nodal_flag),dm,ncomps,ngE);
+                Hfield_cax[lev][2] = std::make_unique<MultiFab>(amrex::convert(cba,Hz_nodal_flag),dm,ncomps,ngE);
 
                 // Create the MultiFabs for H_bias
-                H_biasfield_cax[lev][0].reset( new MultiFab(amrex::convert(cba,Hx_bias_nodal_flag),dm,ncomps,ngE));
-                H_biasfield_cax[lev][1].reset( new MultiFab(amrex::convert(cba,Hy_bias_nodal_flag),dm,ncomps,ngE));
-                H_biasfield_cax[lev][2].reset( new MultiFab(amrex::convert(cba,Hz_bias_nodal_flag),dm,ncomps,ngE));
+                H_biasfield_cax[lev][0] = std::make_unique<MultiFab>(amrex::convert(cba,Hx_bias_nodal_flag),dm,ncomps,ngE);
+                H_biasfield_cax[lev][1] = std::make_unique<MultiFab>(amrex::convert(cba,Hy_bias_nodal_flag),dm,ncomps,ngE);
+                H_biasfield_cax[lev][2] = std::make_unique<MultiFab>(amrex::convert(cba,Hz_bias_nodal_flag),dm,ncomps,ngE);
 #endif
             }
 
