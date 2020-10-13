@@ -92,7 +92,9 @@ WarpX::Evolve (int numsteps)
         if (is_synchronized) {
             // Not called at each iteration, so exchange all guard cells
             FillBoundaryE(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
+#ifndef WARPX_MAG_LLG
             FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
+#endif            
 #ifdef WARPX_MAG_LLG
             FillBoundaryH(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
@@ -370,8 +372,8 @@ WarpX::OneStep_nosub (Real cur_time)
 
 #ifndef WARPX_MAG_LLG
         EvolveB(0.5*dt[0]); // We now have B^{n+1/2}
-#endif
         FillBoundaryB(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
+#endif
 
 #ifdef WARPX_MAG_LLG
         if (WarpX::em_solver_medium == MediumForEM::Macroscopic) { //evolveM is not applicable to vacuum
