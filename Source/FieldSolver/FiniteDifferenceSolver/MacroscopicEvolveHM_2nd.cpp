@@ -602,14 +602,10 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                         }
 
                         // calculate M_error_zface
-                        // x component on z-faces of grid
-                        M_error_zface(i, j, k, 0) = amrex::Math::abs((M_zface(i, j, k, 0) - M_prev_zface(i, j, k, 0))) / mag_Ms_arrz;
-
-                        // y component on z-faces of grid
-                        M_error_zface(i, j, k, 1) = amrex::Math::abs((M_zface(i, j, k, 1) - M_prev_zface(i, j, k, 1))) / mag_Ms_arrz;
-
-                        // z component on z-faces of grid
-                        M_error_zface(i, j, k, 2) = amrex::Math::abs((M_zface(i, j, k, 2) - M_prev_zface(i, j, k, 2))) / mag_Ms_arrz;
+                        // x,y,z component on z-faces of grid
+                        for (int icomp = 0; icomp < 3; ++icomp) {
+                            M_error_zface(i, j, k, icomp) = amrex::Math::abs((M_zface(i, j, k, icomp) - M_prev_zface(i, j, k, icomp))) / mag_Ms_arrz;
+                        }
                     }
                 });
         }
