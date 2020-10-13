@@ -116,9 +116,9 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
         int const n_coefs_z = m_stencil_coefs_z.size();
 
         // extract tileboxes for which to loop
-        Box const &tbx = mfi.tilebox(Hfield[0]->ixType().toIntVect()); /* just define which grid type */
-        Box const &tby = mfi.tilebox(Hfield[1]->ixType().toIntVect());
-        Box const &tbz = mfi.tilebox(Hfield[2]->ixType().toIntVect());
+        Box const &tbx = mfi.tilebox(Mfield[0]->ixType().toIntVect()); /* just define which grid type */
+        Box const &tby = mfi.tilebox(Mfield[1]->ixType().toIntVect());
+        Box const &tbz = mfi.tilebox(Mfield[2]->ixType().toIntVect());
 
         // loop over cells and update fields
         amrex::ParallelFor(tbx, tby, tbz,
