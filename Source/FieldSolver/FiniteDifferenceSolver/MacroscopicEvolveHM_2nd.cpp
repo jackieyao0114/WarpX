@@ -388,31 +388,24 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                         // calculate the a_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
                         Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_arrx) / 2.0;
 
-                        // calculate a_temp_xface
-                        // x component on x-faces of grid
-                        a_temp_xface(i, j, k, 0) = (M_normalization != 0) ? -(dt * a_temp_dynamic_coeff * Hx_eff + a_temp_static_xface(i, j, k, 0))
-                                                                          : -(dt * a_temp_dynamic_coeff * Hx_eff + 0.5 * a_temp_static_xface(i, j, k, 0) 
-                                                                            + 0.5 * mag_alpha_arrx * 1. / std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) + std::pow(M_xface(i, j, k, 2), 2.0)) * M_old_xface(i, j, k, 0));
+                        amrex::GpuArray<amrex::Real,3> H_eff;
+                        H_eff[0] = Hx_eff;
+                        H_eff[1] = Hy_eff;
+                        H_eff[2] = Hz_eff;
 
-                        // y component on x-faces of grid
-                        a_temp_xface(i, j, k, 1) = (M_normalization != 0) ? -(dt * a_temp_dynamic_coeff * Hy_eff + a_temp_static_xface(i, j, k, 1))
-                                                                          : -(dt * a_temp_dynamic_coeff * Hy_eff + 0.5 * a_temp_static_xface(i, j, k, 1) 
-                                                                            + 0.5 * mag_alpha_arrx * 1. / std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) + std::pow(M_xface(i, j, k, 2), 2.0)) * M_old_xface(i, j, k, 1));
+                        for (int comp=0; comp<3; ++comp) {
+                            // calculate a_temp_xface
+                            // all components on x-faces of grid
+                            a_temp_xface(i, j, k, comp) = (M_normalization != 0) ? -(dt * a_temp_dynamic_coeff * H_eff[comp] + a_temp_static_xface(i, j, k, comp))
+                                                                                 : -(dt * a_temp_dynamic_coeff * H_eff[comp] + 0.5 * a_temp_static_xface(i, j, k, comp)
+                                                                                     + 0.5 * mag_alpha_arrx * 1. / std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) + std::pow(M_xface(i, j, k, 2), 2.0)) * M_old_xface(i, j, k, comp));
+                        }
 
-                        // z component on x-faces of grid
-                        a_temp_xface(i, j, k, 2) = (M_normalization != 0) ? -(dt * a_temp_dynamic_coeff * Hz_eff + a_temp_static_xface(i, j, k, 2))
-                                                                          : -(dt * a_temp_dynamic_coeff * Hz_eff + 0.5 * a_temp_static_xface(i, j, k, 2) 
-                                                                            + 0.5 * mag_alpha_arrx * 1. / std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) + std::pow(M_xface(i, j, k, 2), 2.0)) * M_old_xface(i, j, k, 2));
-
-                        // update M_xface from a and b using the updateM_field
-                        // x component on x-faces of grid
-                        M_xface(i, j, k, 0) = MacroscopicProperties::updateM_field(i, j, k, 0, a_temp_xface, b_temp_static_xface);
-
-                        // y component on x-faces of grid
-                        M_xface(i, j, k, 1) = MacroscopicProperties::updateM_field(i, j, k, 1, a_temp_xface, b_temp_static_xface);
-
-                        // z component on x-faces of grid
-                        M_xface(i, j, k, 2) = MacroscopicProperties::updateM_field(i, j, k, 2, a_temp_xface, b_temp_static_xface);
+                        for (int comp=0; comp<3; ++comp) {
+                            // update M_xface from a and b using the updateM_field
+                            // all components on x-faces of grid
+                            M_xface(i, j, k, comp) = MacroscopicProperties::updateM_field(i, j, k, comp, a_temp_xface, b_temp_static_xface);
+                        }
 
                         // temporary normalized magnitude of M_xface field at the fixed point
                         // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
