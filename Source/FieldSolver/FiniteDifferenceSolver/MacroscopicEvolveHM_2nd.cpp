@@ -6,8 +6,6 @@ blank
 #include "Utils/WarpXAlgorithmSelection.H"
 #include "FiniteDifferenceSolver.H"
 #include "FiniteDifferenceAlgorithms/CartesianYeeAlgorithm.H"
-#include "FiniteDifferenceAlgorithms/CartesianCKCAlgorithm.H"
-#include "FiniteDifferenceAlgorithms/CartesianNodalAlgorithm.H"
 
 #include "Utils/WarpXConst.H"
 #include <AMReX_Gpu.H>
@@ -56,15 +54,15 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
     // build temporary vector<multifab,3> Mfield_prev, Mfield_error, a_temp, a_temp_static, b_temp_static
     std::array<std::unique_ptr<amrex::MultiFab>, 3> Hfield_old;    // H^n before the current time step
     std::array<std::unique_ptr<amrex::MultiFab>, 3> Mfield_old;    // M^n before the current time step
-    std::array<std::unique_ptr<amrex::MultiFab>, 3> Mfield_prev;   // M^(n+1) of the (r-1)th iteration
-    std::array<std::unique_ptr<amrex::MultiFab>, 3> Mfield_error;  // The error of the M field between the twoiterations
+    std::array<std::unique_ptr<amrex::MultiFab>, 3> Mfield_prev;   // M^(n+1/2) of the (r-1)th iteration
+    std::array<std::unique_ptr<amrex::MultiFab>, 3> Mfield_error;  // The error of the M field between the two consecutive iterations
     std::array<std::unique_ptr<amrex::MultiFab>, 3> a_temp;        // right-hand side of vector a, see the documentation
     std::array<std::unique_ptr<amrex::MultiFab>, 3> a_temp_static; // α M^n/|M| in the right-hand side of vector a, see the documentation
     std::array<std::unique_ptr<amrex::MultiFab>, 3> b_temp_static; // right-hand side of vector b, see the documentation
 
-    // initialize Mfield_previous
+    // Initialize Hfield_old (H^n), Mfield_old (M^n), Mfield_prev (M^[n+1/2,r-1]), Mfield_error 
     for (int i = 0; i < 3; i++){
-        Hfield_old[i].reset(new MultiFab(Hfield[i]->boxArray(), Hfield[i]->DistributionMap(), 3, Hfield[i]->nGrow()));
+        Hfield_old[i].reset(new MultiFab(Hfield[i]->boxArray(), Hfield[i]->DistributionMap(), 1, Hfield[i]->nGrow()));
         Mfield_old[i].reset(new MultiFab(Mfield[i]->boxArray(), Mfield[i]->DistributionMap(), 3, Mfield[i]->nGrow()));
         Mfield_prev[i].reset(new MultiFab(Mfield[i]->boxArray(), Mfield[i]->DistributionMap(), 3, Mfield[i]->nGrow()));
         Mfield_error[i].reset(new MultiFab(Mfield[i]->boxArray(), Mfield[i]->DistributionMap(), 3, Mfield[i]->nGrow()));
@@ -73,7 +71,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
         MultiFab::Copy(*Mfield_old[i], *Mfield[i], 0, 0, 3, Mfield[i]->nGrow());
         MultiFab::Copy(*Mfield_prev[i], *Mfield[i], 0, 0, 3, Mfield[i]->nGrow());
     }
-    // initialize a_temp, b_temp_static
+    // initialize a_temp, a_temp_static, b_temp_static
     for (int i = 0; i < 3; i++){
         a_temp[i].reset(new MultiFab(Mfield[i]->boxArray(), Mfield[i]->DistributionMap(), 3, Mfield[i]->nGrow()));
         a_temp_static[i].reset(new MultiFab(Mfield[i]->boxArray(), Mfield[i]->DistributionMap(), 3, Mfield[i]->nGrow()));
@@ -97,9 +95,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
         Array4<Real> const &Hx_bias = H_biasfield[0]->array(mfi); // Hx_bias is the x component at |_x faces
         Array4<Real> const &Hy_bias = H_biasfield[1]->array(mfi); // Hy_bias is the y component at |_y faces
         Array4<Real> const &Hz_bias = H_biasfield[2]->array(mfi); // Hz_bias is the z component at |_z faces
-        Array4<Real> const &Hx = Hfield[0]->array(mfi);           // Hx is the x component at |_x faces
-        Array4<Real> const &Hy = Hfield[1]->array(mfi);           // Hy is the y component at |_y faces
-        Array4<Real> const &Hz = Hfield[2]->array(mfi);           // Hz is the z component at |_z faces
         Array4<Real> const &Hx_old = Hfield_old[0]->array(mfi);   // Hx_old is the x component at |_x faces
         Array4<Real> const &Hy_old = Hfield_old[1]->array(mfi);   // Hy_old is the y component at |_y faces
         Array4<Real> const &Hz_old = Hfield_old[2]->array(mfi);   // Hz_old is the z component at |_z faces
@@ -438,7 +433,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                         }
                         else if (M_normalization == 0){
                             // check the normalized error
-                            if (M_magnitude_normalized > 1._rt + mag_normalized_error){
+                            if (M_magnitude_normalized > (1._rt + mag_normalized_error)){
                                 printf("i = %d, j=%d, k=%d\n", i, j, k);
                                 printf("M_magnitude_normalized = %f, Ms = %f\n", M_magnitude_normalized, mag_Ms_arrx);
                                 amrex::Abort("Caution: Unsaturated material has M_xface exceeding the saturation magnetization");
@@ -452,14 +447,10 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                         }
 
                         // calculate M_error_xface
-                        // x component on x-faces of grid
-                        M_error_xface(i, j, k, 0) = amrex::Math::abs((M_xface(i, j, k, 0) - M_prev_xface(i, j, k, 0))) / mag_Ms_arrx;
-
-                        // y component on x-faces of grid
-                        M_error_xface(i, j, k, 1) = amrex::Math::abs((M_xface(i, j, k, 1) - M_prev_xface(i, j, k, 1))) / mag_Ms_arrx;
-
-                        // z component on x-faces of grid
-                        M_error_xface(i, j, k, 2) = amrex::Math::abs((M_xface(i, j, k, 2) - M_prev_xface(i, j, k, 2))) / mag_Ms_arrx;
+                        // x,y,z component on M-error on x-faces of grid
+                        for (int icomp = 0; icomp < 3; ++icomp) {
+                            M_error_xface(i, j, k, icomp) = amrex::Math::abs((M_xface(i, j, k, icomp) - M_prev_xface(i, j, k, icomp))) / mag_Ms_arrx;
+                        }
                     }
                 },
 
@@ -550,14 +541,10 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                         }
 
                         // calculate M_error_yface
-                        // x component on y-faces of grid
-                        M_error_yface(i, j, k, 0) = amrex::Math::abs((M_yface(i, j, k, 0) - M_prev_yface(i, j, k, 0))) / mag_Ms_arry;
-
-                        // y component on y-faces of grid
-                        M_error_yface(i, j, k, 1) = amrex::Math::abs((M_yface(i, j, k, 1) - M_prev_yface(i, j, k, 1))) / mag_Ms_arry;
-
-                        // z component on y-faces of grid
-                        M_error_yface(i, j, k, 2) = amrex::Math::abs((M_yface(i, j, k, 2) - M_prev_yface(i, j, k, 2))) / mag_Ms_arry;
+                        // x,y,z component on y-faces of grid
+                        for (int icomp = 0; icomp < 3; ++icomp) {
+                            M_error_yface(i, j, k, icomp) = amrex::Math::abs((M_yface(i, j, k, icomp) - M_prev_yface(i, j, k, icomp))) / mag_Ms_arry;
+                        }
                     }
                 },
 
@@ -692,36 +679,28 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
             Box const &tby = mfi.tilebox(Hfield[1]->ixType().toIntVect());
             Box const &tbz = mfi.tilebox(Hfield[2]->ixType().toIntVect());
 
+            amrex::Real const mu0_inv = 1. / PhysConst::mu0;
             // Loop over the cells and update the fields
             amrex::ParallelFor(tbx, tby, tbz,
 
                 [=] AMREX_GPU_DEVICE(int i, int j, int k) {
-                    if (coupling == 1){
-                        Hx(i, j, k) = Hx_old(i, j, k) + 1. / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k) - 1. / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k) 
-                                                      - M_xface(i, j, k, 0) + M_xface_old(i, j, k, 0);
-                    }
-                    else{
-                        Hx(i, j, k) = Hx_old(i, j, k) + 1. / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k) - 1. / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k);
+                    Hx(i, j, k) = Hx_old(i, j, k) + mu0_inv * dt * T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k) - mu0_inv * dt * T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k);
+                    if (coupling == 1) {
+                        Hx(i, j, k) += - M_xface(i, j, k, 0) + M_xface_old(i, j, k, 0);
                     }
                 },
 
                 [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+                    Hy(i, j, k) = Hy_old(i, j, k) + mu0_inv * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k) - mu0_inv * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k);
                     if (coupling == 1){
-                        Hy(i, j, k) = Hy_old(i, j, k) + 1. / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k) - 1. / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k) 
-                                                      - M_yface(i, j, k, 1) + M_yface_old(i, j, k, 1);
-                    }
-                    else{
-                        Hy(i, j, k) = Hy_old(i, j, k) + 1. / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k) - 1. / PhysConst::mu0 * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k);
+                        Hy(i, j, k) += - M_yface(i, j, k, 1) + M_yface_old(i, j, k, 1);
                     }
                 },
 
                 [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+                    Hz(i, j, k) = Hz_old(i, j, k) + mu0_inv * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k) - mu0_inv * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k);
                     if (coupling == 1){
-                        Hz(i, j, k) = Hz_old(i, j, k) + 1. / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k) - 1. / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k) 
-                                                      - M_zface(i, j, k, 2) + M_zface_old(i, j, k, 2);
-                    }
-                    else{
-                        Hz(i, j, k) = Hz_old(i, j, k) + 1. / PhysConst::mu0 * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k) - 1. / PhysConst::mu0 * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k);
+                        Hz(i, j, k) += - M_zface(i, j, k, 2) + M_zface_old(i, j, k, 2);
                     }
                 }
 
