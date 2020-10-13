@@ -710,9 +710,9 @@ WarpX::InitLevelData (int lev, Real /*time*/)
                                  makeParser(str_Mz_ext_grid_function,{"x","y","z"})));
 
         {   // use this brace so Mx, My, Mz go out of scope
-            MultiFab Mx(Mfield_fp[lev][0]->boxArray(), Mfield_fp[lev][0]->DistributionMap(), 1, Mfield_fp[lev][0]->nGrow()+1);
-            MultiFab My(Mfield_fp[lev][1]->boxArray(), Mfield_fp[lev][1]->DistributionMap(), 1, Mfield_fp[lev][1]->nGrow()+1);
-            MultiFab Mz(Mfield_fp[lev][2]->boxArray(), Mfield_fp[lev][2]->DistributionMap(), 1, Mfield_fp[lev][2]->nGrow()+1);
+            MultiFab Mx(boxArray(lev), DistributionMap(lev), 1, Mfield_fp[lev][0]->nGrow()+1);
+            MultiFab My(boxArray(lev), DistributionMap(lev), 1, Mfield_fp[lev][1]->nGrow()+1);
+            MultiFab Mz(boxArray(lev), DistributionMap(lev), 1, Mfield_fp[lev][2]->nGrow()+1);
 
             // Initialize Mfield_fp with external function
             InitializeExternalFieldsOnGridUsingParser(&Mx,
@@ -759,9 +759,9 @@ WarpX::InitLevelData (int lev, Real /*time*/)
 
         if (lev > 0) {
             {   // use this brace so Mx, My, Mz go out of scope
-                MultiFab Mx(Mfield_aux[lev][0]->boxArray(), Mfield_aux[lev][0]->DistributionMap(), 1, Mfield_aux[lev][0]->nGrow()+1);
-                MultiFab My(Mfield_aux[lev][1]->boxArray(), Mfield_aux[lev][1]->DistributionMap(), 1, Mfield_aux[lev][1]->nGrow()+1);
-                MultiFab Mz(Mfield_aux[lev][2]->boxArray(), Mfield_aux[lev][2]->DistributionMap(), 1, Mfield_aux[lev][2]->nGrow()+1);
+                MultiFab Mx(boxArray(lev), DistributionMap(lev), 1, Mfield_fp[lev][0]->nGrow()+1);
+                MultiFab My(boxArray(lev), DistributionMap(lev), 1, Mfield_fp[lev][1]->nGrow()+1);
+                MultiFab Mz(boxArray(lev), DistributionMap(lev), 1, Mfield_fp[lev][2]->nGrow()+1);
 
                 InitializeExternalFieldsOnGridUsingParser(&Mx,
                                                           &My,
@@ -806,9 +806,9 @@ WarpX::InitLevelData (int lev, Real /*time*/)
             }
 
             {   // use this brace so Mx, My, Mz go out of scope
-                MultiFab Mx(Mfield_cp[lev][0]->boxArray(), Mfield_cp[lev][0]->DistributionMap(), 1, Mfield_cp[lev][0]->nGrow()+1);
-                MultiFab My(Mfield_cp[lev][1]->boxArray(), Mfield_cp[lev][1]->DistributionMap(), 1, Mfield_cp[lev][1]->nGrow()+1);
-                MultiFab Mz(Mfield_cp[lev][2]->boxArray(), Mfield_cp[lev][2]->DistributionMap(), 1, Mfield_cp[lev][2]->nGrow()+1);
+                MultiFab Mx(boxArray(lev), DistributionMap(lev), 1, Mfield_fp[lev][0]->nGrow()+1);
+                MultiFab My(boxArray(lev), DistributionMap(lev), 1, Mfield_fp[lev][1]->nGrow()+1);
+                MultiFab Mz(boxArray(lev), DistributionMap(lev), 1, Mfield_fp[lev][2]->nGrow()+1);
 
                 InitializeExternalFieldsOnGridUsingParser(&Mx,
                                                           &My,
