@@ -672,9 +672,9 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
 
         // Check the error between Mfield and Mfield_prev and decide whether another iteration is needed
         amrex::Real M_iter_maxerror = -1.0;
-        for (int i = 0; i < 3; i++){
-            for (int j = 0; j < 3; j++){
-                Real M_iter_error = Mfield_error[i]->norm0(j);
+        for (int iface = 0; iface < 3; iface++){
+            for (int jcomp = 0; jcomp < 3; jcomp++){
+                Real M_iter_error = Mfield_error[iface]->norm0(jcomp);
                 if (M_iter_error >= M_iter_maxerror){
                     M_iter_maxerror = M_iter_error;
                 }
