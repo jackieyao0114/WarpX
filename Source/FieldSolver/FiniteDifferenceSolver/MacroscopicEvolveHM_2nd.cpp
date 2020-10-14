@@ -657,21 +657,24 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
             amrex::ParallelFor(tbx, tby, tbz,
 
                 [=] AMREX_GPU_DEVICE(int i, int j, int k) {
-                    Hx(i, j, k) = Hx_old(i, j, k) + mu0_inv * dt * T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k) - mu0_inv * dt * T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k);
+                    Hx(i, j, k) = Hx_old(i, j, k) + mu0_inv * dt * T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k) 
+                                                  - mu0_inv * dt * T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k);
                     if (coupling == 1) {
                         Hx(i, j, k) += - M_xface(i, j, k, 0) + M_xface_old(i, j, k, 0);
                     }
                 },
 
                 [=] AMREX_GPU_DEVICE(int i, int j, int k) {
-                    Hy(i, j, k) = Hy_old(i, j, k) + mu0_inv * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k) - mu0_inv * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k);
+                    Hy(i, j, k) = Hy_old(i, j, k) + mu0_inv * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k) 
+                                                  - mu0_inv * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k);
                     if (coupling == 1){
                         Hy(i, j, k) += - M_yface(i, j, k, 1) + M_yface_old(i, j, k, 1);
                     }
                 },
 
                 [=] AMREX_GPU_DEVICE(int i, int j, int k) {
-                    Hz(i, j, k) = Hz_old(i, j, k) + mu0_inv * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k) - mu0_inv * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k);
+                    Hz(i, j, k) = Hz_old(i, j, k) + mu0_inv * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k) 
+                                                  - mu0_inv * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k);
                     if (coupling == 1){
                         Hz(i, j, k) += - M_zface(i, j, k, 2) + M_zface_old(i, j, k, 2);
                     }
