@@ -1822,7 +1822,7 @@ WarpX::PicsarVersion ()
             amrex::Print(ofs1_4).SetPrecision(16) << time << " " << Hx(i,j,k) << " " << Hy(i,j,k) << " " << Hz(i,j,k) << " " << std::endl;
             ofs1_4.close();
             } 
-            if(i==6 && j==4 && k==4){
+            if(i==32 && j==32 && k==32){
             std::ofstream ofs2("./Mfield_xface_right.txt", std::ofstream::app);
             amrex::Print(ofs2).SetPrecision(16) << time << " " << M_xface(i,j,k,0) << " " << M_xface(i,j,k,1) << " " << M_xface(i,j,k,2) << " "
                                                                    << M_yface(i,j,k,0) << " " << M_yface(i,j,k,1) << " " << M_yface(i,j,k,2) << " "
