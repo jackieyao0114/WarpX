@@ -319,8 +319,8 @@ WarpX::MacroscopicEvolveE (int lev, amrex::Real a_dt) {
 void
 WarpX::MacroscopicEvolveE (int lev, PatchType patch_type, amrex::Real a_dt) {
     if (patch_type == PatchType::fine) {
-        m_fdtd_solver_fp[lev]->MacroscopicEvolveE( Efield_fp[lev], 
-#ifndef WARPX_MAG_LLG 
+        m_fdtd_solver_fp[lev]->MacroscopicEvolveE( Efield_fp[lev],
+#ifndef WARPX_MAG_LLG
                                                    Bfield_fp[lev],
 #else
                                                    Hfield_fp[lev],
@@ -437,7 +437,7 @@ WarpX::MacroscopicEvolveHM (int lev, amrex::Real a_dt) {
 void
 WarpX::MacroscopicEvolveHM (int lev, PatchType patch_type, amrex::Real a_dt) {
     if (patch_type == PatchType::fine) {
-        m_fdtd_solver_fp[lev]->MacroscopicEvolveHM( Mfield_fp[lev], Hfield_fp[lev], Bfield_fp[lev], H_biasfield_fp[lev], Efield_fp[lev], 
+        m_fdtd_solver_fp[lev]->MacroscopicEvolveHM( Mfield_fp[lev], Hfield_fp[lev], Bfield_fp[lev], H_biasfield_fp[lev], Efield_fp[lev],
                                              a_dt, m_macroscopic_properties);
     }
     else {

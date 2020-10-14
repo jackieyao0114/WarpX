@@ -123,7 +123,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                 Real mag_Ms_arrx    = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr);
                 Real mag_alpha_arrx = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_alpha_arr);
                 Real mag_gamma_arrx = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_gamma_arr);
-                               
+
                 // determine if the material is nonmagnetic or not
                 if (mag_Ms_arrx != 0 && mag_alpha_arrx != 0 && mag_gamma_arrx != 0)
                 {
@@ -177,7 +177,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                 Real mag_Ms_arry    = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_Ms_arr);
                 Real mag_alpha_arry = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_alpha_arr);
                 Real mag_gamma_arry = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_gamma_arr);
-                
+
                 // determine if the material is nonmagnetic or not
                 if (mag_Ms_arry != 0 && mag_alpha_arry != 0 && mag_gamma_arry != 0)
                 {
@@ -231,7 +231,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                 Real mag_Ms_arrz    = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_Ms_arr);
                 Real mag_alpha_arrz = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_alpha_arr);
                 Real mag_gamma_arrz = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_gamma_arr);
-                
+
                 // determine if the material is nonmagnetic or not
                 if (mag_Ms_arrz != 0 && mag_alpha_arrz != 0 && mag_gamma_arrz != 0)
                 {
@@ -348,7 +348,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                     Real mag_Ms_arrx    = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr);
                     Real mag_alpha_arrx = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_alpha_arr);
                     Real mag_gamma_arrx = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_gamma_arr);
-                
+
                     // determine if the material is nonmagnetic or not
                     if (mag_Ms_arrx != 0 && mag_alpha_arrx != 0 && mag_gamma_arrx != 0)
                     {
@@ -439,7 +439,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                     Real mag_Ms_arry    = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_Ms_arr);
                     Real mag_alpha_arry = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_alpha_arr);
                     Real mag_gamma_arry = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_gamma_arr);
-                    
+
                     // determine if the material is nonmagnetic or not
                     if (mag_Ms_arry != 0 && mag_alpha_arry != 0 && mag_gamma_arry != 0)
                     {
@@ -530,7 +530,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                     Real mag_Ms_arrz    = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_Ms_arr);
                     Real mag_alpha_arrz = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_alpha_arr);
                     Real mag_gamma_arrz = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_gamma_arr);
-                    
+
                     // determine if the material is nonmagnetic or not
                     if (mag_Ms_arrz != 0 && mag_alpha_arrz != 0 && mag_gamma_arrz != 0)
                     {
@@ -656,7 +656,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                         [=] AMREX_GPU_DEVICE(int i, int j, int k) {
 
                             Real mag_Ms_arrx = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr);
-                    
+
                             if (mag_Ms_arrx != 0)
                             {
                                 // temporary normalized magnitude of M_xface field at the fixed point
@@ -682,7 +682,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                         [=] AMREX_GPU_DEVICE(int i, int j, int k) {
 
                             Real mag_Ms_arry = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_Ms_arr);
-                            
+
                             if (mag_Ms_arry != 0)
                             {
                                 // temporary normalized magnitude of M_yface field at the fixed point
@@ -708,7 +708,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                         [=] AMREX_GPU_DEVICE(int i, int j, int k) {
 
                             Real mag_Ms_arrz = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_Ms_arr);
-                            
+
                             if (mag_Ms_arrz != 0)
                             {
                                 // temporary normalized magnitude of M_zface field at the fixed point

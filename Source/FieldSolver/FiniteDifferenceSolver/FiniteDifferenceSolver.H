@@ -113,7 +113,7 @@ class FiniteDifferenceSolver
                        std::array<std::unique_ptr<amrex::MultiFab>, 3> const &Efield,
                        amrex::Real const dt,
                        std::unique_ptr<MacroscopicProperties> const &macroscopic_properties);
-        
+
         void MacroscopicEvolveHM_2nd ( std::array<std::unique_ptr<amrex::MultiFab>, 3> &Mfield,
                        std::array<std::unique_ptr<amrex::MultiFab>, 3> &Hfield,            // H Maxwell
                        std::array< std::unique_ptr<amrex::MultiFab>, 3>& Bfield,
@@ -244,7 +244,7 @@ class FiniteDifferenceSolver
             std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Bfield_old,
             amrex::Real const dt,
             std::unique_ptr<MacroscopicProperties> const& macroscopic_properties );
-        
+
         template< typename T_Algo >
         void MacroscopicEvolveHMCartesian(
             std::array<std::unique_ptr<amrex::MultiFab>, 3> &Mfield,
