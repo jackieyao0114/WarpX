@@ -713,9 +713,9 @@ WarpX::InitLevelData (int lev, Real /*time*/)
             // we need 1 more ghost cell than Mfield_fp has because
             // we are averaging to faces, including the ghost faces
             BoxArray bx = Mfield_fp[lev][0]->boxArray();
-            MultiFab Mx(bx.enclosedCells(), Mfield_fp[lev][0]->DistributionMap(), 1, Mfield_fp[lev][0]->nGrow()+1);
-            MultiFab My(bx.enclosedCells(), Mfield_fp[lev][1]->DistributionMap(), 1, Mfield_fp[lev][1]->nGrow()+1);
-            MultiFab Mz(bx.enclosedCells(), Mfield_fp[lev][2]->DistributionMap(), 1, Mfield_fp[lev][2]->nGrow()+1);
+            amrex::MultiFab Mx(bx.enclosedCells(), Mfield_fp[lev][0]->DistributionMap(), 1, Mfield_fp[lev][0]->nGrow()+1);
+            amrex::MultiFab My(bx.enclosedCells(), Mfield_fp[lev][1]->DistributionMap(), 1, Mfield_fp[lev][1]->nGrow()+1);
+            amrex::MultiFab Mz(bx.enclosedCells(), Mfield_fp[lev][2]->DistributionMap(), 1, Mfield_fp[lev][2]->nGrow()+1);
 
             // Initialize Mfield_fp with external function
             InitializeExternalFieldsOnGridUsingParser(&Mx,
@@ -765,9 +765,9 @@ WarpX::InitLevelData (int lev, Real /*time*/)
                 // we need 1 more ghost cell than Mfield_fp has because
                 // we are averaging to faces, including the ghost faces
                 BoxArray bx = Mfield_aux[lev][0]->boxArray();
-                MultiFab Mx(bx.enclosedCells(), Mfield_aux[lev][0]->DistributionMap(), 1, Mfield_aux[lev][0]->nGrow()+1);
-                MultiFab My(bx.enclosedCells(), Mfield_aux[lev][1]->DistributionMap(), 1, Mfield_aux[lev][1]->nGrow()+1);
-                MultiFab Mz(bx.enclosedCells(), Mfield_aux[lev][2]->DistributionMap(), 1, Mfield_aux[lev][2]->nGrow()+1);
+                amrex::MultiFab Mx(bx.enclosedCells(), Mfield_aux[lev][0]->DistributionMap(), 1, Mfield_aux[lev][0]->nGrow()+1);
+                amrex::MultiFab My(bx.enclosedCells(), Mfield_aux[lev][1]->DistributionMap(), 1, Mfield_aux[lev][1]->nGrow()+1);
+                amrex::MultiFab Mz(bx.enclosedCells(), Mfield_aux[lev][2]->DistributionMap(), 1, Mfield_aux[lev][2]->nGrow()+1);
 
                 InitializeExternalFieldsOnGridUsingParser(&Mx,
                                                           &My,
@@ -815,9 +815,9 @@ WarpX::InitLevelData (int lev, Real /*time*/)
                 // we need 1 more ghost cell than Mfield_fp has because
                 // we are averaging to faces, including the ghost faces
                 BoxArray bx = Mfield_cp[lev][0]->boxArray();
-                MultiFab Mx(bx.enclosedCells(), Mfield_cp[lev][0]->DistributionMap(), 1, Mfield_cp[lev][0]->nGrow()+1);
-                MultiFab My(bx.enclosedCells(), Mfield_cp[lev][1]->DistributionMap(), 1, Mfield_cp[lev][1]->nGrow()+1);
-                MultiFab Mz(bx.enclosedCells(), Mfield_cp[lev][2]->DistributionMap(), 1, Mfield_cp[lev][2]->nGrow()+1);
+                amrex::MultiFab Mx(bx.enclosedCells(), Mfield_cp[lev][0]->DistributionMap(), 1, Mfield_cp[lev][0]->nGrow()+1);
+                amrex::MultiFab My(bx.enclosedCells(), Mfield_cp[lev][1]->DistributionMap(), 1, Mfield_cp[lev][1]->nGrow()+1);
+                amrex::MultiFab Mz(bx.enclosedCells(), Mfield_cp[lev][2]->DistributionMap(), 1, Mfield_cp[lev][2]->nGrow()+1);
 
                 InitializeExternalFieldsOnGridUsingParser(&Mx,
                                                           &My,
