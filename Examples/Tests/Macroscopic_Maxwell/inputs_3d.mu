@@ -89,11 +89,11 @@ warpx.Hz_external_grid_function(x,y,z) = 0.
 warpx.H_bias_ext_grid_init_style = parse_H_bias_ext_grid_function
 warpx.Hx_bias_external_grid_function(x,y,z)= 0.
 warpx.Hy_bias_external_grid_function(x,y,z)= "9470.0 * (z<=h) + 0 * (z>h)" # in A/m, equal to 120 Oersted
-warpx.Hz_bias_external_grid_function(x,y,z)= 0. 
+warpx.Hz_bias_external_grid_function(x,y,z)= 0.
 
 warpx.M_ext_grid_init_style = parse_M_ext_grid_function
 warpx.Mx_external_grid_function(x,y,z)= 0.
-warpx.My_external_grid_function(x,y,z)= "1.4e5 * (z<=h) + 0.1 * (z>h)" 
+warpx.My_external_grid_function(x,y,z)= "1.4e5 * (z<=h) + 0.1 * (z>h)"
 warpx.Mz_external_grid_function(x,y,z) = 0.
 
 #Diagnostics

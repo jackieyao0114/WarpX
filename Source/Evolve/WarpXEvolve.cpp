@@ -94,7 +94,7 @@ WarpX::Evolve (int numsteps)
             FillBoundaryE(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
 #ifndef WARPX_MAG_LLG
             FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
-#endif            
+#endif
 #ifdef WARPX_MAG_LLG
             FillBoundaryH(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
