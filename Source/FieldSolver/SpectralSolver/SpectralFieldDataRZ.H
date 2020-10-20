@@ -24,8 +24,10 @@ class SpectralFieldDataRZ
         // Define the FFTplans type, which holds one fft plan per box
         // (plans are only initialized for the boxes that are owned by
         // the local MPI rank)
-#ifdef AMREX_USE_GPU
+#if defined(AMREX_USE_CUDA)
         using FFTplans = amrex::LayoutData<cufftHandle>;
+#elif defined(AMREX_USE_HIP)
+        using FFTplans = amrex::LayoutData<rocfft_plan>;
 #else
         using FFTplans = amrex::LayoutData<fftw_plan>;
 #endif
@@ -44,12 +46,12 @@ class SpectralFieldDataRZ
         SpectralFieldDataRZ& operator=(SpectralFieldDataRZ&& field_data) = default;
         ~SpectralFieldDataRZ ();
 
-        void ForwardTransform (const amrex::MultiFab& mf,
-                               const int field_index, const int i_comp);
+        void ForwardTransform (const amrex::MultiFab& mf, const int field_index,
+                               const int i_comp=0);
         void ForwardTransform (const amrex::MultiFab& mf_r, const int field_index_r,
                                const amrex::MultiFab& mf_t, const int field_index_t);
-        void BackwardTransform (amrex::MultiFab& mf,
-                                const int field_index, const int i_comp);
+        void BackwardTransform (amrex::MultiFab& mf, const int field_index,
+                                const int i_comp=0);
         void BackwardTransform (amrex::MultiFab& mf_r, const int field_index_r,
                                 amrex::MultiFab& mf_t, const int field_index_t);
 
@@ -89,6 +91,7 @@ class SpectralFieldDataRZ
         SpectralShiftFactor zshift_FFTfromCell, zshift_FFTtoCell;
         MultiSpectralHankelTransformer multi_spectral_hankel_transformer;
         BinomialFilter binomialfilter;
+
 };
 
 #endif // WARPX_SPECTRAL_FIELD_DATA_RZ_H_
