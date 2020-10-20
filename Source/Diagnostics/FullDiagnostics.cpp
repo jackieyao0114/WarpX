@@ -35,12 +35,11 @@ FullDiagnostics::InitializeParticleBuffer ()
 
     const MultiParticleContainer& mpc = warpx.GetPartContainer();
     // If not specified, dump all species
-    if (m_species_names.size() == 0) m_species_names = mpc.GetSpeciesNames();
+    if (m_output_species_names.size() == 0) m_output_species_names = mpc.GetSpeciesNames();
     // Initialize one ParticleDiag per species requested
-    for (auto const& species : m_species_names){
+    for (auto const& species : m_output_species_names){
         const int idx = mpc.getSpeciesID(species);
-        m_all_species.push_back(ParticleDiag(m_diag_name, species,
-                                             mpc.GetParticleContainerPtr(idx)));
+        m_output_species.push_back(ParticleDiag(m_diag_name, species, mpc.GetParticleContainerPtr(idx)));
     }
 }
 
@@ -60,9 +59,12 @@ FullDiagnostics::ReadParameters ()
     m_intervals = IntervalsParser(period_string_vec);
     bool raw_specified = pp.query("plot_raw_fields", m_plot_raw_fields);
     raw_specified += pp.query("plot_raw_fields_guards", m_plot_raw_fields_guards);
+    raw_specified += pp.query("plot_raw_rho", m_plot_raw_rho);
 
 #ifdef WARPX_DIM_RZ
     pp.query("dump_rz_modes", m_dump_rz_modes);
+#else
+    amrex::ignore_unused(m_dump_rz_modes);
 #endif
 
     if (m_format == "checkpoint"){
@@ -86,7 +88,7 @@ FullDiagnostics::Flush ( int i_buffer )
 
     m_flush_format->WriteToFile(
         m_varnames, m_mf_output[i_buffer], m_geom_output[i_buffer], warpx.getistep(),
-        warpx.gett_new(0), m_all_species, nlev_output, m_file_prefix,
+        warpx.gett_new(0), m_output_species, nlev_output, m_file_prefix,
         m_plot_raw_fields, m_plot_raw_fields_guards, m_plot_raw_rho, m_plot_raw_F);
 
     FlushRaw();
@@ -348,8 +350,12 @@ void
 FullDiagnostics::InitializeFieldFunctors (int lev)
 {
     auto & warpx = WarpX::GetInstance();
+
     // Clear any pre-existing vector to release stored data.
     m_all_field_functors[lev].clear();
+
+    // Species index to loop over species that dump rho per species
+    int i = 0;
 
     m_all_field_functors[lev].resize( m_varnames.size() );
     // Fill vector of functors for all components except individual cylindrical modes.
@@ -367,6 +373,12 @@ FullDiagnostics::InitializeFieldFunctors (int lev)
         } else if ( m_varnames[comp] == "Bz" ){
             m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Bfield_aux(lev, 2), lev, m_crse_ratio);
 #ifdef WARPX_MAG_LLG
+        } else if ( m_varnames[comp] == "Hx" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Hfield_aux(lev, 0), lev, m_crse_ratio);
+        } else if ( m_varnames[comp] == "Hy" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Hfield_aux(lev, 1), lev, m_crse_ratio);
+        } else if ( m_varnames[comp] == "Hz" ){
+            m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_Hfield_aux(lev, 2), lev, m_crse_ratio);
         } else if ( m_varnames[comp] == "Mx_xface" ){
             // For the magnetization variables (e.g., Mx_xface) we have to pass in an additional integer stating which variable from the Mfield MultiFab
             // will get averaged/interpolated to the ce1ll-centered plotfile MultiFab.  This is the final integer in the calling sequence.
@@ -407,8 +419,13 @@ FullDiagnostics::InitializeFieldFunctors (int lev)
 #endif
             }
             else {
+                // Initialize rho functor to dump total rho
                 m_all_field_functors[lev][comp] = std::make_unique<RhoFunctor>(lev, m_crse_ratio);
             }
+        } else if ( m_varnames[comp].rfind("rho_", 0) == 0 ){
+            // Initialize rho functor to dump rho per species
+            m_all_field_functors[lev][comp] = std::make_unique<RhoFunctor>(lev, m_crse_ratio, m_rho_per_species_index[i]);
+            i++;
         } else if ( m_varnames[comp] == "F" ){
             m_all_field_functors[lev][comp] = std::make_unique<CellCenterFunctor>(warpx.get_pointer_F_fp(lev), lev, m_crse_ratio);
         } else if ( m_varnames[comp] == "part_per_cell" ){
@@ -419,6 +436,9 @@ FullDiagnostics::InitializeFieldFunctors (int lev)
             m_all_field_functors[lev][comp] = std::make_unique<DivBFunctor>(warpx.get_array_Bfield_aux(lev), lev, m_crse_ratio);
         } else if ( m_varnames[comp] == "divE" ){
             m_all_field_functors[lev][comp] = std::make_unique<DivEFunctor>(warpx.get_array_Efield_aux(lev), lev, m_crse_ratio);
+        }
+        else {
+            amrex::Abort("Error: " + m_varnames[comp] + " is not a known field output type");
         }
     }
     AddRZModesToDiags( lev );
@@ -439,8 +459,8 @@ FullDiagnostics::PrepareFieldDataForOutput ()
     warpx.UpdateAuxilaryData();
 
     // Update the RealBox used for the geometry filter in particle diags
-    for (int i = 0; i < m_all_species.size(); ++i) {
-        m_all_species[i].m_diag_domain = m_geom_output[0][0].ProbDomain();
+    for (int i = 0; i < m_output_species.size(); ++i) {
+        m_output_species[i].m_diag_domain = m_geom_output[0][0].ProbDomain();
     }
 }
 
