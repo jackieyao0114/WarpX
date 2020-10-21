@@ -58,7 +58,7 @@ MacroscopicProperties::ReadParameters ()
                                  makeParser(m_str_epsilon_function,{"x","y","z"}) ) );
     }
 
-    // Query input for material permittivity, epsilon.
+    // Query input for material permeability, mu
     bool mu_specified = false;
     if (pp.query("mu", m_mu)) {
         m_mu_s = "constant";
@@ -186,6 +186,15 @@ MacroscopicProperties::InitData ()
     else if (m_mag_Ms_s == "parse_mag_Ms_function"){
         InitializeMacroMultiFabUsingParser(m_mag_Ms_mf.get(), getParser(m_mag_Ms_parser), lev);
     }
+    // if there are regions with Ms=0, the user must provide mur value there
+    if ((*m_mag_Ms_mf).min(1,0) < 0){
+        amrex::Abort("Ms must be non-negative values");
+    }
+    else if ((*m_mag_Ms_mf).min(1,0) == 0){
+        if (m_mu_s != "constant" && m_mu_s != "parse_mu_function"){
+            amrex::Abort("permeability must be specified since part of the simulation domain is non-magnetic !");
+        }
+    }    
 
     // mag_alpha - defined at node
     if (m_mag_alpha_s == "constant") {
