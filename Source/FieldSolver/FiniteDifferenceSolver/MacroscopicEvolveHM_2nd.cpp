@@ -656,6 +656,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
             auto& mag_Ms_mf = macroscopic_properties->getmag_Ms_mf();
             Array4<Real> const& mag_Ms_arr = mag_Ms_mf.array(mfi);
 
+            // mu_mf will be imported but will only be called at grids where Ms == 0
             auto& mu_mf = macroscopic_properties->getmu_mf();
             Array4<Real> const& mu_arr = mu_mf.array(mfi);
 
@@ -713,7 +714,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
         }
 
         // Check the error between Mfield and Mfield_prev and decide whether another iteration is needed
-        amrex::Real M_iter_maxerror = -1.0;
+        amrex::Real M_iter_maxerror = -1._rt;
         for (int iface = 0; iface < 3; iface++){
             for (int jcomp = 0; jcomp < 3; jcomp++){
                 Real M_iter_error = Mfield_error[iface]->norm0(jcomp);
