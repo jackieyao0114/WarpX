@@ -866,19 +866,45 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
         Box const &tby = mfi.tilebox(Bfield[1]->ixType().toIntVect());
         Box const &tbz = mfi.tilebox(Bfield[2]->ixType().toIntVect());
 
+        // read in Ms to decide if the grid is magnetic or not
+        auto& mag_Ms_mf = macroscopic_properties->getmag_Ms_mf();
+        Array4<Real> const& mag_Ms_arr = mag_Ms_mf.array(mfi);
+
+        // mu_mf will be imported but will only be called at grids where Ms == 0
+        auto& mu_mf = macroscopic_properties->getmu_mf();
+        Array4<Real> const& mu_arr = mu_mf.array(mfi);
+
         // Loop over the cells and update the fields
         amrex::ParallelFor(tbx, tby, tbz,
 
             [=] AMREX_GPU_DEVICE(int i, int j, int k) {
-                Bx(i, j, k) = PhysConst::mu0 * (M_xface(i, j, k, 0) + Hx(i, j, k));
+                Real mag_Ms_arrx = MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(1,0,0), mag_Ms_arr);
+                if (mag_Ms_arrx == 0._rt){ // nonmagnetic region
+                    Real mu_arrx = MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(1,0,0), mu_arr);
+                    Bx(i, j, k) = mu_arrx * Hx(i, j, k);
+                } else if (mag_Ms_arrx > 0){
+                    Bx(i, j, k) = PhysConst::mu0 * (M_xface(i, j, k, 0) + Hx(i, j, k));
+                }
             },
 
             [=] AMREX_GPU_DEVICE(int i, int j, int k) {
-                By(i, j, k) = PhysConst::mu0 * (M_yface(i, j, k, 1) + Hy(i, j, k));
+                Real mag_Ms_arry = MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(0,1,0), mag_Ms_arr);
+                if (mag_Ms_arry == 0._rt){ // nonmagnetic region
+                    Real mu_arry = MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(0,1,0), mu_arr);
+                    By(i, j, k) =  mu_arry * Hy(i, j, k);
+                } else if (mag_Ms_arry > 0){
+                    By(i, j, k) = PhysConst::mu0 * (M_yface(i, j, k, 1) + Hy(i, j, k));
+                }
             },
 
             [=] AMREX_GPU_DEVICE(int i, int j, int k) {
-                Bz(i, j, k) = PhysConst::mu0 * (M_zface(i, j, k, 2) + Hz(i, j, k));
+                Real mag_Ms_arrz = MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(0,0,1), mag_Ms_arr);
+                if (mag_Ms_arrz == 0._rt){ // nonmagnetic region
+                    Real mu_arrz = MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(0,0,1), mu_arr);
+                    Bz(i, j, k) = mu_arrz * Hz(i, j, k);
+                } else if (mag_Ms_arrz > 0){
+                    Bz(i, j, k) = PhysConst::mu0 * (M_zface(i, j, k, 2) + Hz(i, j, k));
+                }
             }
 
         );
