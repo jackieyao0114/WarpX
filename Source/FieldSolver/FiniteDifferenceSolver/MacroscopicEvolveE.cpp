@@ -187,7 +187,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
                                            Ex_stag, macro_cr, i, j, k, scomp);
                 amrex::Real alpha = T_MacroAlgo::alpha( sigma_interp, epsilon_interp, dt);
                 amrex::Real beta = T_MacroAlgo::beta( sigma_interp, epsilon_interp, dt);
-
+                
                 Ex(i, j, k) = alpha * Ex(i, j, k)
                             + beta * ( - T_Algo::DownwardDz(Hy, coefs_z, n_coefs_z, i, j, k,0)
                                        + T_Algo::DownwardDy(Hz, coefs_y, n_coefs_y, i, j, k,0)
@@ -202,10 +202,22 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
                 amrex::Real alpha = T_MacroAlgo::alpha( sigma_interp, epsilon_interp, dt);
                 amrex::Real beta = T_MacroAlgo::beta( sigma_interp, epsilon_interp, dt);
 
+
+
+                if (i==15 && j==15 && k==256) {
+                    Print() << "Ey old " << Ey(i,j,k) << " " << Ey(i,j,k-1) << std::endl
+                            << "Hx     " << Hx(i,j,k,0) << " " << Hx(i,j,k-1,0) << std::endl
+                            << "Hz     " << Hz(i,j,k,0) << " " << Hz(i-1,j,k,0) << std::endl;
+                }
+                
                 Ey(i, j, k) = alpha * Ey(i, j, k)
                             + beta * ( - T_Algo::DownwardDx(Hz, coefs_x, n_coefs_x, i, j, k,0)
                                        + T_Algo::DownwardDz(Hx, coefs_z, n_coefs_z, i, j, k,0)
                                      ) - beta * jy(i, j, k);
+                
+                if (i==15 && j==15 && k==256) {
+                    Print() << "Ey new " << Ey(i,j,k) << " " << Ey(i,j,k-1) << std::endl;
+                }
             },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
