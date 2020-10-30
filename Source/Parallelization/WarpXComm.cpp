@@ -522,14 +522,14 @@ WarpX::FillBoundaryM (int lev, PatchType patch_type, IntVect ng)
     {
         if (do_pml && pml[lev]->ok())
         {
-            amrex:Abort("PML not included for EvolveM yet");
+            // amrex:Abort("PML not included for EvolveM yet");
             /*
             pml[lev]->ExchangeM(patch_type,
                             { Mfield_fp[lev][0].get(),
                               Mfield_fp[lev][1].get(),
                               Mfield_fp[lev][2].get() },
                               do_pml_in_domain);
-        pml[lev]->FillBoundaryM(patch_type);
+            pml[lev]->FillBoundaryM(patch_type);
         */
         }
         const auto& period = Geom(lev).periodicity();
@@ -597,15 +597,12 @@ WarpX::FillBoundaryH (int lev, PatchType patch_type, IntVect ng)
     {
         if (do_pml && pml[lev]->ok())
         {
-            amrex:Abort("PML not included for EvolveHM yet");
-            /*
             pml[lev]->ExchangeH(patch_type,
                             { Hfield_fp[lev][0].get(),
                               Hfield_fp[lev][1].get(),
                               Hfield_fp[lev][2].get() },
                               do_pml_in_domain);
-        pml[lev]->FillBoundaryH(patch_type);
-        */
+            pml[lev]->FillBoundaryH(patch_type);
         }
         const auto& period = Geom(lev).periodicity();
         if ( safe_guard_cells ) {

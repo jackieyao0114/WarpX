@@ -113,9 +113,15 @@ public:
 
     std::array<amrex::MultiFab*,3> GetE_fp ();
     std::array<amrex::MultiFab*,3> GetB_fp ();
+#ifdef WARPX_MAG_LLG
+    std::array<amrex::MultiFab*,3> GetH_fp ();
+#endif
     std::array<amrex::MultiFab*,3> Getj_fp ();
     std::array<amrex::MultiFab*,3> GetE_cp ();
     std::array<amrex::MultiFab*,3> GetB_cp ();
+#ifdef WARPX_MAG_LLG
+    std::array<amrex::MultiFab*,3> GetH_cp ();
+#endif
     std::array<amrex::MultiFab*,3> Getj_cp ();
 
     amrex::MultiFab* GetF_fp ();
@@ -130,9 +136,12 @@ public:
 #ifdef WARPX_USE_PSATD
     void PushPSATD ();
 #endif
-
+#ifdef WARPX_MAG_LLG
+    void ExchangeH (const std::array<amrex::MultiFab*,3>& H_fp,
+                    const std::array<amrex::MultiFab*,3>& H_cp, int do_pml_in_domain);
+#endif
     void ExchangeB (const std::array<amrex::MultiFab*,3>& B_fp,
-                    const std::array<amrex::MultiFab*,3>& B_cp, int do_pml_in_domain);
+                    const std::array<amrex::MultiFab*,3>& B_cp, int do_pml_in_domain);    
     void ExchangeE (const std::array<amrex::MultiFab*,3>& E_fp,
                     const std::array<amrex::MultiFab*,3>& E_cp, int do_pml_in_domain);
     void CopyJtoPMLs (const std::array<amrex::MultiFab*,3>& j_fp,
@@ -140,6 +149,10 @@ public:
 
     void ExchangeB (PatchType patch_type,
                     const std::array<amrex::MultiFab*,3>& Bp, int do_pml_in_domain);
+#ifdef WARPX_MAG_LLG
+    void ExchangeH (PatchType patch_type,
+                    const std::array<amrex::MultiFab*,3>& Bp, int do_pml_in_domain);
+#endif
     void ExchangeE (PatchType patch_type,
                     const std::array<amrex::MultiFab*,3>& Ep, int do_pml_in_domain);
 
@@ -152,9 +165,15 @@ public:
     void FillBoundary ();
     void FillBoundaryE ();
     void FillBoundaryB ();
+#ifdef WARPX_MAG_LLG
+    void FillBoundaryH ();
+#endif
     void FillBoundaryF ();
     void FillBoundaryE (PatchType patch_type);
     void FillBoundaryB (PatchType patch_type);
+#ifdef WARPX_MAG_LLG
+    void FillBoundaryH (PatchType patch_type);
+#endif
     void FillBoundaryF (PatchType patch_type);
 
     bool ok () const { return m_ok; }
@@ -172,10 +191,16 @@ private:
 
     std::array<std::unique_ptr<amrex::MultiFab>,3> pml_E_fp;
     std::array<std::unique_ptr<amrex::MultiFab>,3> pml_B_fp;
+#ifdef WARPX_MAG_LLG
+    std::array<std::unique_ptr<amrex::MultiFab>,3> pml_H_fp;
+#endif
     std::array<std::unique_ptr<amrex::MultiFab>,3> pml_j_fp;
 
     std::array<std::unique_ptr<amrex::MultiFab>,3> pml_E_cp;
     std::array<std::unique_ptr<amrex::MultiFab>,3> pml_B_cp;
+#ifdef WARPX_MAG_LLG
+    std::array<std::unique_ptr<amrex::MultiFab>,3> pml_H_cp;
+#endif
     std::array<std::unique_ptr<amrex::MultiFab>,3> pml_j_cp;
 
     std::unique_ptr<amrex::MultiFab> pml_F_fp;
