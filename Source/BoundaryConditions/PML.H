@@ -141,7 +141,7 @@ public:
                     const std::array<amrex::MultiFab*,3>& H_cp, int do_pml_in_domain);
 #endif
     void ExchangeB (const std::array<amrex::MultiFab*,3>& B_fp,
-                    const std::array<amrex::MultiFab*,3>& B_cp, int do_pml_in_domain);    
+                    const std::array<amrex::MultiFab*,3>& B_cp, int do_pml_in_domain);
     void ExchangeE (const std::array<amrex::MultiFab*,3>& E_fp,
                     const std::array<amrex::MultiFab*,3>& E_cp, int do_pml_in_domain);
     void CopyJtoPMLs (const std::array<amrex::MultiFab*,3>& j_fp,
