@@ -125,7 +125,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                 Real mag_gamma_arrx = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_gamma_arr);
 
                 // determine if the material is nonmagnetic or not
-                if (mag_Ms_arrx != 0 && mag_alpha_arrx != 0 && mag_gamma_arrx != 0)
+                if (mag_Ms_arrx != 0._rt)
                 {
                     // when working on M_xface(i,j,k, 0:2) we have direct access to M_xface(i,j,k,0:2) and Hx(i,j,k)
                     // Hy and Hz can be acquired by interpolation
@@ -179,7 +179,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                 Real mag_gamma_arry = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_gamma_arr);
 
                 // determine if the material is nonmagnetic or not
-                if (mag_Ms_arry != 0 && mag_alpha_arry != 0 && mag_gamma_arry != 0)
+                if (mag_Ms_arry != 0._rt)
                 {
                     // when working on M_yface(i,j,k,0:2) we have direct access to M_yface(i,j,k,0:2) and Hy(i,j,k)
                     // Hy and Hz can be acquired by interpolation
@@ -233,7 +233,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                 Real mag_gamma_arrz = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_gamma_arr);
 
                 // determine if the material is nonmagnetic or not
-                if (mag_Ms_arrz != 0 && mag_alpha_arrz != 0 && mag_gamma_arrz != 0)
+                if (mag_Ms_arrz != 0._rt)
                 {
                     // when working on M_zface(i,j,k,0:2) we have direct access to M_zface(i,j,k,0:2) and Hz(i,j,k)
                     // Hy and Hz can be acquired by interpolation
@@ -350,7 +350,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                     Real mag_gamma_arrx = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_gamma_arr);
 
                     // determine if the material is nonmagnetic or not
-                    if (mag_Ms_arrx != 0 && mag_alpha_arrx != 0 && mag_gamma_arrx != 0)
+                    if (mag_Ms_arrx != 0._rt)
                     {
                         // when working on M_xface(i,j,k, 0:2) we have direct access to M_xface(i,j,k,0:2) and Hx(i,j,k)
                         // Hy and Hz can be acquired by interpolation
@@ -441,7 +441,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                     Real mag_gamma_arry = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_gamma_arr);
 
                     // determine if the material is nonmagnetic or not
-                    if (mag_Ms_arry != 0 && mag_alpha_arry != 0 && mag_gamma_arry != 0)
+                    if (mag_Ms_arry != 0._rt)
                     {
                         // when working on M_yface(i,j,k,0:2) we have direct access to M_yface(i,j,k,0:2) and Hy(i,j,k)
                         // Hy and Hz can be acquired by interpolation
@@ -532,7 +532,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                     Real mag_gamma_arrz = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_gamma_arr);
 
                     // determine if the material is nonmagnetic or not
-                    if (mag_Ms_arrz != 0 && mag_alpha_arrz != 0 && mag_gamma_arrz != 0)
+                    if (mag_Ms_arrz != 0._rt)
                     {
                         // when working on M_zface(i,j,k,0:2) we have direct access to M_zface(i,j,k,0:2) and Hz(i,j,k)
                         // Hy and Hz can be acquired by interpolation
@@ -618,7 +618,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
         }
 
         // Check the error between Mfield and Mfield_prev and decide whether another iteration is needed
-        amrex::Real M_iter_maxerror = -1.0;
+        amrex::Real M_iter_maxerror = -1._rt;
         for (int i = 0; i < 1; i++) {
             for (int j = 0; j < 3; j++) {
                 Real M_iter_error = Mfield_error[i]->norm0(j);
@@ -657,7 +657,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
 
                             Real mag_Ms_arrx = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr);
 
-                            if (mag_Ms_arrx != 0)
+                            if (mag_Ms_arrx != 0._rt)
                             {
                                 // temporary normalized magnitude of M_xface field at the fixed point
                                 // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
@@ -683,7 +683,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
 
                             Real mag_Ms_arry = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_Ms_arr);
 
-                            if (mag_Ms_arry != 0)
+                            if (mag_Ms_arry != 0._rt)
                             {
                                 // temporary normalized magnitude of M_yface field at the fixed point
                                 // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
@@ -709,7 +709,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
 
                             Real mag_Ms_arrz = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_Ms_arr);
 
-                            if (mag_Ms_arrz != 0)
+                            if (mag_Ms_arrz != 0._rt)
                             {
                                 // temporary normalized magnitude of M_zface field at the fixed point
                                 // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
