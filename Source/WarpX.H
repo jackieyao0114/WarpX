@@ -151,6 +151,18 @@ public:
     static std::string str_Hy_excitation_grid_function;
     static std::string str_Hz_excitation_grid_function;
 #endif
+    // Flag for type of excitation (hard/soft)
+    static std::string str_Ex_excitation_flag_function;
+    static std::string str_Ey_excitation_flag_function;
+    static std::string str_Ez_excitation_flag_function;
+    static std::string str_Bx_excitation_flag_function;
+    static std::string str_By_excitation_flag_function;
+    static std::string str_Bz_excitation_flag_function;
+#ifdef WARPX_MAG_LLG
+    static std::string str_Hx_excitation_flag_function;
+    static std::string str_Hy_excitation_flag_function;
+    static std::string str_Hz_excitation_flag_function;
+#endif
 
 #ifdef WARPX_MAG_LLG
     // Parser for H_external on the grid
@@ -190,6 +202,17 @@ public:
     std::unique_ptr<ParserWrapper<4> > Hxfield_xt_grid_parser;
     std::unique_ptr<ParserWrapper<4> > Hyfield_xt_grid_parser;
     std::unique_ptr<ParserWrapper<4> > Hzfield_xt_grid_parser;
+#endif
+    std::unique_ptr<ParserWrapper<3> > Exfield_flag_parser;
+    std::unique_ptr<ParserWrapper<3> > Eyfield_flag_parser;
+    std::unique_ptr<ParserWrapper<3> > Ezfield_flag_parser;
+    std::unique_ptr<ParserWrapper<3> > Bxfield_flag_parser;
+    std::unique_ptr<ParserWrapper<3> > Byfield_flag_parser;
+    std::unique_ptr<ParserWrapper<3> > Bzfield_flag_parser;
+#ifdef WARPX_MAG_LLG
+    std::unique_ptr<ParserWrapper<3> > Hxfield_flag_parser;
+    std::unique_ptr<ParserWrapper<3> > Hyfield_flag_parser;
+    std::unique_ptr<ParserWrapper<3> > Hzfield_flag_parser;
 #endif
 
 #ifdef WARPX_MAG_LLG
@@ -670,12 +693,22 @@ public:
     const amrex::IntVect get_ng_depos_J() const {return guard_cells.ng_depos_J;}
     const amrex::IntVect get_ng_depos_rho() const {return guard_cells.ng_depos_rho;}
 
+    /** Coarsest-level Domain Decomposition
+     *
+     * If specified, the domain will be chopped into the exact number
+     * of pieces in each dimension as specified by this parameter.
+     *
+     * @return the number of MPI processes per dimension if specified, otherwise a 0-vector
+     */
+    const amrex::IntVect get_numprocs() const {return numprocs;}
+
     void ComputeSpaceChargeField (bool const reset_fields);
     void AddSpaceChargeField (WarpXParticleContainer& pc);
     void computePhi (const amrex::Vector<std::unique_ptr<amrex::MultiFab> >& rho,
                      amrex::Vector<std::unique_ptr<amrex::MultiFab> >& phi,
                      std::array<amrex::Real, 3> const beta = {{0,0,0}},
-                     amrex::Real const required_precision=1.e-11 ) const;
+                     amrex::Real const required_precision=1.e-11,
+                     const int max_iters=200) const;
     void computeE (amrex::Vector<std::array<std::unique_ptr<amrex::MultiFab>, 3> >& E,
                    const amrex::Vector<std::unique_ptr<amrex::MultiFab> >& phi,
                    std::array<amrex::Real, 3> const beta = {{0,0,0}} ) const;
@@ -712,15 +745,42 @@ public:
      */
     void ComputeCostsHeuristic (amrex::Vector<std::unique_ptr<amrex::LayoutData<amrex::Real> > >& costs);
 
-    /** \brief adds the contribution of user-defined external field-excitation
-     *   to Efield_fp and Bfield_fp.
+    /** \brief Adds the contribution of user-defined external field-excitation
+     *   to Efield, Bfield, and also Hfield if `USE_LLG=TRUE`.
+     *   Two types of excitation are supported, namely, hard source and soft source.
+     *   An excitation is called hard source if the field value is set exactly equal
+     *   to the excitation (similar to a Dirichlet boundary) (field = excitation).
+     *   An excitation is called soft source if the field value is updated by adding
+     *   to it the contribution from the externally applied excitation (field += excitation).
+     *   To ensure that the excitation is appropriately accounted for, a flag parser for
+     *   each component of the field must be specified.
+     *   The flag can have three values :
+     *       If flag_type == 0, field is not updated with external excitation
+     *       If flag_type == 1, field is set equal to the
+     *                          external excitation (aka hard source)
+     *       If flag_type == 2, field is updated to add the contribution from
+     *                          external excitation (aka soft source)
+     *
+     *   \param[in] mfx, mfy, mfz : The field component Multifabs to be updated with
+     *                              the external excitation.
+     *   \param[in] xfield_parser : external excitation for xcomponent of the field
+     *   \param[in] yfield_parser : external excitation for ycomponent of the field
+     *   \param[in] zfield_parser : external excitation for zcomponent of the field
+     *   \param[in] xflag_parser  : Type xfield excitation (hard source=0/soft source=1)
+     *   \param[in] yflag_parser  : Type yfield excitation (hard source=0/soft source=1)
+     *   \param[in] zflag_parser  : Type zfield excitation (hard source=0/soft source=1)
+     *   \param[in] lev           : level on which the excitation is applied.
      */
     void ApplyExternalFieldExcitationOnGrid ();
     void ApplyExternalFieldExcitationOnGrid ( amrex::MultiFab *mfx,
          amrex::MultiFab *mfy, amrex::MultiFab *mfz,
          HostDeviceParser<4> const& xfield_parser,
          HostDeviceParser<4> const& yfield_parser,
-         HostDeviceParser<4> const& zfield_parser, const int lev );
+         HostDeviceParser<4> const& zfield_parser,
+         HostDeviceParser<3> const& xflag_parser,
+         HostDeviceParser<3> const& yflag_parser,
+         HostDeviceParser<3> const& zflag_parser, const int lev );
+    void ApplyFilterandSumBoundaryRho (int lev, int glev, amrex::MultiFab& rho, int icomp, int ncomp);
 
 protected:
 
@@ -1086,7 +1146,18 @@ private:
         amrex::Vector<std::unique_ptr<SpectralSolver>> spectral_solver_fp;
         amrex::Vector<std::unique_ptr<SpectralSolver>> spectral_solver_cp;
 #   endif
+
+public:
+
+#   ifdef WARPX_DIM_RZ
+        SpectralSolverRZ&
+#   else
+        SpectralSolver&
+#   endif
+            get_spectral_solver_fp (int lev) {return *spectral_solver_fp[lev];}
 #endif
+
+private:
     amrex::Vector<std::unique_ptr<FiniteDifferenceSolver>> m_fdtd_solver_fp;
     amrex::Vector<std::unique_ptr<FiniteDifferenceSolver>> m_fdtd_solver_cp;
 
