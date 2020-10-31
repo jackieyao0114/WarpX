@@ -207,7 +207,9 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
                 if (i==15 && j==15 && k==256) {
                     Print() << "Ey old " << Ey(i,j,k) << " " << Ey(i,j,k-1) << std::endl
                             << "Hx     " << Hx(i,j,k,0) << " " << Hx(i,j,k-1,0) << std::endl
-                            << "Hz     " << Hz(i,j,k,0) << " " << Hz(i-1,j,k,0) << std::endl;
+                            << "Hz     " << Hz(i,j,k,0) << " " << Hz(i-1,j,k,0) << std::endl
+                            << "Bx     " << Bx(i,j,k,0) << " " << Bx(i,j,k-1,0) << std::endl
+                            << "Bz     " << Bz(i,j,k,0) << " " << Bz(i-1,j,k,0) << std::endl;
                 }
                 
                 Ey(i, j, k) = alpha * Ey(i, j, k)
