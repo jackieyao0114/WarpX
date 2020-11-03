@@ -105,7 +105,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian(
                 Real mag_gamma_arrx = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_gamma_arr);
 
                 // determine if the material is nonmagnetic or not
-                if (mag_Ms_arrx != 0._rt)
+                if (mag_Ms_arrx > 0._rt)
                 {
                     // when working on M_xface(i,j,k, 0:2) we have direct access to M_xface(i,j,k,0:2) and Hx(i,j,k)
                     // Hy and Hz can be acquired by interpolation
@@ -185,7 +185,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian(
                 Real mag_gamma_arry = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_gamma_arr);
 
                 // determine if the material is nonmagnetic or not
-                if (mag_Ms_arry != 0._rt)
+                if (mag_Ms_arry > 0._rt)
                 {
                     // when working on M_yface(i,j,k,0:2) we have direct access to M_yface(i,j,k,0:2) and Hy(i,j,k)
                     // Hy and Hz can be acquired by interpolation
@@ -264,7 +264,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian(
                 Real mag_gamma_arrz = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_gamma_arr);
 
                 // determine if the material is nonmagnetic or not
-                if (mag_Ms_arrz != 0._rt)
+                if (mag_Ms_arrz > 0._rt)
                 {
                     // when working on M_zface(i,j,k,0:2) we have direct access to M_zface(i,j,k,0:2) and Hz(i,j,k)
                     // Hy and Hz can be acquired by interpolation
