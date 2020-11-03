@@ -446,11 +446,11 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                 Real mag_Ms_arry = MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(0,1,0), mag_Ms_arr);
                 if (mag_Ms_arry == 0._rt){ // nonmagnetic region
                     Real mu_arry = MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(0,1,0), mu_arr);
-                    Hy(i, j, k) += 1. / mu_arry * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k)
-                                 - 1. / mu_arry * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k);
+                    Hy(i, j, k) += 1. / mu_arry * dt * (T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k)
+                                                               - T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k));
                 } else if (mag_Ms_arry > 0){ // magnetic region
-                    Hy(i, j, k) += mu0_inv * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k)
-                                 - mu0_inv * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k);
+                    Hy(i, j, k) += mu0_inv * dt * (T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k)
+                                                         - T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k));
                     if (coupling == 1){
                         Hy(i, j, k) += - M_yface(i, j, k, 1) + M_yface_old(i, j, k, 1);
                     }
