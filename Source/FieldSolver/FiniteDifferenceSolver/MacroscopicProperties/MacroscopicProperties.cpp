@@ -189,10 +189,10 @@ MacroscopicProperties::InitData ()
         InitializeMacroMultiFabUsingParser(m_mag_Ms_mf.get(), getParser(m_mag_Ms_parser), lev);
     }
     // if there are regions with Ms=0, the user must provide mur value there
-    if ((*m_mag_Ms_mf).min(1,0) < 0.){
+    if (m_mag_Ms_mf->min(0,m_mag_Ms_mf->nGrow()) < 0._rt){
         amrex::Abort("Ms must be non-negative values");
     }
-    else if ((*m_mag_Ms_mf).min(1,0) == 0.){
+    else if (m_mag_Ms_mf->min(0,m_mag_Ms_mf->nGrow()) == 0._rt){
         if (m_mu_s != "constant" && m_mu_s != "parse_mu_function"){
             amrex::Abort("permeability must be specified since part of the simulation domain is non-magnetic !");
         }
@@ -205,7 +205,7 @@ MacroscopicProperties::InitData ()
     else if (m_mag_alpha_s == "parse_mag_alpha_function"){
         InitializeMacroMultiFabUsingParser(m_mag_alpha_mf.get(), getParser(m_mag_alpha_parser), lev);
     }
-    if (m_mag_alpha_mf->min(0,m_mag_alpha_mf->nGrow()) < 0.) {
+    if (m_mag_alpha_mf->min(0,m_mag_alpha_mf->nGrow()) < 0._rt) {
         amrex::Abort("alpha should be positive, but the user input has negative values");
     }
 
@@ -217,7 +217,7 @@ MacroscopicProperties::InitData ()
     else if (m_mag_gamma_s == "parse_mag_gamma_function"){
         InitializeMacroMultiFabUsingParser(m_mag_gamma_mf.get(), getParser(m_mag_gamma_parser), lev);
     }
-    if (m_mag_gamma_mf->max(0,m_mag_gamma_mf->nGrow()) > 0.) {
+    if (m_mag_gamma_mf->max(0,m_mag_gamma_mf->nGrow()) > 0._rt) {
         amrex::Abort("gamma should be negative, but the user input has positive values");
     }
 #endif
