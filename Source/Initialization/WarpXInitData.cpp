@@ -282,11 +282,20 @@ WarpX::InitLevelData (int lev, Real /*time*/)
     // default values of E_external_grid and B_external_grid
     // are used to set the E and B field when "constant" or
     // "parser" is not explicitly used in the input.
-    pp.query("B_ext_grid_init_style", B_ext_grid_s);
-    std::transform(B_ext_grid_s.begin(),
+    bool B_ext_specified = false;
+    if (pp.query("B_ext_grid_init_style", B_ext_grid_s)){
+        std::transform(B_ext_grid_s.begin(),
                    B_ext_grid_s.end(),
                    B_ext_grid_s.begin(),
                    ::tolower);
+        B_ext_specified = true;
+    }
+
+#ifdef WARPX_MAG_LLG
+    if (B_ext_specified) {
+        amrex::Abort("ERROR: Initialization of B field is not allowed in the LLG simulation! \nThe initial magnetic field must be H and M! \n");
+    }
+#endif
 
     pp.query("E_ext_grid_init_style", E_ext_grid_s);
     std::transform(E_ext_grid_s.begin(),
@@ -314,11 +323,20 @@ WarpX::InitLevelData (int lev, Real /*time*/)
 #endif
 
     // Query for type of external space-time (xt) varying excitation
-    pp.query("B_excitation_on_grid_style", B_excitation_grid_s);
-    std::transform(B_excitation_grid_s.begin(),
+    bool B_excitation_specified = false;
+    if (pp.query("B_excitation_on_grid_style", B_excitation_grid_s)){
+        std::transform(B_excitation_grid_s.begin(),
                    B_excitation_grid_s.end(),
                    B_excitation_grid_s.begin(),
                    ::tolower);
+        B_excitation_specified = true;
+    };
+
+#ifdef WARPX_MAG_LLG
+    if (B_excitation_specified) {
+        amrex::Abort("ERROR: Excitation of B field is not allowed in the LLG simulation! \nThe excited magnetic field must be H field! \n");
+    }
+#endif
 
     pp.query("E_excitation_on_grid_style", E_excitation_grid_s);
     std::transform(E_excitation_grid_s.begin(),
@@ -351,7 +369,7 @@ WarpX::InitLevelData (int lev, Real /*time*/)
         Ezfield_flag_parser.reset(new ParserWrapper<3>(
                    makeParser(str_Ez_excitation_flag_function,{"x","y","z"})));
     }
-    if (B_excitation_grid_s == "parse_b_excitation_grid_function") {
+    if (B_excitation_specified && B_excitation_grid_s == "parse_b_excitation_grid_function") {
         // if B excitation type is set to parser then the corresponding
         // source type (hard=1, soft=2) must be specified for all components
         // using the flag function. Note that a flag value of 0 will not update
@@ -399,7 +417,7 @@ WarpX::InitLevelData (int lev, Real /*time*/)
 
     // if the input string is "constant", the values for the
     // external grid must be provided in the input.
-    if (B_ext_grid_s == "constant")
+    if (B_ext_specified && B_ext_grid_s == "constant")
         pp.getarr("B_external_grid", B_external_grid);
 
     // if the input string is "constant", the values for the
@@ -408,7 +426,7 @@ WarpX::InitLevelData (int lev, Real /*time*/)
         pp.getarr("E_external_grid", E_external_grid);
 
     // make parser for the external B-excitation in space-time
-    if (B_excitation_grid_s == "parse_b_excitation_grid_function") {
+    if (B_excitation_specified && B_excitation_grid_s == "parse_b_excitation_grid_function") {
 #ifdef WARPX_DIM_RZ
        amrex::Abort("E and B parser for external fields does not work with RZ -- TO DO");
 #endif
@@ -486,7 +504,7 @@ WarpX::InitLevelData (int lev, Real /*time*/)
         if (lev > 0)
            current_cp[lev][i]->setVal(0.0);
 
-        if (B_ext_grid_s == "constant" || B_ext_grid_s == "default") {
+        if (B_ext_specified && (B_ext_grid_s == "constant" || B_ext_grid_s == "default")) {
            Bfield_fp[lev][i]->setVal(B_external_grid[i]);
            if (fft_do_time_averaging) {
                 Bfield_avg_fp[lev][i]->setVal(B_external_grid[i]);
@@ -561,7 +579,7 @@ WarpX::InitLevelData (int lev, Real /*time*/)
     // if the input string for the B-field is "parse_b_ext_grid_function",
     // then the analytical expression or function must be
     // provided in the input file.
-    if (B_ext_grid_s == "parse_b_ext_grid_function") {
+    if (B_ext_specified && B_ext_grid_s == "parse_b_ext_grid_function") {
 
 #ifdef WARPX_DIM_RZ
        amrex::Abort("E and B parser for external fields does not work with RZ -- TO DO");

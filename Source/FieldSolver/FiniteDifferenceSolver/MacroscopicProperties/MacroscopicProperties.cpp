@@ -71,7 +71,7 @@ MacroscopicProperties::ReadParameters ()
         mu_specified = true;
     }
     if (!mu_specified) {
-        amrex::Print() << "WARNING: Material permittivity is not specified. Using default vacuum value of " << m_mu << " in the simulation\n";
+        amrex::Print() << "WARNING: Material permeability is not specified. Using default vacuum value of " << m_mu << " in the simulation\n";
     }
 
     // initialization of mu (permeability) with parser

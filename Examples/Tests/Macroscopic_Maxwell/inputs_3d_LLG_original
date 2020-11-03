@@ -1,9 +1,32 @@
+####################################################################################################
+## This input file include an uncoupled system to test the M evolution driven by an H_bias field. ##
+## The coupling between the LLG equation and Maxwell equations is turned off by setting the value ##
+## warpx.mag_LLG_coupling = 0.                                                                    ##
+## The CFL factor warpx.cfl is set to be 4000 (much larger than 1),   because there is no wave    ##
+## propagating in these demo cases, thus the size of the time step is constrained by the Nyquist  ##
+## rate only.                                                                                     ##
+## The user can select the first-order or second-order algorithm for the time scheme of LLG, by   ##
+## setting the value of warpx.mag_time_scheme_order to be 1 or 2, respectively.                   ##
+## The user can also change the strategy of normalizing M amplitude by changing the value of      ##
+## warpx.mag_M_normalization. Select the value with reference to the following list:              ##
+## mag_M_normalization==0                    unsaturated materials, i.e. M_magnitude <= mag_Ms.   ##
+## mag_M_normalization==1                    saturated materials, i.e. M_magnitude = mag_Ms.      ##
+##                                           in the second-order algorithm, normalize M_magnitude ##
+##                                           after each iteration in the middle of one time step. ##
+## mag_M_normalization==2                    saturated materials, i.e. M_magnitude = mag_Ms.      ##
+##                                           in the second-order algorithm, normalize M_magnitude ##
+##                                           after all the iterations converge at the end of each ##
+##                                           time step.                                           ##
+## mag_M_normalization==1 is equivalent to mag_M_normalization==2 in the first-order algorithm.   ##
+## This input file requires USE_LLG=TRUE in the GNUMakefile.                                      ##
+####################################################################################################
+
 ################################
 ####### GENERAL PARAMETERS ######
 #################################
 max_step = 1000
 amr.n_cell = 8 8 8 # number of cells spanning the domain in each coordinate direction at level 0
-amr.max_grid_size = 512 # maximum size of each AMReX box, used to decompose the domain
+amr.max_grid_size = 16 # maximum size of each AMReX box, used to decompose the domain, grid = box
 amr.blocking_factor = 8
 geometry.coord_sys = 0
 geometry.is_periodic = 1 1 1
@@ -20,7 +43,7 @@ warpx.verbose = 0
 warpx.use_filter = 0
 warpx.cfl = 4000
 warpx.do_pml = 0
-warpx.mag_time_scheme_order = 2 # default 1
+warpx.mag_time_scheme_order = 1 # default 1
 warpx.mag_M_normalization = 2
 warpx.mag_LLG_coupling = 0
 particles.nspecies = 0
@@ -73,7 +96,7 @@ warpx.Ey_external_grid_function(x,y,z) = 0.
 warpx.Ez_external_grid_function(x,y,z) = 0.
 
 warpx.B_ext_grid_init_style = parse_B_ext_grid_function
-warpx.Bx_external_grid_function(x,y,z)= 0.1759
+warpx.Bx_external_grid_function(x,y,z)= 0.
 #warpx.Bx_external_grid_function(x,y,z)= 0.
 #warpx.Bx_external_grid_function(x,y,z)= "-1.e5*exp(-z**2/L**2)*cos(2*pi*z/wavelength)/c"
 warpx.By_external_grid_function(x,y,z)= 0.
