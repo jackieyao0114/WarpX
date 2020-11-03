@@ -144,11 +144,11 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                         Hz_eff += MacroscopicProperties::getH_Maxwell(i, j, k, 2, amrex::IntVect(0, 0, 1), amrex::IntVect(1, 0, 0), Bz_old, M_xface);
                     }
 
-                    Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) + std::pow(M_xface(i, j, k, 2), 2.0)) : mag_Ms_arrx;
+                    Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_xface(i, j, k, 0), 2._rt) + std::pow(M_xface(i, j, k, 1), 2._rt) + std::pow(M_xface(i, j, k, 2), 2._rt)) : mag_Ms_arrx;
                     Real a_temp_static_coeff = mag_alpha_arrx / M_magnitude;
 
                     // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
-                    Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_arrx / 2.0;
+                    Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_arrx / 2._rt;
 
                     // calculate a_temp_static_xface
                     // x component on x-faces of grid
@@ -198,11 +198,11 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                         Hz_eff += MacroscopicProperties::getH_Maxwell(i, j, k, 2, amrex::IntVect(0, 0, 1), amrex::IntVect(0, 1, 0), Bz_old, M_yface);
                     }
 
-                    Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_yface(i, j, k, 0), 2.0) + std::pow(M_yface(i, j, k, 1), 2.0) + std::pow(M_yface(i, j, k, 2), 2.0)) : mag_Ms_arry;
+                    Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_yface(i, j, k, 0), 2._rt) + std::pow(M_yface(i, j, k, 1), 2._rt) + std::pow(M_yface(i, j, k, 2), 2._rt)) : mag_Ms_arry;
                     Real a_temp_static_coeff = mag_alpha_arry / M_magnitude;
 
                     // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
-                    Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_arry / 2.0;
+                    Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_arry / 2._rt;
 
                     // calculate a_temp_static_yface
                     // x component on y-faces of grid
@@ -252,11 +252,11 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                         Hz_eff += MacroscopicProperties::getH_Maxwell(i, j, k, 2, amrex::IntVect(0, 0, 1), amrex::IntVect(0, 0, 1), Bz_old, M_zface);
                     }
 
-                    Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_zface(i, j, k, 0), 2.0_rt) + std::pow(M_zface(i, j, k, 1), 2.0_rt) + std::pow(M_zface(i, j, k, 2), 2.0_rt)) : mag_Ms_arrz;
+                    Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_zface(i, j, k, 0), 2._rt) + std::pow(M_zface(i, j, k, 1), 2._rt) + std::pow(M_zface(i, j, k, 2), 2._rt)) : mag_Ms_arrz;
                     Real a_temp_static_coeff = mag_alpha_arrz / M_magnitude;
 
                     // calculate the b_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
-                    Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_arrz / 2.0;
+                    Real b_temp_static_coeff = PhysConst::mu0 * mag_gamma_arrz / 2._rt;
 
                     // calculate a_temp_static_zface
                     // x component on z-faces of grid
@@ -370,7 +370,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                         }
 
                         // calculate the a_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
-                        Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_arrx) / 2.0;
+                        Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_arrx) / 2._rt;
 
                         // calculate a_temp_xface
                         // x component on x-faces of grid
@@ -394,8 +394,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
 
                         // temporary normalized magnitude of M_xface field at the fixed point
                         // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
-                        amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) +
-                                                                       std::pow(M_xface(i, j, k, 2), 2.0)) / mag_Ms_arrx;
+                        amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_xface(i, j, k, 0), 2._rt) + std::pow(M_xface(i, j, k, 1), 2._rt) +
+                                                                       std::pow(M_xface(i, j, k, 2), 2._rt)) / mag_Ms_arrx;
 
                         if (M_normalization == 1) {
                             // check the normalized error
@@ -461,7 +461,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                         }
 
                         // calculate the a_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
-                        Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_arry) / 2.0;
+                        Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_arry) / 2._rt;
 
                         // calculate a_temp_yface
                         // x component on y-faces of grid
@@ -485,8 +485,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
 
                         // temporary normalized magnitude of M_yface field at the fixed point
                         // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
-                        amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_yface(i, j, k, 0), 2.0) + std::pow(M_yface(i, j, k, 1), 2.0) +
-                                                                       std::pow(M_yface(i, j, k, 2), 2.0)) / mag_Ms_arry;
+                        amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_yface(i, j, k, 0), 2._rt) + std::pow(M_yface(i, j, k, 1), 2._rt) +
+                                                                       std::pow(M_yface(i, j, k, 2), 2._rt)) / mag_Ms_arry;
 
                         if (M_normalization == 1) {
                             // check the normalized error
@@ -552,7 +552,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                         }
 
                         // calculate the a_temp_static_coeff (it is divided by 2.0 because the input dt is actually dt/2.0)
-                        Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_arrz) / 2.0;
+                        Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_arrz) / 2._rt;
 
                         // calculate a_temp_zface
                         // x component on z-faces of grid
@@ -576,8 +576,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
 
                         // temporary normalized magnitude of M_zface field at the fixed point
                         // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
-                        amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_zface(i, j, k, 0), 2.0_rt) + std::pow(M_zface(i, j, k, 1), 2.0_rt) +
-                                                                       std::pow(M_zface(i, j, k, 2), 2.0_rt)) / mag_Ms_arrz;
+                        amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_zface(i, j, k, 0), 2._rt) + std::pow(M_zface(i, j, k, 1), 2._rt) +
+                                                                       std::pow(M_zface(i, j, k, 2), 2._rt)) / mag_Ms_arrz;
 
                         if (M_normalization == 1) {
                             // check the normalized error
@@ -661,8 +661,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                             {
                                 // temporary normalized magnitude of M_xface field at the fixed point
                                 // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
-                                amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) +
-                                                                               std::pow(M_xface(i, j, k, 2), 2.0)) /
+                                amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_xface(i, j, k, 0), 2._rt) + std::pow(M_xface(i, j, k, 1), 2._rt) +
+                                                                               std::pow(M_xface(i, j, k, 2), 2._rt)) /
                                                                      mag_Ms_arrx;
 
                                 // check the normalized error
@@ -687,8 +687,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                             {
                                 // temporary normalized magnitude of M_yface field at the fixed point
                                 // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
-                                amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_yface(i, j, k, 0), 2.0) + std::pow(M_yface(i, j, k, 1), 2.0) +
-                                                                               std::pow(M_yface(i, j, k, 2), 2.0)) /
+                                amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_yface(i, j, k, 0), 2._rt) + std::pow(M_yface(i, j, k, 1), 2._rt) +
+                                                                               std::pow(M_yface(i, j, k, 2), 2._rt)) /
                                                                      mag_Ms_arry;
 
                                 // check the normalized error
@@ -713,8 +713,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveMCartesian_2nd(
                             {
                                 // temporary normalized magnitude of M_zface field at the fixed point
                                 // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
-                                amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_zface(i, j, k, 0), 2.0_rt) + std::pow(M_zface(i, j, k, 1), 2.0_rt) +
-                                                                               std::pow(M_zface(i, j, k, 2), 2.0_rt)) /
+                                amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_zface(i, j, k, 0), 2._rt) + std::pow(M_zface(i, j, k, 1), 2._rt) +
+                                                                               std::pow(M_zface(i, j, k, 2), 2._rt)) /
                                                                      mag_Ms_arrz;
 
                                 // check the normalized error

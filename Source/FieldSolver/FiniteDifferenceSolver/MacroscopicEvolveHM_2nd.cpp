@@ -152,14 +152,14 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                     }
 
                     // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
-                    Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) + std::pow(M_xface(i, j, k, 2), 2.0))
+                    Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_xface(i, j, k, 0), 2._rt) + std::pow(M_xface(i, j, k, 1), 2._rt) + std::pow(M_xface(i, j, k, 2), 2._rt))
                                                               : mag_Ms_arrx;
                     // a_temp_static_coeff does not change in the current step for SATURATED materials; but it does change for UNSATURATED ones
                     Real a_temp_static_coeff = mag_alpha_arrx / M_magnitude;
 
                     // calculate the b_temp_static_coeff (it is divided by 2.0 because the derivation is based on an interger dt,
                     // while in real simulations, the input dt is actually dt/2.0)
-                    Real b_temp_static_coeff = - PhysConst::mu0 * amrex::Math::abs(mag_gamma_arrx) / 2.0;
+                    Real b_temp_static_coeff = - PhysConst::mu0 * amrex::Math::abs(mag_gamma_arrx) / 2._rt;
 
                     for (int comp=0; comp<3; ++comp) {
                         // calculate a_temp_static_xface
@@ -207,13 +207,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
 
                     // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
                     // note the unsaturated case is less usefull in real devices
-                    Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_yface(i, j, k, 0), 2.0) + std::pow(M_yface(i, j, k, 1), 2.0) + std::pow(M_yface(i, j, k, 2), 2.0))
+                    Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_yface(i, j, k, 0), 2._rt) + std::pow(M_yface(i, j, k, 1), 2._rt) + std::pow(M_yface(i, j, k, 2), 2._rt))
                                                               : mag_Ms_arry;
                     Real a_temp_static_coeff = mag_alpha_arry / M_magnitude;
 
                     // calculate the b_temp_static_coeff (it is divided by 2.0 because the derivation is based on an interger dt,
                     // while in real simulations, the input dt is actually dt/2.0)
-                    Real b_temp_static_coeff = - PhysConst::mu0 * amrex::Math::abs(mag_gamma_arry) / 2.0;
+                    Real b_temp_static_coeff = - PhysConst::mu0 * amrex::Math::abs(mag_gamma_arry) / 2._rt;
 
                     for (int comp=0; comp<3; ++comp) {
                         // calculate a_temp_static_yface
@@ -260,13 +260,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                     }
 
                     // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
-                    Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_zface(i, j, k, 0), 2.0) + std::pow(M_zface(i, j, k, 1), 2.0) + std::pow(M_zface(i, j, k, 2), 2.0))
+                    Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_zface(i, j, k, 0), 2._rt) + std::pow(M_zface(i, j, k, 1), 2._rt) + std::pow(M_zface(i, j, k, 2), 2._rt))
                                                               : mag_Ms_arrz;
                     Real a_temp_static_coeff = mag_alpha_arrz / M_magnitude;
 
                     // calculate the b_temp_static_coeff (it is divided by 2.0 because the derivation is based on an interger dt,
                     // while in real simulations, the input dt is actually dt/2.0)
-                    Real b_temp_static_coeff = - PhysConst::mu0 * amrex::Math::abs(mag_gamma_arrz) / 2.0;
+                    Real b_temp_static_coeff = - PhysConst::mu0 * amrex::Math::abs(mag_gamma_arrz) / 2._rt;
 
                     for (int comp=0; comp<3; ++comp) {
                         // calculate a_temp_static_zface
@@ -382,7 +382,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
 
                         // calculate the a_temp_dynamic_coeff (it is divided by 2.0 because the derivation is based on an interger dt,
                         // while in real simulations, the input dt is actually dt/2.0)
-                        Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_arrx) / 2.0;
+                        Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_arrx) / 2._rt;
 
                         amrex::GpuArray<amrex::Real,3> H_eff;
                         H_eff[0] = Hx_eff;
@@ -394,7 +394,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                             // all components on x-faces of grid
                             a_temp_xface(i, j, k, comp) = (M_normalization != 0) ? -(dt * a_temp_dynamic_coeff * H_eff[comp] + a_temp_static_xface(i, j, k, comp))
                                                                                  : -(dt * a_temp_dynamic_coeff * H_eff[comp] + 0.5 * a_temp_static_xface(i, j, k, comp)
-                                                                                     + 0.5 * mag_alpha_arrx * 1. / std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) + std::pow(M_xface(i, j, k, 2), 2.0)) * M_old_xface(i, j, k, comp));
+                                                                                     + 0.5 * mag_alpha_arrx * 1. / std::sqrt(std::pow(M_xface(i, j, k, 0), 2._rt) + std::pow(M_xface(i, j, k, 1), 2._rt) + std::pow(M_xface(i, j, k, 2), 2._rt)) * M_old_xface(i, j, k, comp));
                         }
 
                         for (int comp=0; comp<3; ++comp) {
@@ -405,7 +405,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
 
                         // temporary normalized magnitude of M_xface field at the fixed point
                         // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
-                        amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) + std::pow(M_xface(i, j, k, 2), 2.0)) / mag_Ms_arrx;
+                        amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_xface(i, j, k, 0), 2._rt) + std::pow(M_xface(i, j, k, 1), 2._rt) + std::pow(M_xface(i, j, k, 2), 2._rt)) / mag_Ms_arrx;
 
                         if (M_normalization == 1){
                             // saturated case; if |M| has drifted from M_s too much, abort.  Otherwise, normalize
@@ -470,7 +470,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
 
                         // calculate the a_temp_dynamic_coeff (it is divided by 2.0 because the derivation is based on an interger dt,
                         // while in real simulations, the input dt is actually dt/2.0)
-                        Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_arry) / 2.0;
+                        Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_arry) / 2._rt;
 
                         amrex::GpuArray<amrex::Real,3> H_eff;
                         H_eff[0] = Hx_eff;
@@ -482,7 +482,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                             // all components on y-faces of grid
                             a_temp_yface(i, j, k, comp) = (M_normalization != 0) ? -(dt * a_temp_dynamic_coeff * H_eff[comp] + a_temp_static_yface(i, j, k, comp))
                                                                                  : -(dt * a_temp_dynamic_coeff * H_eff[comp] + 0.5 * a_temp_static_yface(i, j, k, comp)
-                                                                                     + 0.5 * mag_alpha_arry * 1. / std::sqrt(std::pow(M_yface(i, j, k, 0), 2.0) + std::pow(M_yface(i, j, k, 1), 2.0) + std::pow(M_yface(i, j, k, 2), 2.0)) * M_old_yface(i, j, k, comp));
+                                                                                     + 0.5 * mag_alpha_arry * 1. / std::sqrt(std::pow(M_yface(i, j, k, 0), 2._rt) + std::pow(M_yface(i, j, k, 1), 2._rt) + std::pow(M_yface(i, j, k, 2), 2._rt)) * M_old_yface(i, j, k, comp));
                         }
 
                         for (int comp=0; comp<3; ++comp) {
@@ -493,7 +493,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
 
                         // temporary normalized magnitude of M_yface field at the fixed point
                         // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
-                        amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_yface(i, j, k, 0), 2.0) + std::pow(M_yface(i, j, k, 1), 2.0) + std::pow(M_yface(i, j, k, 2), 2.0)) / mag_Ms_arry;
+                        amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_yface(i, j, k, 0), 2._rt) + std::pow(M_yface(i, j, k, 1), 2._rt) + std::pow(M_yface(i, j, k, 2), 2._rt)) / mag_Ms_arry;
 
                         if (M_normalization == 1){
                             // saturated case; if |M| has drifted from M_s too much, abort.  Otherwise, normalize
@@ -558,7 +558,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
 
                         // calculate the a_temp_dynamic_coeff (it is divided by 2.0 because the derivation is based on an interger dt,
                         // while in real simulations, the input dt is actually dt/2.0)
-                        Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_arrz) / 2.0;
+                        Real a_temp_dynamic_coeff = PhysConst::mu0 * amrex::Math::abs(mag_gamma_arrz) / 2._rt;
 
                         amrex::GpuArray<amrex::Real,3> H_eff;
                         H_eff[0] = Hx_eff;
@@ -570,7 +570,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                             // all components on z-faces of grid
                             a_temp_zface(i, j, k, comp) = (M_normalization != 0) ? -(dt * a_temp_dynamic_coeff * H_eff[comp] + a_temp_static_zface(i, j, k, comp))
                                                                               : -(dt * a_temp_dynamic_coeff * H_eff[comp] + 0.5 * a_temp_static_zface(i, j, k, comp)
-                                                                                  + 0.5 * mag_alpha_arrz * 1. / std::sqrt(std::pow(M_zface(i, j, k, 0), 2.0) + std::pow(M_zface(i, j, k, 1), 2.0) + std::pow(M_zface(i, j, k, 2), 2.0)) * M_old_zface(i, j, k, comp));
+                                                                                  + 0.5 * mag_alpha_arrz * 1. / std::sqrt(std::pow(M_zface(i, j, k, 0), 2._rt) + std::pow(M_zface(i, j, k, 1), 2._rt) + std::pow(M_zface(i, j, k, 2), 2._rt)) * M_old_zface(i, j, k, comp));
                         }
 
                         for (int comp=0; comp<3; ++comp) {
@@ -581,7 +581,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
 
                         // temporary normalized magnitude of M_zface field at the fixed point
                         // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
-                        amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_zface(i, j, k, 0), 2.0_rt) + std::pow(M_zface(i, j, k, 1), 2.0_rt) + std::pow(M_zface(i, j, k, 2), 2.0_rt)) / mag_Ms_arrz;
+                        amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_zface(i, j, k, 0), 2._rt) + std::pow(M_zface(i, j, k, 1), 2._rt) + std::pow(M_zface(i, j, k, 2), 2._rt)) / mag_Ms_arrz;
 
                         if (M_normalization == 1){
                             // saturated case; if |M| has drifted from M_s too much, abort.  Otherwise, normalize
@@ -755,8 +755,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                             if (mag_Ms_arrx > 0._rt){
                                 // temporary normalized magnitude of M_xface field at the fixed point
                                 // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
-                                amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) +
-                                                                               std::pow(M_xface(i, j, k, 2), 2.0)) /
+                                amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_xface(i, j, k, 0), 2._rt) + std::pow(M_xface(i, j, k, 1), 2._rt) +
+                                                                               std::pow(M_xface(i, j, k, 2), 2._rt)) /
                                                                      mag_Ms_arrx;
 
                                 // check the normalized error
@@ -779,8 +779,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                             if (mag_Ms_arry > 0._rt){
                                 // temporary normalized magnitude of M_yface field at the fixed point
                                 // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
-                                amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_yface(i, j, k, 0), 2.0) + std::pow(M_yface(i, j, k, 1), 2.0) +
-                                                                               std::pow(M_yface(i, j, k, 2), 2.0)) /
+                                amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_yface(i, j, k, 0), 2._rt) + std::pow(M_yface(i, j, k, 1), 2._rt) +
+                                                                               std::pow(M_yface(i, j, k, 2), 2._rt)) /
                                                                      mag_Ms_arry;
 
                                 // check the normalized error
@@ -803,8 +803,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                             if (mag_Ms_arrz > 0._rt){
                                 // temporary normalized magnitude of M_zface field at the fixed point
                                 // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
-                                amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_zface(i, j, k, 0), 2.0_rt) + std::pow(M_zface(i, j, k, 1), 2.0_rt) +
-                                                                               std::pow(M_zface(i, j, k, 2), 2.0_rt)) /
+                                amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_zface(i, j, k, 0), 2._rt) + std::pow(M_zface(i, j, k, 1), 2._rt) +
+                                                                               std::pow(M_zface(i, j, k, 2), 2._rt)) /
                                                                      mag_Ms_arrz;
 
                                 // check the normalized error
