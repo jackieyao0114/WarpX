@@ -506,7 +506,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
         // mu_mf will be imported but will only be called at grids where Ms == 0
         auto& mu_mf = macroscopic_properties->getmu_mf();
         Array4<Real> const& mu_arr = mu_mf.array(mfi);
-        
+
         // Loop over the cells and update the fields
         amrex::ParallelFor(tbx, tby, tbz,
 
