@@ -879,7 +879,7 @@ Laser initialization
     Note that the current implementation of the parser for external B-field
     does not work with RZ and the code will abort with an error message.
     Note that the implementation of the parser for external B-field does not work
-    with LLG and the code will abort with an error message
+    with USE_LLG=TRUE and the code will abort with an error message
 
 * ``warpx.E_ext_grid_init_style`` (string) optional (default is "default")
     This parameter determines the type of initialization for the external
@@ -938,7 +938,7 @@ Laser initialization
     the field solver. In particular, do not use any other boundary condition
     than periodic.
     Note that the implementation of the parser for external B-field does not work
-    with LLG and the code will abort with an error message
+    with USE_LLG=TRUE and the code will abort with an error message
 
 * ``warpx.H_external_grid`` (list of `3 floats`)
     required when ``warpx.H_ext_grid_init_style="constant"``.
