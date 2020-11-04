@@ -1,5 +1,6 @@
 # This is a E+B (use USE_LLG=TRUE) simulation of a
 # plane wave in a periodic domain
+# !! Wrong Initialization: B_ext instead of H; thus this input is just for error display
 
 # ###############################
 ####### GENERAL PARAMETERS ######
