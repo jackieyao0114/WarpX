@@ -651,7 +651,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
             Box const &tbx = mfi.tilebox(Hfield[0]->ixType().toIntVect());
             Box const &tby = mfi.tilebox(Hfield[1]->ixType().toIntVect());
             Box const &tbz = mfi.tilebox(Hfield[2]->ixType().toIntVect());
-            
+
             // read in Ms to decide if the grid is magnetic or not
             auto& mag_Ms_mf = macroscopic_properties->getmag_Ms_mf();
             Array4<Real> const& mag_Ms_arr = mag_Ms_mf.array(mfi);

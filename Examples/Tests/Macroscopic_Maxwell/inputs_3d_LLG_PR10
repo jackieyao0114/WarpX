@@ -1,10 +1,10 @@
 ####################################################################################################
-## This input file simulates the coupled system of LLG and Maxwell equations, with Ms = 0,        
-## and looks into the effect of mu_r  
-## The plane wave excitation is the time-dependent modified Gaussian pulse                                                            
-## mu_r is 9 in this version                                                                      
-## This input file requires USE_LLG=FALSE in the GNUMakefile.                                     
-## For PR#10 case test, Case 2: https://github.com/jackieyao0114/WarpX/pull/10                    
+## This input file simulates the coupled system of LLG and Maxwell equations, with Ms = 0,
+## and looks into the effect of mu_r
+## The plane wave excitation is the time-dependent modified Gaussian pulse
+## mu_r is 9 in this version
+## This input file requires USE_LLG=FALSE in the GNUMakefile.
+## For PR#10 case test, Case 2: https://github.com/jackieyao0114/WarpX/pull/10
 ####################################################################################################
 
 ################################

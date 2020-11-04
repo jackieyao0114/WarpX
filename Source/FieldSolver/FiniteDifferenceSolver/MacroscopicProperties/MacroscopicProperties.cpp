@@ -196,7 +196,7 @@ MacroscopicProperties::InitData ()
         if (m_mu_s != "constant" && m_mu_s != "parse_mu_function"){
             amrex::Abort("permeability must be specified since part of the simulation domain is non-magnetic !");
         }
-    }    
+    }
 
     // mag_alpha - defined at node
     if (m_mag_alpha_s == "constant") {

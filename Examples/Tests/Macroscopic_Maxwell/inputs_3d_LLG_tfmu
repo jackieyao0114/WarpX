@@ -1,8 +1,8 @@
 ####################################################################################################
 ## This input file simulates the thin-film ferromagnetic material's permeability spectrum
-## Periodic boundary conditions at all boundaries, which needs to be modified                        
-## The plane wave excitation is the time-dependent modified Gaussian pulse                                                                     
-## This input file requires USE_LLG=TRUE in the GNUMakefile. 
+## Periodic boundary conditions at all boundaries, which needs to be modified
+## The plane wave excitation is the time-dependent modified Gaussian pulse
+## This input file requires USE_LLG=TRUE in the GNUMakefile.
 ####################################################################################################
 
 ################################

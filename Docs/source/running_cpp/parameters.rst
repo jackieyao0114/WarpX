@@ -878,7 +878,7 @@ Laser initialization
     input file. For a two-dimensional simulation, it is assumed that the first dimension     is `x` and the second dimension in `z`, and the value of `y` is set to zero.
     Note that the current implementation of the parser for external B-field
     does not work with RZ and the code will abort with an error message.
-    Note that the implementation of the parser for external B-field does not work 
+    Note that the implementation of the parser for external B-field does not work
     with LLG and the code will abort with an error message
 
 * ``warpx.E_ext_grid_init_style`` (string) optional (default is "default")
@@ -937,7 +937,7 @@ Laser initialization
     to the grid at initialization. Use with caution as these fields are used for
     the field solver. In particular, do not use any other boundary condition
     than periodic.
-    Note that the implementation of the parser for external B-field does not work 
+    Note that the implementation of the parser for external B-field does not work
     with LLG and the code will abort with an error message
 
 * ``warpx.H_external_grid`` (list of `3 floats`)
@@ -1019,7 +1019,7 @@ Laser initialization
     of the corresponding field component.
     Constants required in the mathematical expression can be set using ``my_constants``.
     This function is currently supported only for 3D simulations.
-    Note that the implementation of the parser for excitation B-field does not work 
+    Note that the implementation of the parser for excitation B-field does not work
     with LLG and the code will abort with an error message
 
 * ``E_excitation_on_grid_style`` (string) optional (default is "default")
