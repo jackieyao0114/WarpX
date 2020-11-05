@@ -20,6 +20,8 @@
 
 using namespace amrex;
 
+#ifdef WARPX_MAG_LLG
+
 /**
  * \brief Update the H field, over one timestep
  */
@@ -137,3 +139,5 @@ void FiniteDifferenceSolver::EvolveHPMLCartesian (
 }
 
 #endif // corresponds to ifndef WARPX_DIM_RZ
+
+#endif // #ifdef WARPX_MAG_LLG
