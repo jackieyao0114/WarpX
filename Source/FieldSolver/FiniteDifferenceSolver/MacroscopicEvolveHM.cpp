@@ -64,14 +64,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
     // temporary Multifab storing M from previous timestep (old_time) before updating to M(new_time)
     std::array<std::unique_ptr<amrex::MultiFab>, 3> Mfield_old; // Mfield_old is M(old_time)
 
-    amrex::GpuArray<int, 3> const& mag_Ms_stag = macroscopic_properties->mag_Ms_IndexType;
+    amrex::GpuArray<int, 3> const& mag_Ms_stag    = macroscopic_properties->mag_Ms_IndexType;
     amrex::GpuArray<int, 3> const& mag_alpha_stag = macroscopic_properties->mag_alpha_IndexType;
     amrex::GpuArray<int, 3> const& mag_gamma_stag = macroscopic_properties->mag_gamma_IndexType;
-    amrex::GpuArray<int, 3> const& mu_stag = macroscopic_properties->mu_IndexType;
-    amrex::GpuArray<int, 3> const& Mx_stag     = macroscopic_properties->Mx_IndexType;
-    amrex::GpuArray<int, 3> const& My_stag     = macroscopic_properties->My_IndexType;
-    amrex::GpuArray<int, 3> const& Mz_stag     = macroscopic_properties->Mz_IndexType;
-    amrex::GpuArray<int, 3> const& macro_cr    = macroscopic_properties->macro_cr_ratio;
+    amrex::GpuArray<int, 3> const& Mx_stag        = macroscopic_properties->Mx_IndexType;
+    amrex::GpuArray<int, 3> const& My_stag        = macroscopic_properties->My_IndexType;
+    amrex::GpuArray<int, 3> const& Mz_stag        = macroscopic_properties->Mz_IndexType;
+    amrex::GpuArray<int, 3> const& macro_cr       = macroscopic_properties->macro_cr_ratio;
 
     for (int i = 0; i < 3; i++)
     {
@@ -111,14 +110,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
         Array4<Real> const &Hx_bias = H_biasfield[0]->array(mfi);    // Hx_bias is the x component at |_x faces
         Array4<Real> const &Hy_bias = H_biasfield[1]->array(mfi);    // Hy_bias is the y component at |_y faces
         Array4<Real> const &Hz_bias = H_biasfield[2]->array(mfi);    // Hz_bias is the z component at |_z faces
-
-        // extract stencil coefficients
-        Real const *const AMREX_RESTRICT coefs_x = m_stencil_coefs_x.dataPtr();
-        int const n_coefs_x = m_stencil_coefs_x.size();
-        Real const *const AMREX_RESTRICT coefs_y = m_stencil_coefs_y.dataPtr();
-        int const n_coefs_y = m_stencil_coefs_y.size();
-        Real const *const AMREX_RESTRICT coefs_z = m_stencil_coefs_z.dataPtr();
-        int const n_coefs_z = m_stencil_coefs_z.size();
 
         // extract tileboxes for which to loop
         Box const &tbx = mfi.tilebox(Hfield[0]->ixType().toIntVect()); /* just define which grid type */
@@ -495,14 +486,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
         Array4<Real> const &M_xface = Mfield[0]->array(mfi); // note M_xface include x,y,z components at |_x faces
         Array4<Real> const &M_yface = Mfield[1]->array(mfi); // note M_yface include x,y,z components at |_y faces
         Array4<Real> const &M_zface = Mfield[2]->array(mfi); // note M_zface include x,y,z components at |_z faces
-
-        // Extract stencil coefficients
-        Real const *const AMREX_RESTRICT coefs_x = m_stencil_coefs_x.dataPtr();
-        int const n_coefs_x = m_stencil_coefs_x.size();
-        Real const *const AMREX_RESTRICT coefs_y = m_stencil_coefs_y.dataPtr();
-        int const n_coefs_y = m_stencil_coefs_y.size();
-        Real const *const AMREX_RESTRICT coefs_z = m_stencil_coefs_z.dataPtr();
-        int const n_coefs_z = m_stencil_coefs_z.size();
 
         // Extract tileboxes for which to loop
         Box const &tbx = mfi.tilebox(Bfield[0]->ixType().toIntVect());
