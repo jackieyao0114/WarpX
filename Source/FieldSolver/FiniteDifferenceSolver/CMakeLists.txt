@@ -11,12 +11,13 @@ target_sources(WarpX
     MacroscopicEvolveE.cpp
 )
 
-if(WARPX_MAG_LLG)
+if(WarpX_LLG_MAG)
     target_sources(WarpX
       PRIVATE
-        MacroscopicEvolveHM.cpp
         MacroscopicEvolveHM_2nd.cpp
+        MacroscopicEvolveHM.cpp
+        MacroscopicEvolveM_2nd.cpp
+        MacroscopicEvolveM.cpp
     )
 endif()
-
 add_subdirectory(MacroscopicProperties)
