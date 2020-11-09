@@ -11,7 +11,7 @@ target_sources(WarpX
     MacroscopicEvolveE.cpp
 )
 
-if(WARPX_LLG_MAG)
+if(WARPX_MAG_LLG)
     target_sources(WarpX
       PRIVATE
         MacroscopicEvolveHM.cpp
