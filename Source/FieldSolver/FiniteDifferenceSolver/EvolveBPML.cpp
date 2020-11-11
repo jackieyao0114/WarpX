@@ -61,6 +61,12 @@ void FiniteDifferenceSolver::EvolveBPMLCartesian (
     std::array< amrex::MultiFab*, 3 > const Efield,
     amrex::Real const dt ) {
 
+#if WARPX_MAG_LLG
+    Real factor = 1./PhysConst::mu0;
+#else
+    Real factor = 1.;
+#endif
+    
     // Loop through the grids, and over the tiles within each grid
 #ifdef _OPENMP
 #pragma omp parallel if (amrex::Gpu::notInLaunchRegion())
@@ -92,33 +98,33 @@ void FiniteDifferenceSolver::EvolveBPMLCartesian (
         amrex::ParallelFor(tbx, tby, tbz,
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
-                Bx(i, j, k, PMLComp::xz) += dt * (
+                Bx(i, j, k, PMLComp::xz) += dt * factor * (
                     T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k, PMLComp::yx)
                   + T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k, PMLComp::yy)
                   + T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k, PMLComp::yz) );
-                Bx(i, j, k, PMLComp::xy) -= dt * (
+                Bx(i, j, k, PMLComp::xy) -= dt * factor * (
                     T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k, PMLComp::zx)
                   + T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k, PMLComp::zy)
                   + T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k, PMLComp::zz) );
             },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
-                By(i, j, k, PMLComp::yx) += dt * (
+                By(i, j, k, PMLComp::yx) += dt * factor * (
                     T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k, PMLComp::zx)
                   + T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k, PMLComp::zy)
                   + T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k, PMLComp::zz) );
-                By(i, j, k, PMLComp::yz) -= dt * (
+                By(i, j, k, PMLComp::yz) -= dt * factor * (
                     T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k, PMLComp::xx)
                   + T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k, PMLComp::xy)
                   + T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k, PMLComp::xz) );
             },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
-                Bz(i, j, k, PMLComp::zy) += dt * (
+                Bz(i, j, k, PMLComp::zy) += dt * factor * (
                     T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k, PMLComp::xx)
                   + T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k, PMLComp::xy)
                   + T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k, PMLComp::xz) );
-                Bz(i, j, k, PMLComp::zx) -= dt * (
+                Bz(i, j, k, PMLComp::zx) -= dt * factor * (
                     T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k, PMLComp::yx)
                   + T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k, PMLComp::yy)
                   + T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k, PMLComp::yz) );

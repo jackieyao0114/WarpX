@@ -411,7 +411,11 @@ WarpX::OneStep_nosub (Real cur_time)
             DampPML();
             FillBoundaryE(guard_cells.ng_MovingWindow, IntVect::TheZeroVector());
             FillBoundaryF(guard_cells.ng_MovingWindow);
-            FillBoundaryB(guard_cells.ng_MovingWindow, IntVect::TheZeroVector());
+#ifdef WARPX_MAG_LLG
+            FillBoundaryH(guard_cells.ng_MovingWindow, IntVect::TheZeroVector());
+#else
+            FillBoundaryB(guard_cells.ng_MovingWindow, IntVect::TheZeroVector());      
+#endif
         }
         // E and B are up-to-date in the domain, but all guard cells are
         // outdated.

@@ -521,15 +521,7 @@ WarpX::FillBoundaryM (int lev, PatchType patch_type, IntVect ng)
     {
         if (do_pml && pml[lev]->ok())
         {
-            amrex:Abort("PML not included for EvolveM yet");
-            /*
-            pml[lev]->ExchangeM(patch_type,
-                            { Mfield_fp[lev][0].get(),
-                              Mfield_fp[lev][1].get(),
-                              Mfield_fp[lev][2].get() },
-                              do_pml_in_domain);
-        pml[lev]->FillBoundaryM(patch_type);
-        */
+            // note: M does not require special PML treatment
         }
         const auto& period = Geom(lev).periodicity();
         if ( safe_guard_cells ) {
@@ -547,15 +539,9 @@ WarpX::FillBoundaryM (int lev, PatchType patch_type, IntVect ng)
     else if (patch_type == PatchType::coarse)
     {
         amrex::Abort("EvolveM does not come with coarse patch yet");
-        /*
         if (do_pml && pml[lev]->ok())
         {
-        pml[lev]->ExchangeM(patch_type,
-                      { Mfield_cp[lev][0].get(),
-                        Mfield_cp[lev][1].get(),
-                        Mfield_cp[lev][2].get() },
-                        do_pml_in_domain);
-        pml[lev]->FillBoundaryM(patch_type);
+            // note: M does not require special PML treatment
         }
         const auto& cperiod = Geom(lev-1).periodicity();
         if ( safe_guard_cells ){
@@ -569,7 +555,6 @@ WarpX::FillBoundaryM (int lev, PatchType patch_type, IntVect ng)
             Mfield_cp[lev][1]->FillBoundary(ng, cperiod);
             Mfield_cp[lev][2]->FillBoundary(ng, cperiod);
         }
-        */
     }
 }
 
@@ -596,15 +581,12 @@ WarpX::FillBoundaryH (int lev, PatchType patch_type, IntVect ng)
     {
         if (do_pml && pml[lev]->ok())
         {
-            amrex:Abort("PML not included for EvolveHM yet");
-            /*
-            pml[lev]->ExchangeH(patch_type,
+            pml[lev]->ExchangeB(patch_type,
                             { Hfield_fp[lev][0].get(),
                               Hfield_fp[lev][1].get(),
                               Hfield_fp[lev][2].get() },
                               do_pml_in_domain);
-        pml[lev]->FillBoundaryH(patch_type);
-        */
+            pml[lev]->FillBoundaryB(patch_type);
         }
         const auto& period = Geom(lev).periodicity();
         if ( safe_guard_cells ) {
@@ -622,15 +604,14 @@ WarpX::FillBoundaryH (int lev, PatchType patch_type, IntVect ng)
     else if (patch_type == PatchType::coarse)
     {
         amrex::Abort("EvolveHM does not come with coarse patch yet");
-        /*
         if (do_pml && pml[lev]->ok())
         {
-        pml[lev]->ExchangeH(patch_type,
+        pml[lev]->ExchangeB(patch_type,
                       { Hfield_cp[lev][0].get(),
                         Hfield_cp[lev][1].get(),
                         Hfield_cp[lev][2].get() },
                         do_pml_in_domain);
-        pml[lev]->FillBoundaryH(patch_type);
+        pml[lev]->FillBoundaryB(patch_type);
         }
         const auto& cperiod = Geom(lev-1).periodicity();
         if ( safe_guard_cells ){
@@ -644,7 +625,6 @@ WarpX::FillBoundaryH (int lev, PatchType patch_type, IntVect ng)
             Hfield_cp[lev][1]->FillBoundary(ng, cperiod);
             Hfield_cp[lev][2]->FillBoundary(ng, cperiod);
         }
-        */
     }
 }
 #endif
