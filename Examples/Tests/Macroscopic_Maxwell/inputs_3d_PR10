@@ -37,9 +37,6 @@ warpx.verbose = 0
 warpx.use_filter = 0
 warpx.cfl = 0.9
 warpx.do_pml = 0
-#warpx.mag_time_scheme_order = 2 # default 1
-#warpx.mag_M_normalization = 1 # 1 is saturated
-#warpx.mag_LLG_coupling = 1
 particles.nspecies = 0
 
 algo.em_solver_medium = macroscopic # vacuum/macroscopic
@@ -65,7 +62,7 @@ warpx.Ex_excitation_grid_function(x,y,z,t) = "0.0"
 warpx.Ey_excitation_grid_function(x,y,z,t) = "1000*(exp(-(t-3*TP)**2/(2*TP**2))*cos(2*pi*c/wavelength*t)) * (z>=h) * (z<h+6.0e-4)"
 warpx.Ez_excitation_grid_function(x,y,z,t) = "0.0"
 warpx.Ex_excitation_flag_function(x,y,z) = "flag_none"
-warpx.Ey_excitation_flag_function(x,y,z) = "flag_hs * (z>=h) * (z<h+6.0e-4) + flag_none * (z<h) * (z>=h+6.0e-4)"
+warpx.Ey_excitation_flag_function(x,y,z) = "flag_hs * (z>=h) * (z<h+6.0e-4) + flag_none * (z<h) + flag_none * (z>=h+6.0e-4)"
 warpx.Ez_excitation_flag_function(x,y,z) = "flag_none"
 
 warpx.B_ext_grid_init_style = parse_B_ext_grid_function
