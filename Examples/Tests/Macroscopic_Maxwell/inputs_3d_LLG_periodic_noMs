@@ -1,4 +1,4 @@
-# This is a E+H (use USE_LLG=TRUE but Ms=0, i.e. no LLG) simulation of a
+# This is a E+H (use USE_LLG=TRUE but Ms=0, i.e. no evolution of M using the LLG module) simulation of a
 # plane wave in a periodic domain
 
 ################################

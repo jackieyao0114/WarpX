@@ -1,5 +1,5 @@
 ####################################################################################################
-## This input file include an uncoupled system to test the M evolution driven by an H_bias field. ##
+## This input file includes an uncoupled system to test the M evolution driven by an H_bias field. ##
 ## The coupling between the LLG equation and Maxwell equations is turned off by setting the value ##
 ## warpx.mag_LLG_coupling = 0.                                                                    ##
 ## The CFL factor warpx.cfl is set to be 4000 (much larger than 1),   because there is no wave    ##
@@ -19,6 +19,8 @@
 ##                                           time step.                                           ##
 ## mag_M_normalization==1 is equivalent to mag_M_normalization==2 in the first-order algorithm.   ##
 ## This input file requires USE_LLG=TRUE in the GNUMakefile.                                      ##
+## Note that the E and H fields are set to zero even though the system is uncoupled to   ##
+## prevent the code from running into NANs for this uncoupled case.                              ##
 ####################################################################################################
 
 ################################
