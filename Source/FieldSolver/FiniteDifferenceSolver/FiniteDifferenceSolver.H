@@ -80,7 +80,7 @@ class FiniteDifferenceSolver
 
 #ifdef WARPX_MAG_LLG
         /**
-          * \brief Macroscopic M-update, H-update and B-update for non-vacuum medium using finite-difference algorithm
+          * \brief Macroscopic M-update, H-update and B=mu_o(H+M) computation for non-vacuum medium using finite-difference algorithm
           * solving Landau-Lifshitz-Gilbert (LLG) equation,
           * only Yee's algorithm is applicable for M calculation
           * These functions have first- or second- order accuracy with forward-Euler or iterative trapezoidal method
