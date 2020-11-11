@@ -235,13 +235,23 @@ WarpX::EvolveE (int lev, PatchType patch_type, amrex::Real a_dt)
     if (do_pml && pml[lev]->ok()) {
         if (patch_type == PatchType::fine) {
             m_fdtd_solver_fp[lev]->EvolveEPML(
-                pml[lev]->GetE_fp(), pml[lev]->GetB_fp(),
+                pml[lev]->GetE_fp(),
+#ifdef WARPX_MAG_LLG
+                pml[lev]->GetH_fp(),
+#else
+                pml[lev]->GetB_fp(),
+#endif
                 pml[lev]->Getj_fp(), pml[lev]->GetF_fp(),
                 pml[lev]->GetMultiSigmaBox_fp(),
                 a_dt, pml_has_particles );
         } else {
             m_fdtd_solver_cp[lev]->EvolveEPML(
-                pml[lev]->GetE_cp(), pml[lev]->GetB_cp(),
+                pml[lev]->GetE_cp(),
+#ifdef WARPX_MAG_LLG
+                pml[lev]->GetH_fp(),
+#else
+                pml[lev]->GetB_fp(),
+#endif                
                 pml[lev]->Getj_cp(), pml[lev]->GetF_cp(),
                 pml[lev]->GetMultiSigmaBox_cp(),
                 a_dt, pml_has_particles );
@@ -341,13 +351,23 @@ WarpX::MacroscopicEvolveE (int lev, PatchType patch_type, amrex::Real a_dt) {
     if (do_pml && pml[lev]->ok()) {
         if (patch_type == PatchType::fine) {
             m_fdtd_solver_fp[lev]->EvolveEPML(
-                pml[lev]->GetE_fp(), pml[lev]->GetB_fp(),
+                pml[lev]->GetE_fp(),
+#ifdef WARPX_MAG_LLG
+                pml[lev]->GetH_fp(),
+#else
+                pml[lev]->GetB_fp(),
+#endif                
                 pml[lev]->Getj_fp(), pml[lev]->GetF_fp(),
                 pml[lev]->GetMultiSigmaBox_fp(),
                 a_dt, pml_has_particles );
         } else {
             m_fdtd_solver_cp[lev]->EvolveEPML(
-                pml[lev]->GetE_cp(), pml[lev]->GetB_cp(),
+                pml[lev]->GetE_cp(),
+#ifdef WARPX_MAG_LLG
+                pml[lev]->GetH_fp(),
+#else
+                pml[lev]->GetB_fp(),
+#endif                
                 pml[lev]->Getj_cp(), pml[lev]->GetF_cp(),
                 pml[lev]->GetMultiSigmaBox_cp(),
                 a_dt, pml_has_particles );
