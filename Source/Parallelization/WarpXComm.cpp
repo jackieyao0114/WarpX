@@ -581,6 +581,8 @@ WarpX::FillBoundaryH (int lev, PatchType patch_type, IntVect ng)
     {
         if (do_pml && pml[lev]->ok())
         {
+            // We use the data structures and kernels for the B PML update for simplicity.
+            // But here we exchange with the Hfield
             pml[lev]->ExchangeB(patch_type,
                             { Hfield_fp[lev][0].get(),
                               Hfield_fp[lev][1].get(),
@@ -606,6 +608,8 @@ WarpX::FillBoundaryH (int lev, PatchType patch_type, IntVect ng)
         amrex::Abort("EvolveHM does not come with coarse patch yet");
         if (do_pml && pml[lev]->ok())
         {
+        // We use the data structures and kernels for the B PML update for simplicity.
+        // But here we exchange with the Hfield
         pml[lev]->ExchangeB(patch_type,
                       { Hfield_cp[lev][0].get(),
                         Hfield_cp[lev][1].get(),

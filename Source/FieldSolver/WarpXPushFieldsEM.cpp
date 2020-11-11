@@ -448,6 +448,7 @@ WarpX::MacroscopicEvolveHM (int lev, PatchType patch_type, amrex::Real a_dt) {
     }
 
     // Evolve H field in PML cells
+    // We use the data structures and kernels for the B PML update for simplicity.
     if (do_pml && pml[lev]->ok()) {
         if (patch_type == PatchType::fine) {
             m_fdtd_solver_fp[lev]->EvolveBPML(
@@ -489,6 +490,7 @@ WarpX::MacroscopicEvolveHM_2nd (int lev, PatchType patch_type, amrex::Real a_dt)
     }
 
     // Evolve H field in PML cells
+    // We use the data structures and kernels for the B PML update for simplicity.
     if (do_pml && pml[lev]->ok()) {
         if (patch_type == PatchType::fine) {
             m_fdtd_solver_fp[lev]->EvolveBPML(
