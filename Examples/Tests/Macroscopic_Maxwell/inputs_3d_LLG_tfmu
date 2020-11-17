@@ -11,9 +11,9 @@
 max_step = 5000
 amr.n_cell = 64 64 512 # number of cells spanning the domain in each coordinate direction at level 0
 amr.max_grid_size = 32 # maximum size of each AMReX box, used to decompose the domain
-amr.blocking_factor = 16
+amr.blocking_factor = 8 # only meaningful for AMR
 geometry.coord_sys = 0
-geometry.is_periodic = 1 1 1
+geometry.is_periodic = 1 1 0
 
 geometry.prob_lo = -15e-3 -15e-3 -30.0e-3
 geometry.prob_hi =  15e-3  15e-3  30.0e-3
@@ -36,9 +36,9 @@ my_constants.flag_ss = 2
 warpx.verbose = 0
 warpx.use_filter = 0
 warpx.cfl = 0.9
-warpx.do_pml_Lo = 0 0 0
-warpx.do_pml_Hi = 0 0 0
-warpx.mag_time_scheme_order = 1 # default 1
+warpx.do_pml_Lo = 0 0 1
+warpx.do_pml_Hi = 0 0 1
+warpx.mag_time_scheme_order = 2 # default 1
 warpx.mag_M_normalization = 1 # 1 is saturated
 warpx.mag_LLG_coupling = 1
 particles.nspecies = 0
@@ -102,11 +102,11 @@ warpx.Hz_bias_external_grid_function(x,y,z)= 0.
 
 warpx.M_ext_grid_init_style = parse_M_ext_grid_function
 warpx.Mx_external_grid_function(x,y,z)= 0.
-warpx.My_external_grid_function(x,y,z)= "1.4e5 * (z<=h) + 0.1 * (z>h)"
+warpx.My_external_grid_function(x,y,z)= "1.4e5 * (z<=h) + 0 * (z>h)"
 warpx.Mz_external_grid_function(x,y,z) = 0.
 
 #Diagnostics
-diagnostics.diags_names = plt
+diagnostics.diags_names = plt1
 plt.period = 1
 plt.diag_type = Full
 #plt.fields_to_plot = Ex Ey Ez Bx By Bz
