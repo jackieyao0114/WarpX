@@ -738,6 +738,8 @@ public:
      */
     void ComputeCostsHeuristic (amrex::Vector<std::unique_ptr<amrex::LayoutData<amrex::Real> > >& costs);
 
+    void ApplyFilterandSumBoundaryRho (int lev, int glev, amrex::MultiFab& rho, int icomp, int ncomp);
+
     /** \brief Adds the contribution of user-defined external field-excitation
      *   to Efield, Bfield, and also Hfield if `USE_LLG=TRUE`.
      *   Two types of excitation are supported, namely, hard source and soft source.
@@ -773,7 +775,6 @@ public:
          HostDeviceParser<3> const& xflag_parser,
          HostDeviceParser<3> const& yflag_parser,
          HostDeviceParser<3> const& zflag_parser, const int lev );
-    void ApplyFilterandSumBoundaryRho (int lev, int glev, amrex::MultiFab& rho, int icomp, int ncomp);
 
 protected:
 
