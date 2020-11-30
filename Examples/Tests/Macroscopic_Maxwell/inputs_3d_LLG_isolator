@@ -9,7 +9,7 @@
 ####### GENERAL PARAMETERS ######
 #################################
 max_step = 100000
-amr.n_cell = 1024 8 2048 # number of cells spanning the domain in each coordinate direction at level 0
+amr.n_cell = 512 8 2048 # number of cells spanning the domain in each coordinate direction at level 0
 amr.max_grid_size = 64 # maximum size of each AMReX box, used to decompose the domain
 amr.blocking_factor = 8 # only meaningful for AMR
 geometry.coord_sys = 0
@@ -88,10 +88,10 @@ warpx.Ez_external_grid_function(x,y,z) = 0.
 warpx.E_excitation_on_grid_style = "parse_E_excitation_grid_function"
 warpx.Ex_excitation_grid_function(x,y,z,t) = "0.0"
 # electric current line source at the middle of waveguide; spanning over entire y dimension
-warpx.Ey_excitation_grid_function(x,y,z,t) = "0.1 * (exp((t-3*TP)**2/(2*TP**2))*cos(2*pi*c/wavelength*t)) * (z >= - Rjz/2) * (z < Rjz/2) * (x >= - Rjx/2) * (x < Rjx/2)"
+warpx.Ey_excitation_grid_function(x,y,z,t) = "(exp(-(t-3*TP)**2/(2*TP**2))*cos(2*pi*c/wavelength*t)) * (z >= - Rjz/2) * (z < Rjz/2) * (x >= - Rjx/2) * (x < Rjx/2)"
 warpx.Ez_excitation_grid_function(x,y,z,t) = "0.0"
 warpx.Ex_excitation_flag_function(x,y,z) = "flag_none"
-warpx.Ey_excitation_flag_function(x,y,z) = "flag_ss * (z >= - Rjz/2) * (z < Rjz/2) * (x >= - Rjx/2) * (x < Rjx/2) + flag_none * (z < - Rjz/2) flag_none * (z >= Rjz/2) + flag_none * (x < - Rjx/2) + flag_none * (x >= Rjx/2)"
+warpx.Ey_excitation_flag_function(x,y,z) = "flag_ss * (z >= - Rjz/2) * (z < Rjz/2) * (x >= - Rjx/2) * (x < Rjx/2) + flag_none * (z < - Rjz/2) + flag_none * (z >= Rjz/2) + flag_none * (x < - Rjx/2) + flag_none * (x >= Rjx/2)" # line source
 warpx.Ez_excitation_flag_function(x,y,z) = "flag_none"
 
 #unit conversion: 1 Gauss = 1 Oersted = (1000/4pi) A/m
@@ -108,7 +108,7 @@ warpx.My_external_grid_function(x,y,z)= "1.3926e5 * (x<=thickness+position-width
 warpx.Mz_external_grid_function(x,y,z) = 0.
 
 #Diagnostics
-diagnostics.diags_names = plt_BernadoFilter
-plt_BernadoFilter.period = 5
-plt_BernadoFilter.diag_type = Full
-plt_BernadoFilter.fields_to_plot = Ex Ey Ez Hx Hy Hz Bx By Bz Mx_xface My_xface Mz_xface Mx_yface My_yface Mz_yface Mx_zface My_zface Mz_zface
+diagnostics.diags_names = plt_isolator
+plt_isolator.period = 10
+plt_isolator.diag_type = Full
+plt_isolator.fields_to_plot = Ex Ey Ez Hx Hy Hz Mx_xface My_xface Mz_xface Mx_yface My_yface Mz_yface Mx_zface My_zface Mz_zface
