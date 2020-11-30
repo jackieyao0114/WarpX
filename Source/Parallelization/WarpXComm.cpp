@@ -521,7 +521,7 @@ WarpX::FillBoundaryM (int lev, PatchType patch_type, IntVect ng)
     {
         if (do_pml && pml[lev]->ok())
         {
-            // note: M does not require special PML treatment
+            // ExchangeM not needed for PML algorithm
         }
         const auto& period = Geom(lev).periodicity();
         if ( safe_guard_cells ) {
@@ -583,14 +583,12 @@ WarpX::FillBoundaryH (int lev, PatchType patch_type, IntVect ng)
     {
         if (do_pml && pml[lev]->ok())
         {
-            // We use the data structures and kernels for the B PML update for simplicity.
-            // But here we exchange with the Hfield
-            pml[lev]->ExchangeB(patch_type,
+            pml[lev]->ExchangeH(patch_type,
                             { Hfield_fp[lev][0].get(),
                               Hfield_fp[lev][1].get(),
                               Hfield_fp[lev][2].get() },
                               do_pml_in_domain);
-            pml[lev]->FillBoundaryB(patch_type);
+            pml[lev]->FillBoundaryH(patch_type);
         }
         const auto& period = Geom(lev).periodicity();
         if ( safe_guard_cells ) {
