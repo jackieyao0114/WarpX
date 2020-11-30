@@ -192,6 +192,10 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
                             + beta * ( - T_Algo::DownwardDz(Hy, coefs_z, n_coefs_z, i, j, k,0)
                                        + T_Algo::DownwardDy(Hz, coefs_y, n_coefs_y, i, j, k,0)
                                      ) - beta * jx(i, j, k);
+
+                if (k == 0){
+                    Ex(i, j, k) = 0;
+                }
             },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
@@ -206,6 +210,10 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
                             + beta * ( - T_Algo::DownwardDx(Hz, coefs_x, n_coefs_x, i, j, k,0)
                                        + T_Algo::DownwardDz(Hx, coefs_z, n_coefs_z, i, j, k,0)
                                      ) - beta * jy(i, j, k);
+                
+                if (k == 0) {
+                    Ey(i, j, k) = 0;
+                }
             },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
