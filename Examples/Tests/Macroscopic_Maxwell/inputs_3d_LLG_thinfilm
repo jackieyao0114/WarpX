@@ -23,7 +23,7 @@ amr.max_level = 0
 my_constants.pi = 3.14159265359
 my_constants.L = 15.0e-3 # location of film
 my_constants.h = 2.0e-3 # thickness of the film
-my_constants.excit = 6.0e-4 # spatial span of excitation
+my_constants.excit = 1.5e-4 # spatial span of excitation
 my_constants.c = 299792458.
 my_constants.wavelength = 0.2308 # frequency is 1.30 GHz
 my_constants.TP = 1.5385e-9 # Gaussian pulse width
@@ -107,7 +107,7 @@ warpx.My_external_grid_function(x,y,z)= "1.4e5 * (z<=h-L) + 0 * (z>h-L)"
 warpx.Mz_external_grid_function(x,y,z) = 0.
 
 #Diagnostics
-diagnostics.diags_names = plt_thinfilmPEC
-plt_thinfilmPEC.period = 5
-plt_thinfilmPEC.diag_type = Full
-plt_thinfilmPEC.fields_to_plot = Ex Ey Ez Hx Hy Hz Bx By Bz Mx_xface My_xface Mz_xface Mx_yface My_yface Mz_yface Mx_zface My_zface Mz_zface
+diagnostics.diags_names = plt_thinfilmPEC_PML
+plt_thinfilmPEC_PML.period = 5
+plt_thinfilmPEC_PML.diag_type = Full
+plt_thinfilmPEC_PML.fields_to_plot = Ex Ey Ez Hx Hy Hz Mx_xface My_xface Mz_xface Mx_yface My_yface Mz_yface Mx_zface My_zface Mz_zface
