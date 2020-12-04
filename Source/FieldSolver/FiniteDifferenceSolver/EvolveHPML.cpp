@@ -90,53 +90,12 @@ void FiniteDifferenceSolver::EvolveHPMLCartesian (
         Box const& tby  = mfi.tilebox(Hfield[1]->ixType().ixType());
         Box const& tbz  = mfi.tilebox(Hfield[2]->ixType().ixType());
 
-<<<<<<< HEAD
-=======
         amrex::Real mu0_inv = 1._rt/PhysConst::mu0;
 
->>>>>>> 5fd4d2b725d452bdc2b71de8fdd5466a0426b597
         // Loop over the cells and update the fields
         amrex::ParallelFor(tbx, tby, tbz,
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
-<<<<<<< HEAD
-                Hx(i, j, k, PMLComp::xz) += dt * (
-                    T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k, PMLComp::yx)
-                  + T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k, PMLComp::yy)
-                  + T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k, PMLComp::yz) )
-                    / PhysConst::mu0;
-                Hx(i, j, k, PMLComp::xy) -= dt * (
-                    T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k, PMLComp::zx)
-                  + T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k, PMLComp::zy)
-                  + T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k, PMLComp::zz) )
-                    / PhysConst::mu0;
-            },
-
-            [=] AMREX_GPU_DEVICE (int i, int j, int k){
-                Hy(i, j, k, PMLComp::yx) += dt * (
-                    T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k, PMLComp::zx)
-                  + T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k, PMLComp::zy)
-                  + T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k, PMLComp::zz) )
-                    / PhysConst::mu0;
-                Hy(i, j, k, PMLComp::yz) -= dt * (
-                    T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k, PMLComp::xx)
-                  + T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k, PMLComp::xy)
-                  + T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k, PMLComp::xz) )
-                    / PhysConst::mu0;
-            },
-
-            [=] AMREX_GPU_DEVICE (int i, int j, int k){
-                Hz(i, j, k, PMLComp::zy) += dt * (
-                    T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k, PMLComp::xx)
-                  + T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k, PMLComp::xy)
-                  + T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k, PMLComp::xz) )
-                    / PhysConst::mu0;
-                Hz(i, j, k, PMLComp::zx) -= dt * (
-                    T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k, PMLComp::yx)
-                  + T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k, PMLComp::yy)
-                  + T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k, PMLComp::yz) )
-                    / PhysConst::mu0;
-=======
                 Hx(i, j, k, PMLComp::xz) += mu0_inv * dt * (
                     T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k, PMLComp::yx)
                   + T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k, PMLComp::yy)
@@ -167,7 +126,6 @@ void FiniteDifferenceSolver::EvolveHPMLCartesian (
                     T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k, PMLComp::yx)
                   + T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k, PMLComp::yy)
                   + T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k, PMLComp::yz) );
->>>>>>> 5fd4d2b725d452bdc2b71de8fdd5466a0426b597
             }
 
         );
