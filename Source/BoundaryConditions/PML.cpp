@@ -601,7 +601,6 @@ PML::PML (const BoxArray& grid_ba, const DistributionMapping& /*grid_dm*/,
         pml_H_cp[2] = std::make_unique<MultiFab>(amrex::convert( cba,
             WarpX::GetInstance().getHfield_cp(1,2).ixType().toIntVect() ), cdm, 2, ngb );
 #endif
-        
         pml_E_cp[0]->setVal(0.0);
         pml_E_cp[1]->setVal(0.0);
         pml_E_cp[2]->setVal(0.0);

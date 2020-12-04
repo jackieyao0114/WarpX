@@ -76,7 +76,7 @@ WarpX::DampPML (int lev, PatchType patch_type)
 #else
             auto const& pml_Hxfab = pml_H[0]->array(mfi);
             auto const& pml_Hyfab = pml_H[1]->array(mfi);
-            auto const& pml_Hzfab = pml_H[2]->array(mfi);            
+            auto const& pml_Hzfab = pml_H[2]->array(mfi);
 #endif
             amrex::Real const * AMREX_RESTRICT sigma_fac_x = sigba[mfi].sigma_fac[0].data();
 #if (AMREX_SPACEDIM == 3)
