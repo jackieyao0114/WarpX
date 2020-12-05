@@ -78,10 +78,6 @@ void FiniteDifferenceSolver::EvolveEPMLCartesian (
 #ifdef WARPX_MAG_LLG
     c2 *= PhysConst::mu0;
 #endif
-
-#ifdef WARPX_MAG_LLG
-    c2 *= PhysConst::mu0;
-#endif
     
     // Loop through the grids, and over the tiles within each grid
 #ifdef _OPENMP

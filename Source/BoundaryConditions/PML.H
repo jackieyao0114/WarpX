@@ -157,9 +157,15 @@ public:
     void ExchangeH (const std::array<amrex::MultiFab*,3>& H_fp,
                     const std::array<amrex::MultiFab*,3>& H_cp, int do_pml_in_domain);
     void ExchangeH (PatchType patch_type,
+<<<<<<< HEAD
                     const std::array<amrex::MultiFab*,3>& Bp, int do_pml_in_domain);
 #endif
     
+=======
+                    const std::array<amrex::MultiFab*,3>& Hp, int do_pml_in_domain);
+#endif
+
+>>>>>>> 5fd4d2b725d452bdc2b71de8fdd5466a0426b597
     void FillBoundary ();
     void FillBoundaryE ();
     void FillBoundaryB ();
@@ -200,7 +206,11 @@ private:
     std::array<std::unique_ptr<amrex::MultiFab>,3> pml_H_fp;
     std::array<std::unique_ptr<amrex::MultiFab>,3> pml_H_cp;
 #endif
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 5fd4d2b725d452bdc2b71de8fdd5466a0426b597
     std::unique_ptr<MultiSigmaBox> sigba_fp;
     std::unique_ptr<MultiSigmaBox> sigba_cp;
 

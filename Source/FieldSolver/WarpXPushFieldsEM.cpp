@@ -244,10 +244,10 @@ WarpX::EvolveE (int lev, PatchType patch_type, amrex::Real a_dt)
             m_fdtd_solver_cp[lev]->EvolveEPML(
                 pml[lev]->GetE_cp(),
 #ifdef WARPX_MAG_LLG
-                pml[lev]->GetH_fp(),
+                pml[lev]->GetH_cp(),
 #else
-                pml[lev]->GetB_fp(),
-#endif                
+                pml[lev]->GetB_cp(),
+#endif
                 pml[lev]->Getj_cp(), pml[lev]->GetF_cp(),
                 pml[lev]->GetMultiSigmaBox_cp(),
                 a_dt, pml_has_particles );
@@ -342,7 +342,6 @@ WarpX::MacroscopicEvolveE (int lev, PatchType patch_type, amrex::Real a_dt) {
     else {
         amrex::Abort("Macroscopic EvolveE is not implemented for lev > 0, yet.");
     }
-    
     // Evolve E field in PML cells
     if (do_pml && pml[lev]->ok()) {
         if (patch_type == PatchType::fine) {
@@ -352,7 +351,7 @@ WarpX::MacroscopicEvolveE (int lev, PatchType patch_type, amrex::Real a_dt) {
                 pml[lev]->GetH_fp(),
 #else
                 pml[lev]->GetB_fp(),
-#endif                
+#endif
                 pml[lev]->Getj_fp(), pml[lev]->GetF_fp(),
                 pml[lev]->GetMultiSigmaBox_fp(),
                 a_dt, pml_has_particles );
@@ -360,10 +359,10 @@ WarpX::MacroscopicEvolveE (int lev, PatchType patch_type, amrex::Real a_dt) {
             m_fdtd_solver_cp[lev]->EvolveEPML(
                 pml[lev]->GetE_cp(),
 #ifdef WARPX_MAG_LLG
-                pml[lev]->GetH_fp(),
+                pml[lev]->GetH_cp(),
 #else
-                pml[lev]->GetB_fp(),
-#endif                
+                pml[lev]->GetB_cp(),
+#endif
                 pml[lev]->Getj_cp(), pml[lev]->GetF_cp(),
                 pml[lev]->GetMultiSigmaBox_cp(),
                 a_dt, pml_has_particles );
@@ -393,7 +392,6 @@ WarpX::MacroscopicEvolveHM (int lev, amrex::Real a_dt) {
 
 void
 WarpX::MacroscopicEvolveHM (int lev, PatchType patch_type, amrex::Real a_dt) {
-    
     // Evolve H field in regular cells
     if (patch_type == PatchType::fine) {
         m_fdtd_solver_fp[lev]->MacroscopicEvolveHM( Mfield_fp[lev], Hfield_fp[lev], Bfield_fp[lev], H_biasfield_fp[lev], Efield_fp[lev],
@@ -402,7 +400,6 @@ WarpX::MacroscopicEvolveHM (int lev, PatchType patch_type, amrex::Real a_dt) {
     else {
         amrex::Abort("Macroscopic EvolveHM is not implemented for lev > 0 yet");
     }
-    
     // Evolve H field in PML cells
     if (do_pml && pml[lev]->ok()) {
         if (patch_type == PatchType::fine) {
@@ -445,7 +442,6 @@ WarpX::MacroscopicEvolveHM_2nd (int lev, PatchType patch_type, amrex::Real a_dt)
     else {
         amrex::Abort("Macroscopic EvolveHM_2nd is not implemented for lev > 0 yet");
     }
-    
     // Evolve H field in PML cells
     if (do_pml && pml[lev]->ok()) {
         if (patch_type == PatchType::fine) {

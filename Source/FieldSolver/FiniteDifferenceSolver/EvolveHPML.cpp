@@ -90,46 +90,42 @@ void FiniteDifferenceSolver::EvolveHPMLCartesian (
         Box const& tby  = mfi.tilebox(Hfield[1]->ixType().ixType());
         Box const& tbz  = mfi.tilebox(Hfield[2]->ixType().ixType());
 
+        amrex::Real mu0_inv = 1._rt/PhysConst::mu0;
+
         // Loop over the cells and update the fields
         amrex::ParallelFor(tbx, tby, tbz,
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
-                Hx(i, j, k, PMLComp::xz) += dt * (
+                Hx(i, j, k, PMLComp::xz) += mu0_inv * dt * (
                     T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k, PMLComp::yx)
                   + T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k, PMLComp::yy)
-                  + T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k, PMLComp::yz) )
-                    / PhysConst::mu0;
-                Hx(i, j, k, PMLComp::xy) -= dt * (
+                  + T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k, PMLComp::yz) );
+                Hx(i, j, k, PMLComp::xy) -= mu0_inv * dt * (
                     T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k, PMLComp::zx)
                   + T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k, PMLComp::zy)
-                  + T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k, PMLComp::zz) )
-                    / PhysConst::mu0;
+                  + T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k, PMLComp::zz) );
             },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
-                Hy(i, j, k, PMLComp::yx) += dt * (
+                Hy(i, j, k, PMLComp::yx) += mu0_inv * dt * (
                     T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k, PMLComp::zx)
                   + T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k, PMLComp::zy)
-                  + T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k, PMLComp::zz) )
-                    / PhysConst::mu0;
-                Hy(i, j, k, PMLComp::yz) -= dt * (
+                  + T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k, PMLComp::zz) );
+                Hy(i, j, k, PMLComp::yz) -= mu0_inv * dt * (
                     T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k, PMLComp::xx)
                   + T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k, PMLComp::xy)
-                  + T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k, PMLComp::xz) )
-                    / PhysConst::mu0;
+                  + T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k, PMLComp::xz) );
             },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
-                Hz(i, j, k, PMLComp::zy) += dt * (
+                Hz(i, j, k, PMLComp::zy) += mu0_inv * dt * (
                     T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k, PMLComp::xx)
                   + T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k, PMLComp::xy)
-                  + T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k, PMLComp::xz) )
-                    / PhysConst::mu0;
-                Hz(i, j, k, PMLComp::zx) -= dt * (
+                  + T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k, PMLComp::xz) );
+                Hz(i, j, k, PMLComp::zx) -= mu0_inv * dt * (
                     T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k, PMLComp::yx)
                   + T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k, PMLComp::yy)
-                  + T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k, PMLComp::yz) )
-                    / PhysConst::mu0;
+                  + T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k, PMLComp::yz) );
             }
 
         );
