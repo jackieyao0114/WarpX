@@ -22,6 +22,9 @@ my_constants.h = 1.0e-3 # thickness of the film
 my_constants.c = 299792458.
 my_constants.wavelength = 0.2308 # frequency is 1.30 GHz
 my_constants.TP = 1.5385e-9 # Gaussian pulse width
+my_constants.flag_none = 0
+my_constants.flag_hs = 1
+my_constants.flag_ss = 2
 
 #################################
 ############ NUMERICS ###########
@@ -33,7 +36,6 @@ warpx.do_pml = 0
 warpx.mag_time_scheme_order = 2 # default 1
 warpx.mag_M_normalization = 1 # 1 is saturated
 warpx.mag_LLG_coupling = 1
-particles.nspecies = 0
 
 algo.em_solver_medium = macroscopic # vacuum/macroscopic
 algo.macroscopic_sigma_method = laxwendroff # laxwendroff or backwardeuler
@@ -64,6 +66,10 @@ warpx.E_ext_grid_init_style = parse_E_ext_grid_function
 warpx.Ex_external_grid_function(x,y,z) = 0.
 warpx.Ey_external_grid_function(x,y,z) = 0.
 warpx.Ez_external_grid_function(x,y,z) = 0.
+
+warpx.Ex_excitation_flag_function(x,y,z) = "flag_none"
+warpx.Ey_excitation_flag_function(x,y,z) = "flag_hs * (z>=h) * (z<h+6.0e-4) + flag_none * (z<h) * (z>=h+6.0e-4)"
+warpx.Ez_excitation_flag_function(x,y,z) = "flag_none"
 
 warpx.E_excitation_on_grid_style = "parse_E_excitation_grid_function"
 warpx.Ex_excitation_grid_function(x,y,z,t) = "0.0"
