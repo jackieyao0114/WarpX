@@ -122,12 +122,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveEPMLCartesian (
     amrex::MultiFab* const mu_mf,
     amrex::MultiFab* const sigma_mf ) {
 
-    Real c2 = PhysConst::c * PhysConst::c;
-
-#ifdef WARPX_MAG_LLG
-    c2 *= PhysConst::mu0;
-#endif
-
     // Index type required for calling CoarsenIO::Interp to interpolate macroscopic
     // properties from their respective staggering to the Ex, Ey, Ez locations
     amrex::GpuArray<int, 3> const& sigma_stag = macroscopic_properties->sigma_IndexType;
