@@ -546,7 +546,7 @@ PML::PML (const BoxArray& grid_ba, const DistributionMapping& /*grid_dm*/,
         // Initialize mu, permeability
         if (macroscopic_properties->m_mu_s == "constant") {
             pml_mu_fp->setVal(macroscopic_properties->m_mu);
-        } else if (macroscopic_properties->m_sigma_s == "parse_mu_function") {
+        } else if (macroscopic_properties->m_mu_s == "parse_mu_function") {
             macroscopic_properties->InitializeMacroMultiFabUsingParser(pml_mu_fp.get(),
                 getParser(macroscopic_properties->m_mu_parser), lev);
         }
