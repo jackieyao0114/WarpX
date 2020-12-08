@@ -11,7 +11,6 @@
 #include "Utils/WarpXConst.H"
 #include "Utils/WarpXAlgorithmSelection.H"
 #include "WarpX.H"
-//#include "FieldSolver/FiniteDifferenceSolver/MacroscopicProperties/MacroscopicProperties.H"
 
 #include <AMReX_Print.H>
 #include <AMReX_VisMF.H>

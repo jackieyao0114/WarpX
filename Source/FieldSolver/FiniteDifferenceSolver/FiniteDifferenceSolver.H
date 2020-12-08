@@ -150,8 +150,6 @@ class FiniteDifferenceSolver
                       amrex::Real const dt );
 #endif
 
-
-
     private:
 
         int m_fdtd_algo;
