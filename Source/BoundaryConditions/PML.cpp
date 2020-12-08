@@ -516,17 +516,17 @@ PML::PML (const BoxArray& grid_ba, const DistributionMapping& /*grid_dm*/,
     pml_H_fp[2] = std::make_unique<MultiFab>(amrex::convert( ba,
         WarpX::GetInstance().getHfield_fp(0,2).ixType().toIntVect() ), dm, 2, ngb );
 #endif
-    
+
     if (WarpX::em_solver_medium == MediumForEM::Macroscopic) {
         // Allocating macroproperties in pml at cell-centers
         pml_eps_fp = std::make_unique<MultiFab>(ba, dm, 1, nge);
         pml_mu_fp = std::make_unique<MultiFab>(ba, dm, 1, nge);
         pml_sigma_fp = std::make_unique<MultiFab>(ba, dm, 1, nge);
-       
+
         // Initializing macroparameter multifab //
         auto& warpx = WarpX::GetInstance();
         auto& macroscopic_properties = warpx.m_macroscopic_properties;
-        
+
         // Initialize sigma, conductivity
         if (macroscopic_properties->m_sigma_s == "constant") {
             pml_sigma_fp->setVal(macroscopic_properties->m_sigma);
@@ -650,7 +650,7 @@ PML::PML (const BoxArray& grid_ba, const DistributionMapping& /*grid_dm*/,
             // Initializing macroparameter multifab //
             auto& warpx = WarpX::GetInstance();
             auto& macroscopic_properties = warpx.m_macroscopic_properties;
-            
+
             // Initialize sigma, conductivity
             if (macroscopic_properties->m_sigma_s == "constant") {
                 pml_sigma_cp->setVal(macroscopic_properties->m_sigma);
