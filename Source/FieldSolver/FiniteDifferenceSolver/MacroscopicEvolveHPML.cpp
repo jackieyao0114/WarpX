@@ -126,7 +126,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHPMLCartesian (
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
 
                 Real mu_arry = CoarsenIO::Interp( mu_arr, mu_stag, Hy_stag, macro_cr, i, j, k, scomp);
-                
+
                 Hy(i, j, k, PMLComp::yx) += 1._rt / mu_arry * dt * (
                     T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k, PMLComp::zx)
                   + T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k, PMLComp::zy)
