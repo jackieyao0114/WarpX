@@ -101,7 +101,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveHPMLCartesian (
         Box const& tbx  = mfi.tilebox(Hfield[0]->ixType().ixType());
         Box const& tby  = mfi.tilebox(Hfield[1]->ixType().ixType());
         Box const& tbz  = mfi.tilebox(Hfield[2]->ixType().ixType());
-
+        // starting component to interpolate macro properties to Hx, Hy, Hz locations
+        const int scomp = 0;
         // mu_mf will be imported but will only be called at grids where Ms == 0
         Array4<Real> const& mu_arr = mu_mf->array(mfi);
 
@@ -110,7 +111,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHPMLCartesian (
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
 
-                Real mu_arrx = CoarsenIO::Interp( mu_arr, mu_stag, Hx_stag, macro_cr, i, j, k, 0);
+                Real mu_arrx = CoarsenIO::Interp( mu_arr, mu_stag, Hx_stag, macro_cr, i, j, k, scomp);
 
                 Hx(i, j, k, PMLComp::xz) += 1._rt / mu_arrx * dt * (
                     T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k, PMLComp::yx)
@@ -124,7 +125,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHPMLCartesian (
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
 
-                Real mu_arry = CoarsenIO::Interp( mu_arr, mu_stag, Hy_stag, macro_cr, i, j, k, 0);
+                Real mu_arry = CoarsenIO::Interp( mu_arr, mu_stag, Hy_stag, macro_cr, i, j, k, scomp);
                 
                 Hy(i, j, k, PMLComp::yx) += 1._rt / mu_arry * dt * (
                     T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k, PMLComp::zx)
@@ -138,7 +139,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHPMLCartesian (
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
 
-                Real mu_arrz = CoarsenIO::Interp( mu_arr, mu_stag, Hz_stag, macro_cr, i, j, k, 0);
+                Real mu_arrz = CoarsenIO::Interp( mu_arr, mu_stag, Hz_stag, macro_cr, i, j, k, scomp);
 
                 Hz(i, j, k, PMLComp::zy) += 1._rt / mu_arrz * dt * (
                     T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k, PMLComp::xx)
