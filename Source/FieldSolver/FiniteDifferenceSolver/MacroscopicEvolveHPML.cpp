@@ -1,9 +1,3 @@
-/* Copyright 2020 Remi Lehe
- *
- * This file is part of WarpX.
- *
- * License: BSD-3-Clause-LBNL
- */
 
 #include "Utils/WarpXAlgorithmSelection.H"
 #include "FieldSolver/FiniteDifferenceSolver/FiniteDifferenceSolver.H"
@@ -24,7 +18,7 @@ using namespace amrex;
 #ifdef WARPX_MAG_LLG
 
 /**
- * \brief Update the H field, over one timestep
+ * \brief Update Hfield in PML region
  */
 void FiniteDifferenceSolver::MacroscopicEvolveHPML (
     std::array< amrex::MultiFab*, 3 > Hfield,
