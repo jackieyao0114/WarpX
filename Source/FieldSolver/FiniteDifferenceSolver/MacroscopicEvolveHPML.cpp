@@ -111,12 +111,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveHPMLCartesian (
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
 
                 Real mu_arrx = CoarsenIO::Interp( mu_arr, mu_stag, Hx_stag, macro_cr, i, j, k, 0);
-                
-                if (i ==0 && j == 0 && k == 0){
-                std::cout << "i:" << i << "\n j:" << j << "\n k:" << k << std::endl;
-                std::cout << "mux: " << mu_arrx << std::endl;
-                std::cout << "Hxz: " << Hx(i, j, k, PMLComp::xz) << std::endl;
-                std::cout << "Hxy: " << Hx(i, j, k, PMLComp::xy) << std::endl;}
 
                 Hx(i, j, k, PMLComp::xz) += 1._rt / mu_arrx * dt * (
                     T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k, PMLComp::yx)
