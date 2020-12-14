@@ -476,18 +476,11 @@ public:
     void MacroscopicEvolveE (         amrex::Real dt);
     void MacroscopicEvolveE (int lev, amrex::Real dt);
     void MacroscopicEvolveE (int lev, PatchType patch_type, amrex::Real dt);
-#ifdef WARPX_MAG_LLG
-    void MacroscopicEvolveM (         amrex::Real dt);
-    void MacroscopicEvolveM (int lev, amrex::Real dt);
-    void MacroscopicEvolveM (int lev, PatchType patch_type, amrex::Real dt);
 
+#ifdef WARPX_MAG_LLG
     void MacroscopicEvolveHM (         amrex::Real dt);
     void MacroscopicEvolveHM (int lev, amrex::Real dt);
     void MacroscopicEvolveHM (int lev, PatchType patch_type, amrex::Real dt);
-
-    void MacroscopicEvolveM_2nd (         amrex::Real dt);
-    void MacroscopicEvolveM_2nd (int lev, amrex::Real dt);
-    void MacroscopicEvolveM_2nd (int lev, PatchType patch_type, amrex::Real dt);
 
     void MacroscopicEvolveHM_2nd (         amrex::Real dt);
     void MacroscopicEvolveHM_2nd (int lev, amrex::Real dt);
@@ -745,6 +738,8 @@ public:
      */
     void ComputeCostsHeuristic (amrex::Vector<std::unique_ptr<amrex::LayoutData<amrex::Real> > >& costs);
 
+    void ApplyFilterandSumBoundaryRho (int lev, int glev, amrex::MultiFab& rho, int icomp, int ncomp);
+
     /** \brief Adds the contribution of user-defined external field-excitation
      *   to Efield, Bfield, and also Hfield if `USE_LLG=TRUE`.
      *   Two types of excitation are supported, namely, hard source and soft source.
@@ -780,7 +775,15 @@ public:
          HostDeviceParser<3> const& xflag_parser,
          HostDeviceParser<3> const& yflag_parser,
          HostDeviceParser<3> const& zflag_parser, const int lev );
-    void ApplyFilterandSumBoundaryRho (int lev, int glev, amrex::MultiFab& rho, int icomp, int ncomp);
+
+#ifdef WARPX_MAG_LLG
+    void AverageParsedMtoFaces(amrex::MultiFab& Mx_cc,
+                               amrex::MultiFab& My_cc,
+                               amrex::MultiFab& Mz_cc,
+                               amrex::MultiFab& Mx_face,
+                               amrex::MultiFab& My_face,
+                               amrex::MultiFab& Mz_face);
+#endif
 
 protected:
 

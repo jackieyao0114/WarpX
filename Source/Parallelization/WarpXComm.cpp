@@ -13,7 +13,6 @@
 
 #include <algorithm>
 #include <cstdlib>
-
 #include <memory>
 
 using namespace amrex;
@@ -522,15 +521,7 @@ WarpX::FillBoundaryM (int lev, PatchType patch_type, IntVect ng)
     {
         if (do_pml && pml[lev]->ok())
         {
-            amrex:Abort("PML not included for EvolveM yet");
-            /*
-            pml[lev]->ExchangeM(patch_type,
-                            { Mfield_fp[lev][0].get(),
-                              Mfield_fp[lev][1].get(),
-                              Mfield_fp[lev][2].get() },
-                              do_pml_in_domain);
-        pml[lev]->FillBoundaryM(patch_type);
-        */
+            // ExchangeM not needed for PML algorithm
         }
         const auto& period = Geom(lev).periodicity();
         if ( safe_guard_cells ) {
@@ -547,7 +538,7 @@ WarpX::FillBoundaryM (int lev, PatchType patch_type, IntVect ng)
     }
     else if (patch_type == PatchType::coarse)
     {
-        amrex::Abort("EvolveM does not come with coarse patch yet");
+        amrex::Abort("EvolveHM does not come with coarse patch yet");
         /*
         if (do_pml && pml[lev]->ok())
         {
@@ -597,15 +588,12 @@ WarpX::FillBoundaryH (int lev, PatchType patch_type, IntVect ng)
     {
         if (do_pml && pml[lev]->ok())
         {
-            amrex:Abort("PML not included for EvolveHM yet");
-            /*
             pml[lev]->ExchangeH(patch_type,
                             { Hfield_fp[lev][0].get(),
                               Hfield_fp[lev][1].get(),
                               Hfield_fp[lev][2].get() },
                               do_pml_in_domain);
-        pml[lev]->FillBoundaryH(patch_type);
-        */
+            pml[lev]->FillBoundaryH(patch_type);
         }
         const auto& period = Geom(lev).periodicity();
         if ( safe_guard_cells ) {
@@ -1036,7 +1024,7 @@ WarpX::ApplyFilterandSumBoundaryRho (int lev, PatchType patch_type, int icomp, i
 }
 
 void
-WarpX::ApplyFilterandSumBoundaryRho (int lev, int glev, amrex::MultiFab& rho, int icomp, int ncomp)
+WarpX::ApplyFilterandSumBoundaryRho (int /*lev*/, int glev, amrex::MultiFab& rho, int icomp, int ncomp)
 {
     const auto& period = Geom(glev).periodicity();
     if (use_filter) {

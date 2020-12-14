@@ -432,7 +432,8 @@ PML::PML (const BoxArray& grid_ba, const DistributionMapping& /*grid_dm*/,
 #endif
           int do_dive_cleaning, int do_moving_window,
           int /*pml_has_particles*/, int do_pml_in_domain,
-          const amrex::IntVect do_pml_Lo, const amrex::IntVect do_pml_Hi)
+          const amrex::IntVect do_pml_Lo, const amrex::IntVect do_pml_Hi,
+          const int lev)
     : m_geom(geom),
       m_cgeom(cgeom)
 {
@@ -506,7 +507,50 @@ PML::PML (const BoxArray& grid_ba, const DistributionMapping& /*grid_dm*/,
         WarpX::GetInstance().getBfield_fp(0,1).ixType().toIntVect() ), dm, 2, ngb );
     pml_B_fp[2] = std::make_unique<MultiFab>(amrex::convert( ba,
         WarpX::GetInstance().getBfield_fp(0,2).ixType().toIntVect() ), dm, 2, ngb );
+#ifdef WARPX_MAG_LLG
+    pml_H_fp[0] = std::make_unique<MultiFab>(amrex::convert( ba,
+        WarpX::GetInstance().getHfield_fp(0,0).ixType().toIntVect() ), dm, 2, ngb );
+    pml_H_fp[1] = std::make_unique<MultiFab>(amrex::convert( ba,
+        WarpX::GetInstance().getHfield_fp(0,1).ixType().toIntVect() ), dm, 2, ngb );
+    pml_H_fp[2] = std::make_unique<MultiFab>(amrex::convert( ba,
+        WarpX::GetInstance().getHfield_fp(0,2).ixType().toIntVect() ), dm, 2, ngb );
+#endif
 
+    if (WarpX::em_solver_medium == MediumForEM::Macroscopic) {
+        // Allocating macroproperties in pml at cell-centers
+        pml_eps_fp = std::make_unique<MultiFab>(ba, dm, 1, nge);
+        pml_mu_fp = std::make_unique<MultiFab>(ba, dm, 1, nge);
+        pml_sigma_fp = std::make_unique<MultiFab>(ba, dm, 1, nge);
+
+        // Initializing macroparameter multifab //
+        auto& warpx = WarpX::GetInstance();
+        auto& macroscopic_properties = warpx.m_macroscopic_properties;
+
+        // Initialize sigma, conductivity
+        if (macroscopic_properties->m_sigma_s == "constant") {
+            pml_sigma_fp->setVal(macroscopic_properties->m_sigma);
+        } else if (macroscopic_properties->m_sigma_s == "parse_sigma_function") {
+            macroscopic_properties->InitializeMacroMultiFabUsingParser(pml_sigma_fp.get(),
+                getParser(macroscopic_properties->m_sigma_parser), lev);
+        }
+
+        // Initialize epsilon, permittivity
+        if (macroscopic_properties->m_epsilon_s == "constant") {
+            pml_eps_fp->setVal(macroscopic_properties->m_epsilon);
+        } else if (macroscopic_properties->m_epsilon_s == "parse_epsilon_function") {
+            macroscopic_properties->InitializeMacroMultiFabUsingParser(pml_eps_fp.get(),
+                getParser(macroscopic_properties->m_epsilon_parser), lev);
+        }
+
+        // Initialize mu, permeability
+        if (macroscopic_properties->m_mu_s == "constant") {
+            pml_mu_fp->setVal(macroscopic_properties->m_mu);
+        } else if (macroscopic_properties->m_mu_s == "parse_mu_function") {
+            macroscopic_properties->InitializeMacroMultiFabUsingParser(pml_mu_fp.get(),
+                getParser(macroscopic_properties->m_mu_parser), lev);
+        }
+
+    }
 
     pml_E_fp[0]->setVal(0.0);
     pml_E_fp[1]->setVal(0.0);
@@ -514,6 +558,11 @@ PML::PML (const BoxArray& grid_ba, const DistributionMapping& /*grid_dm*/,
     pml_B_fp[0]->setVal(0.0);
     pml_B_fp[1]->setVal(0.0);
     pml_B_fp[2]->setVal(0.0);
+#ifdef WARPX_MAG_LLG
+    pml_H_fp[0]->setVal(0.0);
+    pml_H_fp[1]->setVal(0.0);
+    pml_H_fp[2]->setVal(0.0);
+#endif
 
     pml_j_fp[0] = std::make_unique<MultiFab>(amrex::convert( ba,
         WarpX::GetInstance().getcurrent_fp(0,0).ixType().toIntVect() ), dm, 1, ngb );
@@ -581,6 +630,52 @@ PML::PML (const BoxArray& grid_ba, const DistributionMapping& /*grid_dm*/,
             WarpX::GetInstance().getBfield_cp(1,1).ixType().toIntVect() ), cdm, 2, ngb );
         pml_B_cp[2] = std::make_unique<MultiFab>(amrex::convert( cba,
             WarpX::GetInstance().getBfield_cp(1,2).ixType().toIntVect() ), cdm, 2, ngb );
+#ifdef WARPX_MAG_LLG
+        pml_H_cp[0] = std::make_unique<MultiFab>(amrex::convert( cba,
+            WarpX::GetInstance().getHfield_cp(1,0).ixType().toIntVect() ), cdm, 2, ngb );
+        pml_H_cp[1] = std::make_unique<MultiFab>(amrex::convert( cba,
+            WarpX::GetInstance().getHfield_cp(1,1).ixType().toIntVect() ), cdm, 2, ngb );
+        pml_H_cp[2] = std::make_unique<MultiFab>(amrex::convert( cba,
+            WarpX::GetInstance().getHfield_cp(1,2).ixType().toIntVect() ), cdm, 2, ngb );
+#endif
+
+
+        // Allocating macroproperties in pml at cell-centers
+        if (WarpX::em_solver_medium == MediumForEM::Macroscopic) {
+            pml_eps_cp = std::make_unique<MultiFab>(cba, dm, 1, nge);
+            pml_mu_cp = std::make_unique<MultiFab>(cba, dm, 1, nge);
+            pml_sigma_cp = std::make_unique<MultiFab>(cba, dm, 1, nge);
+
+            // Initializing macroparameter multifab //
+            auto& warpx = WarpX::GetInstance();
+            auto& macroscopic_properties = warpx.m_macroscopic_properties;
+
+            // Initialize sigma, conductivity
+            if (macroscopic_properties->m_sigma_s == "constant") {
+                pml_sigma_cp->setVal(macroscopic_properties->m_sigma);
+            } else if (macroscopic_properties->m_sigma_s == "parse_sigma_function") {
+                macroscopic_properties->InitializeMacroMultiFabUsingParser(pml_sigma_cp.get(),
+                    getParser(macroscopic_properties->m_sigma_parser), lev);
+            }
+
+            // Initialize epsilon, permittivity
+            if (macroscopic_properties->m_epsilon_s == "constant") {
+                pml_eps_cp->setVal(macroscopic_properties->m_epsilon);
+            } else if (macroscopic_properties->m_epsilon_s == "parse_epsilon_function") {
+                macroscopic_properties->InitializeMacroMultiFabUsingParser(pml_eps_cp.get(),
+                    getParser(macroscopic_properties->m_epsilon_parser), lev);
+            }
+
+            // Initialize mu, permeability
+            if (macroscopic_properties->m_mu_s == "constant") {
+                pml_mu_cp->setVal(macroscopic_properties->m_mu);
+            } else if (macroscopic_properties->m_sigma_s == "parse_mu_function") {
+                macroscopic_properties->InitializeMacroMultiFabUsingParser(pml_mu_cp.get(),
+                    getParser(macroscopic_properties->m_mu_parser), lev);
+            }
+
+
+        }
 
         pml_E_cp[0]->setVal(0.0);
         pml_E_cp[1]->setVal(0.0);
@@ -588,6 +683,11 @@ PML::PML (const BoxArray& grid_ba, const DistributionMapping& /*grid_dm*/,
         pml_B_cp[0]->setVal(0.0);
         pml_B_cp[1]->setVal(0.0);
         pml_B_cp[2]->setVal(0.0);
+#ifdef WARPX_MAG_LLG
+        pml_H_cp[0]->setVal(0.0);
+        pml_H_cp[1]->setVal(0.0);
+        pml_H_cp[2]->setVal(0.0);
+#endif
 
         if (do_dive_cleaning)
         {
@@ -728,6 +828,14 @@ PML::GetB_fp ()
     return {pml_B_fp[0].get(), pml_B_fp[1].get(), pml_B_fp[2].get()};
 }
 
+#ifdef WARPX_MAG_LLG
+std::array<MultiFab*,3>
+PML::GetH_fp ()
+{
+    return {pml_H_fp[0].get(), pml_H_fp[1].get(), pml_H_fp[2].get()};
+}
+#endif
+
 std::array<MultiFab*,3>
 PML::Getj_fp ()
 {
@@ -746,6 +854,14 @@ PML::GetB_cp ()
     return {pml_B_cp[0].get(), pml_B_cp[1].get(), pml_B_cp[2].get()};
 }
 
+#ifdef WARPX_MAG_LLG
+std::array<MultiFab*,3>
+PML::GetH_cp ()
+{
+    return {pml_H_cp[0].get(), pml_H_cp[1].get(), pml_H_cp[2].get()};
+}
+#endif
+
 std::array<MultiFab*,3>
 PML::Getj_cp ()
 {
@@ -762,6 +878,43 @@ MultiFab*
 PML::GetF_cp ()
 {
     return pml_F_cp.get();
+}
+
+// Return macroscopic pml multifabs
+amrex::MultiFab*
+PML::Geteps_fp()
+{
+    return pml_eps_fp.get();
+}
+
+amrex::MultiFab*
+PML::Getmu_fp()
+{
+    return pml_mu_fp.get();
+}
+
+amrex::MultiFab*
+PML::Getsigma_fp()
+{
+    return pml_sigma_fp.get();
+}
+
+amrex::MultiFab*
+PML::Geteps_cp()
+{
+    return pml_eps_cp.get();
+}
+
+amrex::MultiFab*
+PML::Getmu_cp()
+{
+    return pml_mu_cp.get();
+}
+
+amrex::MultiFab*
+PML::Getsigma_cp()
+{
+    return pml_sigma_cp.get();
 }
 
 void
@@ -791,6 +944,36 @@ PML::ExchangeB (PatchType patch_type,
         Exchange(*pml_B_cp[2], *Bp[2], *m_cgeom, do_pml_in_domain);
     }
 }
+
+#ifdef WARPX_MAG_LLG
+void
+PML::ExchangeH (const std::array<amrex::MultiFab*,3>& H_fp,
+                const std::array<amrex::MultiFab*,3>& H_cp,
+                int do_pml_in_domain)
+{
+  ExchangeH(PatchType::fine, H_fp, do_pml_in_domain);
+  ExchangeH(PatchType::coarse, H_cp, do_pml_in_domain);
+}
+
+void
+PML::ExchangeH (PatchType patch_type,
+                const std::array<amrex::MultiFab*,3>& Hp,
+                int do_pml_in_domain)
+{
+    if (patch_type == PatchType::fine && pml_H_fp[0] && Hp[0])
+    {
+        Exchange(*pml_H_fp[0], *Hp[0], *m_geom, do_pml_in_domain);
+        Exchange(*pml_H_fp[1], *Hp[1], *m_geom, do_pml_in_domain);
+        Exchange(*pml_H_fp[2], *Hp[2], *m_geom, do_pml_in_domain);
+    }
+    else if (patch_type == PatchType::coarse && pml_H_cp[0] && Hp[0])
+    {
+        Exchange(*pml_H_cp[0], *Hp[0], *m_cgeom, do_pml_in_domain);
+        Exchange(*pml_H_cp[1], *Hp[1], *m_cgeom, do_pml_in_domain);
+        Exchange(*pml_H_cp[2], *Hp[2], *m_cgeom, do_pml_in_domain);
+    }
+}
+#endif
 
 void
 PML::ExchangeE (const std::array<amrex::MultiFab*,3>& E_fp,
@@ -1002,6 +1185,32 @@ PML::FillBoundaryB (PatchType patch_type)
     }
 }
 
+#ifdef WARPX_MAG_LLG
+void
+PML::FillBoundaryH ()
+{
+    FillBoundaryH(PatchType::fine);
+    FillBoundaryH(PatchType::coarse);
+}
+
+void
+PML::FillBoundaryH (PatchType patch_type)
+{
+    if (patch_type == PatchType::fine && pml_H_fp[0])
+    {
+        const auto& period = m_geom->periodicity();
+        Vector<MultiFab*> mf{pml_H_fp[0].get(),pml_H_fp[1].get(),pml_H_fp[2].get()};
+        amrex::FillBoundary(mf, period);
+    }
+    else if (patch_type == PatchType::coarse && pml_H_cp[0])
+    {
+        const auto& period = m_cgeom->periodicity();
+        Vector<MultiFab*> mf{pml_H_cp[0].get(),pml_H_cp[1].get(),pml_H_cp[2].get()};
+        amrex::FillBoundary(mf, period);
+    }
+}
+#endif
+
 void
 PML::FillBoundaryF ()
 {
@@ -1035,6 +1244,11 @@ PML::CheckPoint (const std::string& dir) const
         VisMF::AsyncWrite(*pml_B_fp[0], dir+"_Bx_fp");
         VisMF::AsyncWrite(*pml_B_fp[1], dir+"_By_fp");
         VisMF::AsyncWrite(*pml_B_fp[2], dir+"_Bz_fp");
+#ifdef WARPX_MAG_LLG
+        VisMF::AsyncWrite(*pml_H_fp[0], dir+"_Hx_fp");
+        VisMF::AsyncWrite(*pml_H_fp[1], dir+"_Hy_fp");
+        VisMF::AsyncWrite(*pml_H_fp[2], dir+"_Hz_fp");
+#endif
     }
 
     if (pml_E_cp[0])
@@ -1045,6 +1259,11 @@ PML::CheckPoint (const std::string& dir) const
         VisMF::AsyncWrite(*pml_B_cp[0], dir+"_Bx_cp");
         VisMF::AsyncWrite(*pml_B_cp[1], dir+"_By_cp");
         VisMF::AsyncWrite(*pml_B_cp[2], dir+"_Bz_cp");
+#ifdef WARPX_MAG_LLG
+        VisMF::AsyncWrite(*pml_H_cp[0], dir+"_Hx_cp");
+        VisMF::AsyncWrite(*pml_H_cp[1], dir+"_Hy_cp");
+        VisMF::AsyncWrite(*pml_H_cp[2], dir+"_Hz_cp");
+#endif
     }
 }
 
@@ -1059,6 +1278,11 @@ PML::Restart (const std::string& dir)
         VisMF::Read(*pml_B_fp[0], dir+"_Bx_fp");
         VisMF::Read(*pml_B_fp[1], dir+"_By_fp");
         VisMF::Read(*pml_B_fp[2], dir+"_Bz_fp");
+#ifdef WARPX_MAG_LLG
+        VisMF::Read(*pml_H_fp[0], dir+"_Hx_fp");
+        VisMF::Read(*pml_H_fp[1], dir+"_Hy_fp");
+        VisMF::Read(*pml_H_fp[2], dir+"_Hz_fp");
+#endif
     }
 
     if (pml_E_cp[0])
@@ -1069,6 +1293,11 @@ PML::Restart (const std::string& dir)
         VisMF::Read(*pml_B_cp[0], dir+"_Bx_cp");
         VisMF::Read(*pml_B_cp[1], dir+"_By_cp");
         VisMF::Read(*pml_B_cp[2], dir+"_Bz_cp");
+#ifdef WARPX_MAG_LLG
+        VisMF::Read(*pml_H_cp[0], dir+"_Hx_cp");
+        VisMF::Read(*pml_H_cp[1], dir+"_Hy_cp");
+        VisMF::Read(*pml_H_cp[2], dir+"_Hz_cp");
+#endif
     }
 }
 

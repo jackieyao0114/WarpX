@@ -254,13 +254,17 @@ user-defined constant and ``x`` and ``y`` are variables. The names are case sens
 ``(x>0)`` is `1` where `x>0` and `0` where `x<=0`. It allows the user to
 define functions by intervals. User-defined constants can be used in parsed
 functions only (i.e., ``density_function(x,y,z)`` and ``field_function(X,Y,t)``,
-see below). User-defined constants can contain only letter, numbers and character _.
+see below). User-defined constants can contain only letters, numbers and the character ``_``.
 The name of each constant has to begin with a letter. The following names are used
-by WarpX, and cannot be used as user-defined constants: `x`, `y`, `z`, `X`, `Y`, `t`.
+by WarpX, and cannot be used as user-defined constants: ``x``, ``y``, ``z``, ``X``, ``Y``, ``t``.
 For example, parameters ``a0`` and ``z_plateau`` can be specified with:
 
 * ``my_constants.a0 = 3.0``
 * ``my_constants.z_plateau = 150.e-6``
+
+The parser reads mathematical functions into an `abstract syntax tree (AST) <https://en.wikipedia.org/wiki/Abstract_syntax_tree>`_, which supports a maximum depth (see :ref:`build options <building-cmake>`_).
+Additional terms in a function can create a level of depth in the AST, e.g. ``a+b+c+d`` is parsed in groups of ``[+ a [+ b [+ c [+ d]]]]`` (depth: 4).
+A trick to reduce this depth for the parser, e.g. when reaching the limit, is to group expliclity, e.g. via ``(a+b)+(c+d)``, which is parsed in groups of ``[+ [+ a b] [+ c d]]`` (depth: 2).
 
 .. _running-cpp-parameters-particle:
 
@@ -308,6 +312,7 @@ Particle initialization
 
 * ``<species_name>.xmin,ymin,zmin`` (`float`) optional (default unlimited)
     When ``<species_name>.xmin`` and ``<species_name>.xmax`` (see below) are set, they delimit the region within which particles are injected.
+    The WarpXParser (see :ref:`running-cpp-parameters-parser`) is used for the right-hand-side, so expressions like ``<species_name>.xmin = "2.+1."`` and/or using user-defined constants are accepted.
     The same is applicable in the other directions.
     If periodic boundary conditions are used in direction ``i``, then the default (i.e. if the range is not specified) range will be the simulation box, ``[geometry.prob_hi[i], geometry.prob_lo[i]]``.
 
@@ -395,13 +400,12 @@ Particle initialization
       user-defined constant, see above. WARNING: where ``density_function(x,y,z)`` is close to zero, particles will still be injected between ``xmin`` and ``xmax`` etc., with a null weight. This is undesirable because it results in useless computing. To avoid this, see option ``density_min`` below.
 
 * ``<species_name>.density_min`` (`float`) optional (default `0.`)
-    Minimum plasma density. No particle is injected where the density is below
-    this value.
+    Minimum plasma density. No particle is injected where the density is below this value.
+    The WarpXParser (see :ref:`running-cpp-parameters-parser`) is used for the right-hand-side, so expressions like ``<species_name>.density_min = "2.+1."`` and/or using user-defined constants are accepted.
 
 * ``<species_name>.density_max`` (`float`) optional (default `infinity`)
-    Maximum plasma density. The density at each point is the minimum between
-    the value given in the profile, and `density_max`.
-
+    Maximum plasma density. The density at each point is the minimum between the value given in the profile, and `density_max`.
+    The WarpXParser (see :ref:`running-cpp-parameters-parser`) is used for the right-hand-side, so expressions like ``<species_name>.density_max = "2.+1."`` and/or using user-defined constants are accepted.
 * ``<species_name>.radially_weighted`` (`bool`) optional (default `true`)
     Whether particle's weight is varied with their radius. This only applies to cylindrical geometry.
     The only valid value is true.
@@ -808,19 +812,19 @@ Laser initialization
 
 * ``<laser_name>.stc_direction`` (`3 floats`) optional (default `1. 0. 0.`)
     Direction of laser spatio-temporal couplings.
-    See definition in Akturk et al., Opt Express, vol 12, no 19 (2014).
+    See definition in Akturk et al., Opt Express, vol 12, no 19 (2004).
 
 * ``<laser_name>.zeta`` (`float`; in meters.seconds) optional (default `0.`)
     Spatial chirp at focus in direction ``<laser_name>.stc_direction``. See definition in
-    Akturk et al., Opt Express, vol 12, no 19 (2014).
+    Akturk et al., Opt Express, vol 12, no 19 (2004).
 
 * ``<laser_name>.beta`` (`float`; in seconds) optional (default `0.`)
     Angular dispersion (or angular chirp) at focus in direction ``<laser_name>.stc_direction``.
-    See definition in Akturk et al., Opt Express, vol 12, no 19 (2014).
+    See definition in Akturk et al., Opt Express, vol 12, no 19 (2004).
 
 * ``<laser_name>.phi2`` (`float`; in seconds**2) optional (default `0.`)
     Temporal chirp at focus.
-    See definition in Akturk et al., Opt Express, vol 12, no 19 (2014).
+    See definition in Akturk et al., Opt Express, vol 12, no 19 (2004).
 
 * ``<laser_name>.do_continuous_injection`` (`0` or `1`) optional (default `0`).
     Whether or not to use continuous injection.
@@ -878,6 +882,8 @@ Laser initialization
     input file. For a two-dimensional simulation, it is assumed that the first dimension     is `x` and the second dimension in `z`, and the value of `y` is set to zero.
     Note that the current implementation of the parser for external B-field
     does not work with RZ and the code will abort with an error message.
+    Note that the implementation of the parser for external B-field does not work
+    with USE_LLG=TRUE and the code will abort with an error message
 
 * ``warpx.E_ext_grid_init_style`` (string) optional (default is "default")
     This parameter determines the type of initialization for the external
@@ -888,7 +894,7 @@ Laser initialization
     additional parameter, namely, ``warpx.E_external_grid`` must be specified
     in the input file.
     If set to ``parse_E_ext_grid_function``, then a mathematical expression can
-    be used to initialize the external magnetic field on the grid. It
+    be used to initialize the external electric field on the grid. It
     required additional parameters in the input file, namely,
     ``warpx.Ex_external_grid_function(x,y,z)``,
     ``warpx.Ey_external_grid_function(x,y,z)``,
@@ -904,6 +910,30 @@ Laser initialization
     Note that the current implementation of the parser for external E-field
     does not work with RZ and the code will abort with an error message.
 
+* ``warpx.H_ext_grid_init_style`` (string) optional (default is "default")
+    This parameter determines the type of initialization for the external
+    magnetic field intensity. The "default" style initializes the
+    external magnetic field (Hx,Hy,Hz) to (0.0, 0.0, 0.0).
+    The string can be set to "constant" if a constant magnetic field is
+    required to be set at initialization. If set to "constant", then an
+    additional parameter, namely, ``warpx.H_external_grid`` must be specified
+    in the input file.
+    If set to ``parse_H_ext_grid_function``, then a mathematical expression can
+    be used to initialize the external magnetic field on the grid. It
+    required additional parameters in the input file, namely,
+    ``warpx.Hx_external_grid_function(x,y,z)``,
+    ``warpx.Hy_external_grid_function(x,y,z)``,
+    ``warpx.Hz_external_grid_function(x,y,z)`` to initialize the external
+    magnetic field intensity for each of the three components on the grid.
+    Constants required in the expression can be set using ``my_constants``.
+    For example, if ``warpx.Hx_external_grid_function(x,y,z)=Ho*x + delta*(y + z)``
+    then the constants `Ho` and `delta` required in the above equation
+    can be set using ``my_constants.Ho=`` and ``my_constants.delta=`` in the
+    input file. This function is currently supported only for 3D simulations.
+    Note that the current implementation of the parser for external H-field
+    does not work with RZ and the code will abort with an error message.
+    This requires `USE_LLG=TRUE` in the GNUMakefile.
+
 * ``warpx.E_external_grid`` & ``warpx.B_external_grid`` (list of `3 floats`)
     required when ``warpx.E_ext_grid_init_style="constant"``
     and when ``warpx.B_ext_grid_init_style="constant"``, respectively.
@@ -911,6 +941,16 @@ Laser initialization
     to the grid at initialization. Use with caution as these fields are used for
     the field solver. In particular, do not use any other boundary condition
     than periodic.
+    Note that the implementation of the parser for external B-field does not work
+    with USE_LLG=TRUE and the code will abort with an error message
+
+* ``warpx.H_external_grid`` (list of `3 floats`)
+    required when ``warpx.H_ext_grid_init_style="constant"``.
+    External uniform and constant magnetostatic field added
+    to the grid at initialization. Use with caution as these fields are used for
+    the field solver. In particular, do not use any other boundary condition
+    than periodic.
+    This requires `USE_LLG=TRUE` in the GNUMakefile.
 
 *  ``particles.B_ext_particle_init_style`` (string) optional (default is "default")
      This parameter determines the type of initialization for the external
@@ -983,6 +1023,8 @@ Laser initialization
     of the corresponding field component.
     Constants required in the mathematical expression can be set using ``my_constants``.
     This function is currently supported only for 3D simulations.
+    Note that the implementation of the parser for excitation B-field does not work
+    with LLG and the code will abort with an error message
 
 * ``E_excitation_on_grid_style`` (string) optional (default is "default")
     This parameter is used to set the type of external electric field excitation
@@ -1084,21 +1126,15 @@ Numerics and algorithms
     Whether to smooth the charge and currents on the mesh, after depositing
     them from the macroparticles. This uses a bilinear filter
     (see the sub-section **Filtering** in :doc:`../theory/theory`).
-
-* ``warpx.use_kspace_filter`` (`0` or `1`; default: `0`)
-    Whether to smooth the charge and currents on the mesh, after depositing
-    them from the macroparticles. This uses a bilinear filter, applying the
-    filter in k-space. It is only supported with the RZ spectral solver.
-    (see the sub-section **Filtering** in :doc:`../theory/theory`).
+    When using the RZ spectral solver, the filtering is done in k-space.
 
 * ``warpx.filter_npass_each_dir`` (`3 int`) optional (default `1 1 1`)
     Number of passes along each direction for the bilinear filter.
     In 2D simulations, only the first two values are read.
 
 * ``warpx.use_filter_compensation`` (`0` or `1`; default: `0`)
-    Whether to add compensation when applying k-space filtering.
-    This requires `warpx.use_kspace_filter=1` and is only supported
-    with the RZ spectral solver.
+    Whether to add compensation when applying filtering.
+    This is only supported with the RZ spectral solver.
 
 * ``warpx.use_damp_fields_in_z_guard`` (`0` or `1`)
     When using the RZ spectrol solver, specifies whether to apply a
@@ -1545,6 +1581,7 @@ In-situ capabilities can be used by turning on Sensei or Ascent (provided they a
     Fields written to output.
     Possible values: ``Ex`` ``Ey`` ``Ez`` ``Bx`` ``By`` ``Bz`` ``jx`` ``jy`` ``jz`` ``part_per_cell`` ``rho`` ``F`` ``part_per_grid`` ``divE`` ``divB`` and ``rho_<species_name>``, where ``<species_name>`` must match the name of one of the available particle species.
     Default is ``<diag_name>.fields_to_plot = Ex Ey Ez Bx By Bz jx jy jz``.
+    Note that the fields are averaged on the cell centers before they are written to file.
     If compiled with ``USE_LLG=TRUE``, additional values include
     ``Hx`` ``Hy`` ``Hz``
     ``Mx_xface`` ``Mx_yface`` ``Mx_zface``
@@ -1552,7 +1589,6 @@ In-situ capabilities can be used by turning on Sensei or Ascent (provided they a
     ``Mz_xface`` ``Mz_yface`` ``Mz_zface``
     since all components of the M-field are stored at each face.  The
     cell-centered M-field output is the average of the two faces.
-    Note that the fields are averaged on the cell centers before they are written to file.
 
 * ``<diag_name>.plot_raw_fields`` (`0` or `1`) optional (default `0`)
     By default, the fields written in the plot files are averaged on the cell centers.
@@ -1789,13 +1825,16 @@ Reduced Diagnostics
         computed.
 
     * ``ParticleNumber``
-        This type computes the total number of macroparticles in the simulation (for each species
-        and summed over all species). It can be useful in particular for simulations with creation
-        (ionization, QED processes) or removal (resampling) of particles.
+        This type computes the total number of macroparticles and of physical particles (i.e. the
+        sum of their weights) in the whole simulation domain (for each species and summed over all
+        species). It can be useful in particular for simulations with creation (ionization, QED
+        processes) or removal (resampling) of particles.
 
         The output columns are
-        total number of macroparticles summed over all species and
-        total number of macroparticles of each species.
+        total number of macroparticles summed over all species,
+        total number of macroparticles of each species,
+        sum of the particles' weight summed over all species,
+        sum of the particles' weight of each species.
 
     * ``BeamRelevant``
         This type computes properties of a particle beam relevant for particle accelerators,

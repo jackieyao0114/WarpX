@@ -45,6 +45,20 @@ public:
      amrex::GpuArray<int, 3> Ey_IndexType;
      /** Gpu Vector with index type of the Ez multifab */
      amrex::GpuArray<int, 3> Ez_IndexType;
+#ifdef WARPX_MAG_LLG
+     /** Gpu Vector with index type of the saturation magnetization multifab */
+     amrex::GpuArray<int, 3> mag_Ms_IndexType;
+     /** Gpu Vector with index type of the Gilbert damping factor multifab */
+     amrex::GpuArray<int, 3> mag_alpha_IndexType;
+     /** Gpu Vector with index type of the gyromagnetic ratio multifab */
+     amrex::GpuArray<int, 3> mag_gamma_IndexType;
+     /** Gpu Vector with index type of the Mx multifab */
+     amrex::GpuArray<int, 3> Mx_IndexType;
+     /** Gpu Vector with index type of the My multifab */
+     amrex::GpuArray<int, 3> My_IndexType;
+     /** Gpu Vector with index type of the Mz multifab */
+     amrex::GpuArray<int, 3> Mz_IndexType;
+#endif
      /** Gpu Vector with index type of coarsening ratio with default value (1,1,1) */
      amrex::GpuArray<int, 3> macro_cr_ratio;
 
@@ -170,13 +184,30 @@ public:
      };
 #endif //closes ifdef MAG_LLG
 
-private:
      /** Conductivity, sigma, of the medium */
      amrex::Real m_sigma = 0.0;
      /** Permittivity, epsilon, of the medium */
      amrex::Real m_epsilon = PhysConst::ep0;
      /** Permeability, mu, of the medium */
      amrex::Real m_mu = PhysConst::mu0;
+
+     /** Stores initialization type for conductivity : constant or parser */
+     std::string m_sigma_s = "constant";
+     /** Stores initialization type for permittivity : constant or parser */
+     std::string m_epsilon_s = "constant";
+     /** Stores initialization type for permeability : constant or parser */
+     std::string m_mu_s = "constant";
+
+     /** Parser Wrappers */
+     // The ParserWrapper struct is constructed to safely use the GpuParser class
+     // that can essentially be though of as a raw pointer. The GpuParser does
+     // not have an explicit destructor and the AddPlasma subroutines handle the GpuParser
+     // in a safe way. The ParserWrapper struct is used to avoid memory leak
+     // in the EB parser functions.
+     std::unique_ptr<ParserWrapper<3> > m_sigma_parser;
+     std::unique_ptr<ParserWrapper<3> > m_epsilon_parser;
+     std::unique_ptr<ParserWrapper<3> > m_mu_parser;
+private:
 
 #ifdef WARPX_MAG_LLG // preferred to use this tag multiple times for different variable types to keep formatting consistent
      /** Saturation magnetization, only applies for magnetic materials */
@@ -214,12 +245,6 @@ private:
      std::unique_ptr<amrex::MultiFab> m_mag_gamma_mf;
 #endif
 
-     /** Stores initialization type for conductivity : constant or parser */
-     std::string m_sigma_s = "constant";
-     /** Stores initialization type for permittivity : constant or parser */
-     std::string m_epsilon_s = "constant";
-     /** Stores initialization type for permeability : constant or parser */
-     std::string m_mu_s = "constant";
 
 #ifdef WARPX_MAG_LLG
      std::string m_mag_Ms_s;
@@ -243,9 +268,6 @@ private:
      // not have an explicit destructor and the AddPlasma subroutines handle the GpuParser
      // in a safe way. The ParserWrapper struct is used to avoid memory leak
      // in the EB parser functions.
-     std::unique_ptr<ParserWrapper<3> > m_sigma_parser;
-     std::unique_ptr<ParserWrapper<3> > m_epsilon_parser;
-     std::unique_ptr<ParserWrapper<3> > m_mu_parser;
 #ifdef WARPX_MAG_LLG
      std::unique_ptr<ParserWrapper<3> > m_mag_Ms_parser;
      std::unique_ptr<ParserWrapper<3> > m_mag_alpha_parser;

@@ -12,6 +12,7 @@
 #include "FiniteDifferenceAlgorithms/CartesianNodalAlgorithm.H"
 #endif
 #include "Utils/WarpXConst.H"
+#include "Utils/CoarsenIO.H"
 #include <AMReX_Gpu.H>
 
 using namespace amrex;
@@ -63,6 +64,14 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
     // temporary Multifab storing M from previous timestep (old_time) before updating to M(new_time)
     std::array<std::unique_ptr<amrex::MultiFab>, 3> Mfield_old; // Mfield_old is M(old_time)
 
+    amrex::GpuArray<int, 3> const& mag_Ms_stag    = macroscopic_properties->mag_Ms_IndexType;
+    amrex::GpuArray<int, 3> const& mag_alpha_stag = macroscopic_properties->mag_alpha_IndexType;
+    amrex::GpuArray<int, 3> const& mag_gamma_stag = macroscopic_properties->mag_gamma_IndexType;
+    amrex::GpuArray<int, 3> const& Mx_stag        = macroscopic_properties->Mx_IndexType;
+    amrex::GpuArray<int, 3> const& My_stag        = macroscopic_properties->My_IndexType;
+    amrex::GpuArray<int, 3> const& Mz_stag        = macroscopic_properties->Mz_IndexType;
+    amrex::GpuArray<int, 3> const& macro_cr       = macroscopic_properties->macro_cr_ratio;
+
     for (int i = 0; i < 3; i++)
     {
         // Mfield_old is M(n)
@@ -102,14 +111,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
         Array4<Real> const &Hy_bias = H_biasfield[1]->array(mfi);    // Hy_bias is the y component at |_y faces
         Array4<Real> const &Hz_bias = H_biasfield[2]->array(mfi);    // Hz_bias is the z component at |_z faces
 
-        // extract stencil coefficients
-        Real const *const AMREX_RESTRICT coefs_x = m_stencil_coefs_x.dataPtr();
-        int const n_coefs_x = m_stencil_coefs_x.size();
-        Real const *const AMREX_RESTRICT coefs_y = m_stencil_coefs_y.dataPtr();
-        int const n_coefs_y = m_stencil_coefs_y.size();
-        Real const *const AMREX_RESTRICT coefs_z = m_stencil_coefs_z.dataPtr();
-        int const n_coefs_z = m_stencil_coefs_z.size();
-
         // extract tileboxes for which to loop
         Box const &tbx = mfi.tilebox(Hfield[0]->ixType().toIntVect()); /* just define which grid type */
         Box const &tby = mfi.tilebox(Hfield[1]->ixType().toIntVect());
@@ -119,12 +120,12 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
         amrex::ParallelFor(tbx, tby, tbz,
             [=] AMREX_GPU_DEVICE(int i, int j, int k) {
 
-                amrex::Real mag_Ms_arrx    = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr);
-                amrex::Real mag_alpha_arrx = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_alpha_arr);
-                amrex::Real mag_gamma_arrx = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_gamma_arr);
+                Real mag_Ms_arrx    = CoarsenIO::Interp( mag_Ms_arr, mag_Ms_stag, Mx_stag, macro_cr, i, j, k, 0);
+                Real mag_alpha_arrx = CoarsenIO::Interp( mag_alpha_arr, mag_alpha_stag, Mx_stag, macro_cr, i, j, k, 0);
+                Real mag_gamma_arrx = CoarsenIO::Interp( mag_gamma_arr, mag_gamma_stag, Mx_stag, macro_cr, i, j, k, 0);
 
                 // determine if the material is nonmagnetic or not
-                if (mag_Ms_arrx != 0._rt)
+                if (mag_Ms_arrx > 0._rt)
                 {
                     // when working on M_xface(i,j,k, 0:2) we have direct access to M_xface(i,j,k,0:2) and Hx(i,j,k)
                     // Hy and Hz can be acquired by interpolation
@@ -145,10 +146,10 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
 
                     // magnetic material properties mag_alpha and mag_Ms are defined at faces
                     // removed the interpolation from version with cell-nodal material properties
-                    amrex::Real mag_gammaL = mag_gamma_arrx / (1._rt + std::pow(mag_alpha_arrx, 2.0));
+                    amrex::Real mag_gammaL = mag_gamma_arrx / (1._rt + std::pow(mag_alpha_arrx, 2._rt));
 
                     // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
-                    amrex::Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) + std::pow(M_xface(i, j, k, 2), 2.0))
+                    amrex::Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_xface(i, j, k, 0), 2._rt) + std::pow(M_xface(i, j, k, 1), 2._rt) + std::pow(M_xface(i, j, k, 2), 2._rt))
                                                               : mag_Ms_arrx;
                     amrex::Real Gil_damp = PhysConst::mu0 * mag_gammaL * mag_alpha_arrx / M_magnitude;
 
@@ -170,7 +171,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
 
                     // temporary normalized magnitude of M_xface field at the fixed point
                     // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
-                    amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_xface(i, j, k, 0), 2.0) + std::pow(M_xface(i, j, k, 1), 2.0) + std::pow(M_xface(i, j, k, 2), 2.0)) / mag_Ms_arrx;
+                    amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_xface(i, j, k, 0), 2._rt) + std::pow(M_xface(i, j, k, 1), 2._rt) + std::pow(M_xface(i, j, k, 2), 2._rt)) / mag_Ms_arrx;
 
                     if (M_normalization > 0)
                     {
@@ -204,17 +205,17 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                             M_xface(i, j, k, 2) /= M_magnitude_normalized;
                         }
                     }
-                } // end if (mag_Ms_arrx(i,j,k) != 0...
+                } // end if (mag_Ms_arrx(i,j,k) > 0...
             },
 
             [=] AMREX_GPU_DEVICE(int i, int j, int k) {
 
-                Real mag_Ms_arry    = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_Ms_arr);
-                Real mag_alpha_arry = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_alpha_arr);
-                Real mag_gamma_arry = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,1,0),mag_gamma_arr);
+                Real mag_Ms_arry    = CoarsenIO::Interp( mag_Ms_arr, mag_Ms_stag, My_stag, macro_cr, i, j, k, 0);
+                Real mag_alpha_arry = CoarsenIO::Interp( mag_alpha_arr, mag_alpha_stag, My_stag, macro_cr, i, j, k, 0);
+                Real mag_gamma_arry = CoarsenIO::Interp( mag_gamma_arr, mag_gamma_stag, My_stag, macro_cr, i, j, k, 0);
 
                 // determine if the material is nonmagnetic or not
-                if (mag_Ms_arry != 0._rt)
+                if (mag_Ms_arry > 0._rt)
                 {
                     // when working on M_yface(i,j,k,0:2) we have direct access to M_yface(i,j,k,0:2) and Hy(i,j,k)
                     // Hy and Hz can be acquired by interpolation
@@ -235,10 +236,10 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
 
                     // magnetic material properties mag_alpha and mag_Ms are defined at faces
                     // removed the interpolation from version with cell-nodal material properties
-                    Real mag_gammaL = mag_gamma_arry / (1._rt + std::pow(mag_alpha_arry, 2.0));
+                    Real mag_gammaL = mag_gamma_arry / (1._rt + std::pow(mag_alpha_arry, 2._rt));
 
                     // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
-                    Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_yface(i, j, k, 0), 2.0) + std::pow(M_yface(i, j, k, 1), 2.0) + std::pow(M_yface(i, j, k, 2), 2.0))
+                    Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_yface(i, j, k, 0), 2._rt) + std::pow(M_yface(i, j, k, 1), 2._rt) + std::pow(M_yface(i, j, k, 2), 2._rt))
                                                               : mag_Ms_arry;
                     Real Gil_damp = PhysConst::mu0 * mag_gammaL * mag_alpha_arry / M_magnitude;
 
@@ -259,7 +260,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
 
                     // temporary normalized magnitude of M_yface field at the fixed point
                     // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
-                    amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_yface(i, j, k, 0), 2.0) + std::pow(M_yface(i, j, k, 1), 2.0) + std::pow(M_yface(i, j, k, 2), 2.0)) / mag_Ms_arry;
+                    amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_yface(i, j, k, 0), 2._rt) + std::pow(M_yface(i, j, k, 1), 2._rt) + std::pow(M_yface(i, j, k, 2), 2._rt)) / mag_Ms_arry;
 
                     if (M_normalization > 0)
                     {
@@ -293,17 +294,17 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                             M_yface(i, j, k, 2) /= M_magnitude_normalized;
                         }
                     }
-                } // end if (mag_Ms_arry(i,j,k) != 0...
+                } // end if (mag_Ms_arry(i,j,k) > 0...
             },
 
             [=] AMREX_GPU_DEVICE(int i, int j, int k) {
 
-                Real mag_Ms_arrz    = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_Ms_arr);
-                Real mag_alpha_arrz = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_alpha_arr);
-                Real mag_gamma_arrz = MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(0,0,1),mag_gamma_arr);
+                Real mag_Ms_arrz    = CoarsenIO::Interp( mag_Ms_arr, mag_Ms_stag, Mz_stag, macro_cr, i, j, k, 0);
+                Real mag_alpha_arrz = CoarsenIO::Interp( mag_alpha_arr, mag_alpha_stag, Mz_stag, macro_cr, i, j, k, 0);
+                Real mag_gamma_arrz = CoarsenIO::Interp( mag_gamma_arr, mag_gamma_stag, Mz_stag, macro_cr, i, j, k, 0);
 
                 // determine if the material is nonmagnetic or not
-                if (mag_Ms_arrz != 0._rt)
+                if (mag_Ms_arrz > 0._rt)
                 {
                     // when working on M_zface(i,j,k,0:2) we have direct access to M_zface(i,j,k,0:2) and Hz(i,j,k)
                     // Hy and Hz can be acquired by interpolation
@@ -325,10 +326,10 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
 
                     // magnetic material properties mag_alpha and mag_Ms are defined at faces
                     // removed the interpolation from version with cell-nodal material properties
-                    Real mag_gammaL = mag_gamma_arrz / (1._rt + std::pow(mag_alpha_arrz, 2.0));
+                    Real mag_gammaL = mag_gamma_arrz / (1._rt + std::pow(mag_alpha_arrz, 2._rt));
 
                     // 0 = unsaturated; compute |M| locally.  1 = saturated; use M_s
-                    Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_zface(i, j, k, 0), 2.0_rt) + std::pow(M_zface(i, j, k, 1), 2.0_rt) + std::pow(M_zface(i, j, k, 2), 2.0_rt))
+                    Real M_magnitude = (M_normalization == 0) ? std::sqrt(std::pow(M_zface(i, j, k, 0), 2._rt) + std::pow(M_zface(i, j, k, 1), 2._rt) + std::pow(M_zface(i, j, k, 2), 2._rt))
                                                               : mag_Ms_arrz;
                     Real Gil_damp = PhysConst::mu0 * mag_gammaL * mag_alpha_arrz / M_magnitude;
 
@@ -349,7 +350,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
 
                     // temporary normalized magnitude of M_zface field at the fixed point
                     // re-investigate the way we do Ms interp, in case we encounter the case where Ms changes across two adjacent cells that you are doing interp
-                    amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_zface(i, j, k, 0), 2.0_rt) + std::pow(M_zface(i, j, k, 1), 2.0_rt) + std::pow(M_zface(i, j, k, 2), 2.0_rt)) / mag_Ms_arrz;
+                    amrex::Real M_magnitude_normalized = std::sqrt(std::pow(M_zface(i, j, k, 0), 2._rt) + std::pow(M_zface(i, j, k, 1), 2._rt) + std::pow(M_zface(i, j, k, 2), 2._rt)) / mag_Ms_arrz;
 
                     if (M_normalization > 0)
                     {
@@ -383,7 +384,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                             M_zface(i, j, k, 2) /= M_magnitude_normalized;
                         }
                     }
-                } // end if (mag_Ms_arrz(i,j,k) != 0...
+                } // end if (mag_Ms_arrz(i,j,k) > 0...
             });
     }
     // Update H(new_time) = f(H(old_time), M(new_time), M(old_time), E(old_time))
@@ -432,11 +433,11 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                 Real mag_Ms_arrx = MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(1,0,0), mag_Ms_arr);
                 if (mag_Ms_arrx == 0._rt){ // nonmagnetic region
                     Real mu_arrx = MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(1,0,0), mu_arr);
-                    Hx(i, j, k) += 1. / mu_arrx * dt * T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k)
-                                 - 1. / mu_arrx * dt * T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k);
+                    Hx(i, j, k) += 1. / mu_arrx * dt * (T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k)
+                                                      - T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k));
                 } else if (mag_Ms_arrx > 0){ // magnetic region
-                    Hx(i, j, k) += mu0_inv * dt * T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k)
-                                 - mu0_inv * dt * T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k);
+                    Hx(i, j, k) += mu0_inv * dt * (T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k)
+                                                 - T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k));
                     if (coupling == 1) {
                         Hx(i, j, k) += - M_xface(i, j, k, 0) + M_xface_old(i, j, k, 0);
                     }
@@ -446,11 +447,11 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                 Real mag_Ms_arry = MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(0,1,0), mag_Ms_arr);
                 if (mag_Ms_arry == 0._rt){ // nonmagnetic region
                     Real mu_arry = MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(0,1,0), mu_arr);
-                    Hy(i, j, k) += 1. / mu_arry * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k)
-                                 - 1. / mu_arry * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k);
+                    Hy(i, j, k) += 1. / mu_arry * dt * (T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k)
+                                                      - T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k));
                 } else if (mag_Ms_arry > 0){ // magnetic region
-                    Hy(i, j, k) += mu0_inv * dt * T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k)
-                                 - mu0_inv * dt * T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k);
+                    Hy(i, j, k) += mu0_inv * dt * (T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k)
+                                                 - T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k));
                     if (coupling == 1){
                         Hy(i, j, k) += - M_yface(i, j, k, 1) + M_yface_old(i, j, k, 1);
                     }
@@ -460,11 +461,11 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
                 Real mag_Ms_arrz = MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(0,0,1), mag_Ms_arr);
                 if (mag_Ms_arrz == 0._rt){ // nonmagnetic region
                     Real mu_arrz = MacroscopicProperties::macro_avg_to_face(i, j, k, amrex::IntVect(0,0,1), mu_arr);
-                    Hz(i, j, k) += 1. / mu_arrz * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k)
-                                 - 1. / mu_arrz * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k);
+                    Hz(i, j, k) += 1. / mu_arrz * dt * (T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k)
+                                                      - T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k));
                 } else if (mag_Ms_arrz > 0){ // magnetic region
-                    Hz(i, j, k) += mu0_inv * dt * T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k)
-                                 - mu0_inv * dt * T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k);
+                    Hz(i, j, k) += mu0_inv * dt * (T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k)
+                                                 - T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k));
                     if (coupling == 1){
                         Hz(i, j, k) += - M_zface(i, j, k, 2) + M_zface_old(i, j, k, 2);
                     }
@@ -486,14 +487,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
         Array4<Real> const &M_yface = Mfield[1]->array(mfi); // note M_yface include x,y,z components at |_y faces
         Array4<Real> const &M_zface = Mfield[2]->array(mfi); // note M_zface include x,y,z components at |_z faces
 
-        // Extract stencil coefficients
-        Real const *const AMREX_RESTRICT coefs_x = m_stencil_coefs_x.dataPtr();
-        int const n_coefs_x = m_stencil_coefs_x.size();
-        Real const *const AMREX_RESTRICT coefs_y = m_stencil_coefs_y.dataPtr();
-        int const n_coefs_y = m_stencil_coefs_y.size();
-        Real const *const AMREX_RESTRICT coefs_z = m_stencil_coefs_z.dataPtr();
-        int const n_coefs_z = m_stencil_coefs_z.size();
-
         // Extract tileboxes for which to loop
         Box const &tbx = mfi.tilebox(Bfield[0]->ixType().toIntVect());
         Box const &tby = mfi.tilebox(Bfield[1]->ixType().toIntVect());
@@ -506,7 +499,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
         // mu_mf will be imported but will only be called at grids where Ms == 0
         auto& mu_mf = macroscopic_properties->getmu_mf();
         Array4<Real> const& mu_arr = mu_mf.array(mfi);
-        
         // Loop over the cells and update the fields
         amrex::ParallelFor(tbx, tby, tbz,
 

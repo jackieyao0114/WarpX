@@ -176,7 +176,7 @@ WarpX::InitPML ()
 #endif
                              do_dive_cleaning, do_moving_window,
                              pml_has_particles, do_pml_in_domain,
-                             do_pml_Lo_corrected, do_pml_Hi);
+                             do_pml_Lo_corrected, do_pml_Hi,0);
         for (int lev = 1; lev <= finest_level; ++lev)
         {
             amrex::IntVect do_pml_Lo_MR = amrex::IntVect::TheUnitVector();
@@ -194,7 +194,7 @@ WarpX::InitPML ()
 #endif
                                    do_dive_cleaning, do_moving_window,
                                    pml_has_particles, do_pml_in_domain,
-                                   do_pml_Lo_MR, amrex::IntVect::TheUnitVector());
+                                   do_pml_Lo_MR, amrex::IntVect::TheUnitVector(), lev);
         }
     }
 }
@@ -282,11 +282,20 @@ WarpX::InitLevelData (int lev, Real /*time*/)
     // default values of E_external_grid and B_external_grid
     // are used to set the E and B field when "constant" or
     // "parser" is not explicitly used in the input.
-    pp.query("B_ext_grid_init_style", B_ext_grid_s);
-    std::transform(B_ext_grid_s.begin(),
+    bool B_ext_specified = false;
+    if (pp.query("B_ext_grid_init_style", B_ext_grid_s)){
+        std::transform(B_ext_grid_s.begin(),
                    B_ext_grid_s.end(),
                    B_ext_grid_s.begin(),
                    ::tolower);
+        B_ext_specified = true;
+    }
+
+#ifdef WARPX_MAG_LLG
+    if (B_ext_specified) {
+        amrex::Abort("ERROR: Initialization of B field is not allowed in the LLG simulation! \nThe initial magnetic field must be H and M! \n");
+    }
+#endif
 
     pp.query("E_ext_grid_init_style", E_ext_grid_s);
     std::transform(E_ext_grid_s.begin(),
@@ -314,11 +323,20 @@ WarpX::InitLevelData (int lev, Real /*time*/)
 #endif
 
     // Query for type of external space-time (xt) varying excitation
-    pp.query("B_excitation_on_grid_style", B_excitation_grid_s);
-    std::transform(B_excitation_grid_s.begin(),
+    bool B_excitation_specified = false;
+    if (pp.query("B_excitation_on_grid_style", B_excitation_grid_s)){
+        std::transform(B_excitation_grid_s.begin(),
                    B_excitation_grid_s.end(),
                    B_excitation_grid_s.begin(),
                    ::tolower);
+        B_excitation_specified = true;
+    };
+
+#ifdef WARPX_MAG_LLG
+    if (B_excitation_specified) {
+        amrex::Abort("ERROR: Excitation of B field is not allowed in the LLG simulation! \nThe excited magnetic field must be H field! \n");
+    }
+#endif
 
     pp.query("E_excitation_on_grid_style", E_excitation_grid_s);
     std::transform(E_excitation_grid_s.begin(),
@@ -786,38 +804,7 @@ WarpX::InitLevelData (int lev, Real /*time*/)
                                                       getParser(Mzfield_parser),
                                                       lev);
 
-            // average Mx, My, Mz to faces in Mfield_fp
-            for (MFIter mfi(*Mfield_fp[lev][0], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-
-                const amrex::Box& tbx = mfi.tilebox( IntVect(1,0,0), Mfield_fp[lev][0]->nGrowVect() );
-                const amrex::Box& tby = mfi.tilebox( IntVect(0,1,0), Mfield_fp[lev][1]->nGrowVect() );
-                const amrex::Box& tbz = mfi.tilebox( IntVect(0,0,1), Mfield_fp[lev][2]->nGrowVect() );
-
-                auto const& mx_cc = Mx.array(mfi);
-                auto const& my_cc = My.array(mfi);
-                auto const& mz_cc = Mz.array(mfi);
-
-                auto const& m_xface = Mfield_fp[lev][0]->array(mfi);
-                auto const& m_yface = Mfield_fp[lev][1]->array(mfi);
-                auto const& m_zface = Mfield_fp[lev][2]->array(mfi);
-
-                amrex::ParallelFor (tbx, tby, tbz,
-                [=] AMREX_GPU_DEVICE (int i, int j, int k) {
-                    m_xface(i,j,k,0) = 0.5*(mx_cc(i-1,j,k) + mx_cc(i,j,k));
-                    m_xface(i,j,k,1) = 0.5*(my_cc(i-1,j,k) + my_cc(i,j,k));
-                    m_xface(i,j,k,2) = 0.5*(mz_cc(i-1,j,k) + mz_cc(i,j,k));
-                },
-                [=] AMREX_GPU_DEVICE (int i, int j, int k) {
-                    m_yface(i,j,k,0) = 0.5*(mx_cc(i,j-1,k) + mx_cc(i,j,k));
-                    m_yface(i,j,k,1) = 0.5*(my_cc(i,j-1,k) + my_cc(i,j,k));
-                    m_yface(i,j,k,2) = 0.5*(mz_cc(i,j-1,k) + mz_cc(i,j,k));
-                },
-                [=] AMREX_GPU_DEVICE (int i, int j, int k) {
-                    m_zface(i,j,k,0) = 0.5*(mx_cc(i,j,k-1) + mx_cc(i,j,k));
-                    m_zface(i,j,k,1) = 0.5*(my_cc(i,j,k-1) + my_cc(i,j,k));
-                    m_zface(i,j,k,2) = 0.5*(mz_cc(i,j,k-1) + mz_cc(i,j,k));
-                });
-            }
+            AverageParsedMtoFaces(Mx,My,Mz,*Mfield_fp[lev][0],*Mfield_fp[lev][1],*Mfield_fp[lev][2]);
         }
 
         if (lev > 0) {
@@ -837,38 +824,7 @@ WarpX::InitLevelData (int lev, Real /*time*/)
                                                           getParser(Mzfield_parser),
                                                           lev);
 
-                // average Mx, My, Mz to faces in Mfield_aux
-                for (MFIter mfi(*Mfield_aux[lev][0], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-
-                    const amrex::Box& tbx = mfi.tilebox( IntVect(1,0,0), Mfield_aux[lev][0]->nGrowVect() );
-                    const amrex::Box& tby = mfi.tilebox( IntVect(0,1,0), Mfield_aux[lev][1]->nGrowVect() );
-                    const amrex::Box& tbz = mfi.tilebox( IntVect(0,0,1), Mfield_aux[lev][2]->nGrowVect() );
-
-                    auto const& mx_cc = Mx.array(mfi);
-                    auto const& my_cc = My.array(mfi);
-                    auto const& mz_cc = Mz.array(mfi);
-
-                    auto const& m_xface = Mfield_aux[lev][0]->array(mfi);
-                    auto const& m_yface = Mfield_aux[lev][1]->array(mfi);
-                    auto const& m_zface = Mfield_aux[lev][2]->array(mfi);
-
-                    amrex::ParallelFor (tbx, tby, tbz,
-                    [=] AMREX_GPU_DEVICE (int i, int j, int k) {
-                        m_xface(i,j,k,0) = 0.5*(mx_cc(i-1,j,k) + mx_cc(i,j,k));
-                        m_xface(i,j,k,1) = 0.5*(my_cc(i-1,j,k) + my_cc(i,j,k));
-                        m_xface(i,j,k,2) = 0.5*(mz_cc(i-1,j,k) + mz_cc(i,j,k));
-                    },
-                    [=] AMREX_GPU_DEVICE (int i, int j, int k) {
-                        m_yface(i,j,k,0) = 0.5*(mx_cc(i,j-1,k) + mx_cc(i,j,k));
-                        m_yface(i,j,k,1) = 0.5*(my_cc(i,j-1,k) + my_cc(i,j,k));
-                        m_yface(i,j,k,2) = 0.5*(mz_cc(i,j-1,k) + mz_cc(i,j,k));
-                    },
-                    [=] AMREX_GPU_DEVICE (int i, int j, int k) {
-                        m_zface(i,j,k,0) = 0.5*(mx_cc(i,j,k-1) + mx_cc(i,j,k));
-                        m_zface(i,j,k,1) = 0.5*(my_cc(i,j,k-1) + my_cc(i,j,k));
-                        m_zface(i,j,k,2) = 0.5*(mz_cc(i,j,k-1) + mz_cc(i,j,k));
-                    });
-                }
+                AverageParsedMtoFaces(Mx,My,Mz,*Mfield_aux[lev][0],*Mfield_aux[lev][1],*Mfield_aux[lev][2]);
             }
 
             {   // use this brace so Mx, My, Mz go out of scope
@@ -887,38 +843,7 @@ WarpX::InitLevelData (int lev, Real /*time*/)
                                                           getParser(Mzfield_parser),
                                                           lev);
 
-                // average Mx, My, Mz to faces in Mfield_cp
-                for (MFIter mfi(*Mfield_cp[lev][0], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-
-                    const amrex::Box& tbx = mfi.tilebox( IntVect(1,0,0), Mfield_cp[lev][0]->nGrowVect() );
-                    const amrex::Box& tby = mfi.tilebox( IntVect(0,1,0), Mfield_cp[lev][1]->nGrowVect() );
-                    const amrex::Box& tbz = mfi.tilebox( IntVect(0,0,1), Mfield_cp[lev][2]->nGrowVect() );
-
-                    auto const& mx_cc = Mx.array(mfi);
-                    auto const& my_cc = My.array(mfi);
-                    auto const& mz_cc = Mz.array(mfi);
-
-                    auto const& m_xface = Mfield_cp[lev][0]->array(mfi);
-                    auto const& m_yface = Mfield_cp[lev][1]->array(mfi);
-                    auto const& m_zface = Mfield_cp[lev][2]->array(mfi);
-
-                    amrex::ParallelFor (tbx, tby, tbz,
-                    [=] AMREX_GPU_DEVICE (int i, int j, int k) {
-                        m_xface(i,j,k,0) = 0.5*(mx_cc(i-1,j,k) + mx_cc(i,j,k));
-                        m_xface(i,j,k,1) = 0.5*(my_cc(i-1,j,k) + my_cc(i,j,k));
-                        m_xface(i,j,k,2) = 0.5*(mz_cc(i-1,j,k) + mz_cc(i,j,k));
-                    },
-                    [=] AMREX_GPU_DEVICE (int i, int j, int k) {
-                        m_yface(i,j,k,0) = 0.5*(mx_cc(i,j-1,k) + mx_cc(i,j,k));
-                        m_yface(i,j,k,1) = 0.5*(my_cc(i,j-1,k) + my_cc(i,j,k));
-                        m_yface(i,j,k,2) = 0.5*(mz_cc(i,j-1,k) + mz_cc(i,j,k));
-                    },
-                    [=] AMREX_GPU_DEVICE (int i, int j, int k) {
-                        m_zface(i,j,k,0) = 0.5*(mx_cc(i,j,k-1) + mx_cc(i,j,k));
-                        m_zface(i,j,k,1) = 0.5*(my_cc(i,j,k-1) + my_cc(i,j,k));
-                        m_zface(i,j,k,2) = 0.5*(mz_cc(i,j,k-1) + mz_cc(i,j,k));
-                    });
-                }
+                AverageParsedMtoFaces(Mx,My,Mz,*Mfield_cp[lev][0],*Mfield_cp[lev][1],*Mfield_cp[lev][2]);
             }
         }
     }
@@ -947,6 +872,49 @@ WarpX::InitLevelData (int lev, Real /*time*/)
         }
     }
 }
+
+#ifdef WARPX_MAG_LLG
+void WarpX::AverageParsedMtoFaces(MultiFab& Mx_cc,
+                                  MultiFab& My_cc,
+                                  MultiFab& Mz_cc,
+                                  MultiFab& Mx_face,
+                                  MultiFab& My_face,
+                                  MultiFab& Mz_face)
+{
+    // average Mx, My, Mz to faces
+    for (MFIter mfi(Mx_face, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+
+        const amrex::Box& tbx = mfi.tilebox( IntVect(1,0,0), Mx_face.nGrowVect() );
+        const amrex::Box& tby = mfi.tilebox( IntVect(0,1,0), My_face.nGrowVect() );
+        const amrex::Box& tbz = mfi.tilebox( IntVect(0,0,1), Mz_face.nGrowVect() );
+
+        auto const& mx_cc = Mx_cc.array(mfi);
+        auto const& my_cc = My_cc.array(mfi);
+        auto const& mz_cc = Mz_cc.array(mfi);
+
+        auto const& mx_face = Mx_face.array(mfi);
+        auto const& my_face = My_face.array(mfi);
+        auto const& mz_face = Mz_face.array(mfi);
+
+        amrex::ParallelFor (tbx, tby, tbz,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) {
+            mx_face(i,j,k,0) = 0.5*(mx_cc(i-1,j,k) + mx_cc(i,j,k));
+            mx_face(i,j,k,1) = 0.5*(my_cc(i-1,j,k) + my_cc(i,j,k));
+            mx_face(i,j,k,2) = 0.5*(mz_cc(i-1,j,k) + mz_cc(i,j,k));
+        },
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) {
+            my_face(i,j,k,0) = 0.5*(mx_cc(i,j-1,k) + mx_cc(i,j,k));
+            my_face(i,j,k,1) = 0.5*(my_cc(i,j-1,k) + my_cc(i,j,k));
+            my_face(i,j,k,2) = 0.5*(mz_cc(i,j-1,k) + mz_cc(i,j,k));
+        },
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) {
+            mz_face(i,j,k,0) = 0.5*(mx_cc(i,j,k-1) + mx_cc(i,j,k));
+            mz_face(i,j,k,1) = 0.5*(my_cc(i,j,k-1) + my_cc(i,j,k));
+            mz_face(i,j,k,2) = 0.5*(mz_cc(i,j,k-1) + mz_cc(i,j,k));
+        });
+    }
+}
+#endif
 
 void
 WarpX::InitializeExternalFieldsOnGridUsingParser (

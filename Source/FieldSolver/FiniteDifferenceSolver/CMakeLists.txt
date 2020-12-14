@@ -9,6 +9,17 @@ target_sources(WarpX
     EvolveFPML.cpp
     FiniteDifferenceSolver.cpp
     MacroscopicEvolveE.cpp
+    MacroscopicEvolveEPML.cpp
 )
 
+if(WarpX_MAG_LLG)
+    target_sources(WarpX
+      PRIVATE
+        MacroscopicEvolveHM_2nd.cpp
+        MacroscopicEvolveHM.cpp
+        MacroscopicEvolveM_2nd.cpp
+        MacroscopicEvolveM.cpp
+        EvolveHPML.cpp
+    )
+endif()
 add_subdirectory(MacroscopicProperties)
