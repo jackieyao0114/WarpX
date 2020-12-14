@@ -188,6 +188,9 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
                             + beta * ( - T_Algo::DownwardDz(Hy, coefs_z, n_coefs_z, i, j, k,0)
                                        + T_Algo::DownwardDy(Hz, coefs_y, n_coefs_y, i, j, k,0)
                                      ) - beta * jx(i, j, k);
+                if (j == 0 || j == 3 || k == 1023){
+                    Ex(i, j, k) = 0;
+                }
             },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
@@ -202,6 +205,9 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
                             + beta * ( - T_Algo::DownwardDx(Hz, coefs_x, n_coefs_x, i, j, k,0)
                                        + T_Algo::DownwardDz(Hx, coefs_z, n_coefs_z, i, j, k,0)
                                      ) - beta * jy(i, j, k);
+                if (i == 0 || i == 511 || k == 1023){
+                    Ey(i, j, k) = 0;
+                }
             },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
@@ -216,6 +222,9 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
                             + beta * ( - T_Algo::DownwardDy(Hx, coefs_y, n_coefs_y, i, j, k,0)
                                        + T_Algo::DownwardDx(Hy, coefs_x, n_coefs_x, i, j, k,0)
                                      ) - beta * jz(i, j, k);
+                if (i == 0 || i == 511 || j == 0 || j == 3){
+                    Ez(i, j, k) = 0;
+                }
             }
         );
     }
