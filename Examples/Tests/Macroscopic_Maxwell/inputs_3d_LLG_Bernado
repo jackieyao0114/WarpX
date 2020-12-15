@@ -8,10 +8,10 @@
 ################################
 ####### GENERAL PARAMETERS ######
 #################################
-max_step = 100000
-amr.n_cell = 512 8 2048 # number of cells spanning the domain in each coordinate direction at level 0
+max_step = 500000
+amr.n_cell = 512 4 1024 # number of cells spanning the domain in each coordinate direction at level 0
 amr.max_grid_size = 64 # maximum size of each AMReX box, used to decompose the domain
-amr.blocking_factor = 8 # only meaningful for AMR
+amr.blocking_factor = 4 # only meaningful for AMR
 geometry.coord_sys = 0
 geometry.is_periodic = 0 0 0 
 
@@ -30,6 +30,7 @@ my_constants.width = 14.95e-3 # waveguide width is 14.95mm
 my_constants.height = 10.16e-3 # waveguide height is 10.16mm
 my_constants.Rjx = 1.0e-4 # the x dimension of current source cross-section
 my_constants.Rjz = 6.0e-4 # the z dimension of current source cross-section
+my_constants.length = 280.0e-3 # total length of the waveguide
 my_constants.wavelength = 0.0286 # frequency is 10.5 GHz
 my_constants.TP = 9.5238e-11 # Gaussian pulse width, 1 x time period of excitation
 my_constants.flag_none = 0 # no source flag
@@ -88,10 +89,10 @@ warpx.Ez_external_grid_function(x,y,z) = 0.
 warpx.E_excitation_on_grid_style = "parse_E_excitation_grid_function"
 warpx.Ex_excitation_grid_function(x,y,z,t) = "0.0"
 # electric current line source at the middle of waveguide; spanning over entire y dimension
-warpx.Ey_excitation_grid_function(x,y,z,t) = "(exp(-(t-3*TP)**2/(2*TP**2))*cos(2*pi*c/wavelength*t)) * (z >= - Rjz/2) * (z < Rjz/2) * (x >= - Rjx/2) * (x < Rjx/2)"
+warpx.Ey_excitation_grid_function(x,y,z,t) = "(exp(-(t-3*TP)**2/(2*TP**2))*cos(2*pi*c/wavelength*t)) * (z >= - Rjz/2 + length/4) * (z < Rjz/2 + length/4) * (x >= - Rjx/2) * (x < Rjx/2)"
 warpx.Ez_excitation_grid_function(x,y,z,t) = "0.0"
 warpx.Ex_excitation_flag_function(x,y,z) = "flag_none"
-warpx.Ey_excitation_flag_function(x,y,z) = "flag_ss * (z >= - Rjz/2) * (z < Rjz/2) * (x >= - Rjx/2) * (x < Rjx/2) + flag_none * (z < - Rjz/2) + flag_none * (z >= Rjz/2) + flag_none * (x < - Rjx/2) + flag_none * (x >= Rjx/2)"
+warpx.Ey_excitation_flag_function(x,y,z) = "flag_ss * (z >= - Rjz/2 + length/4) * (z < Rjz/2 + length/4) * (x >= - Rjx/2) * (x < Rjx/2) + flag_none * (z < - Rjz/2 + length/4) + flag_none * (z >= Rjz/2 + length/4) + flag_none * (x < - Rjx/2) + flag_none * (x >= Rjx/2)"
 warpx.Ez_excitation_flag_function(x,y,z) = "flag_none"
 
 #unit conversion: 1 Gauss = 1 Oersted = (1000/4pi) A/m
@@ -109,7 +110,6 @@ warpx.Mz_external_grid_function(x,y,z) = 0.
 
 #Diagnostics
 diagnostics.diags_names = plt_BernadoFilter
-plt_BernadoFilter.period = 5
+plt_BernadoFilter.period = 10
 plt_BernadoFilter.diag_type = Full
-#plt.fields_to_plot = Ex Ey Ez Bx By Bz
-plt_BernadoFilter.fields_to_plot = Ex Ey Ez Hx Hy Hz Bx By Bz Mx_xface My_xface Mz_xface Mx_yface My_yface Mz_yface Mx_zface My_zface Mz_zface
+plt_BernadoFilter.fields_to_plot = Ex Ey Ez Bx By Bz
