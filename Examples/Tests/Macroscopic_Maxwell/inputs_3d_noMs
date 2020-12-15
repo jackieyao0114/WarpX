@@ -1,4 +1,4 @@
-# This is a E+H (use USE_LLG=FALSE) simulation of a
+# This is a E+B (use USE_LLG=FALSE) simulation of a
 # plane wave in a periodic domain
 ################################
 ####### GENERAL PARAMETERS ######
