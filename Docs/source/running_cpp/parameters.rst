@@ -2226,7 +2226,7 @@ Solving magnetization using LLG equation
     then this input property must be provided.
     In addition, if `USE_LLG=TRUE` in the GNUMakefile and `mag_Ms` is non-zero, ``macroscopic.mu`` must be set to the vacuum value (``mu0``, i.e. 1.25663706212e-06). 
     If `USE_LLG=TRUE` in the GNUMakefile and `mag_Ms == 0`, LLG evolution is turned off and the macroscopic magnetic permeability, i.e. ``mur * mu0`` should be parsed in ``macroscopic.mu``, with 
-    the unitless relative permeability ``mur >=1``.
+    the dimensionless relative permeability ``mur >=1``.
 
 * ``macroscopic.mag_alpha_init_style`` (string) optional (default is "default")
     This parameter determines the type of initialization for the Gilbert damping factor
