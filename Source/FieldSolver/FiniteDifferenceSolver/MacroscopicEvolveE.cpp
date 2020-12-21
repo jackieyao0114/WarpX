@@ -190,7 +190,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
                                      ) - beta * jx(i, j, k);
                 
                 // waveguide PEC boundary conditions at x and y walls
-                if (j == 0 || j == 8){
+                if (j == 0 || j == 4){
                     Ex(i, j, k) = 0;
                 }
             },
@@ -226,7 +226,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
                                        + T_Algo::DownwardDx(Hy, coefs_x, n_coefs_x, i, j, k,0)
                                      ) - beta * jz(i, j, k);
 
-                if (i == 0 || i == 512 || j == 0 || j == 8){
+                if (i == 0 || i == 512 || j == 0 || j == 4){
                     Ez(i, j, k) = 0;
                 }
             }
