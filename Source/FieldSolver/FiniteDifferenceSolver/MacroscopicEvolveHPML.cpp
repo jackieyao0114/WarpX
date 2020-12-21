@@ -94,6 +94,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHPMLCartesian (
         Box const& tbx  = mfi.tilebox(Hfield[0]->ixType().ixType());
         Box const& tby  = mfi.tilebox(Hfield[1]->ixType().ixType());
         Box const& tbz  = mfi.tilebox(Hfield[2]->ixType().ixType());
+
         // starting component to interpolate macro properties to Hx, Hy, Hz locations
         const int scomp = 0;
         // mu_mf will be imported but will only be called at grids where Ms == 0
@@ -104,13 +105,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveHPMLCartesian (
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
 
-                Real mu_arrx = CoarsenIO::Interp( mu_arr, mu_stag, Hx_stag, macro_cr, i, j, k, scomp);
+                Real mu_inv = 1._rt/CoarsenIO::Interp( mu_arr, mu_stag, Hx_stag, macro_cr, i, j, k, scomp);
 
-                Hx(i, j, k, PMLComp::xz) += 1._rt / mu_arrx * dt * (
+                Hx(i, j, k, PMLComp::xz) += mu_inv * dt * (
                     T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k, PMLComp::yx)
                   + T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k, PMLComp::yy)
                   + T_Algo::UpwardDz(Ey, coefs_z, n_coefs_z, i, j, k, PMLComp::yz) );
-                Hx(i, j, k, PMLComp::xy) -= 1._rt / mu_arrx * dt * (
+                Hx(i, j, k, PMLComp::xy) -= mu_inv * dt * (
                     T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k, PMLComp::zx)
                   + T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k, PMLComp::zy)
                   + T_Algo::UpwardDy(Ez, coefs_y, n_coefs_y, i, j, k, PMLComp::zz) );
@@ -118,13 +119,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveHPMLCartesian (
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
 
-                Real mu_arry = CoarsenIO::Interp( mu_arr, mu_stag, Hy_stag, macro_cr, i, j, k, scomp);
+                Real mu_inv = 1._rt/CoarsenIO::Interp( mu_arr, mu_stag, Hy_stag, macro_cr, i, j, k, scomp);
 
-                Hy(i, j, k, PMLComp::yx) += 1._rt / mu_arry * dt * (
+                Hy(i, j, k, PMLComp::yx) += mu_inv * dt * (
                     T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k, PMLComp::zx)
                   + T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k, PMLComp::zy)
                   + T_Algo::UpwardDx(Ez, coefs_x, n_coefs_x, i, j, k, PMLComp::zz) );
-                Hy(i, j, k, PMLComp::yz) -= 1._rt / mu_arry * dt * (
+                Hy(i, j, k, PMLComp::yz) -= mu_inv * dt * (
                     T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k, PMLComp::xx)
                   + T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k, PMLComp::xy)
                   + T_Algo::UpwardDz(Ex, coefs_z, n_coefs_z, i, j, k, PMLComp::xz) );
@@ -132,13 +133,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveHPMLCartesian (
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
 
-                Real mu_arrz = CoarsenIO::Interp( mu_arr, mu_stag, Hz_stag, macro_cr, i, j, k, scomp);
+                Real mu_inv = 1._rt/CoarsenIO::Interp( mu_arr, mu_stag, Hz_stag, macro_cr, i, j, k, scomp);
 
-                Hz(i, j, k, PMLComp::zy) += 1._rt / mu_arrz * dt * (
+                Hz(i, j, k, PMLComp::zy) += mu_inv * dt * (
                     T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k, PMLComp::xx)
                   + T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k, PMLComp::xy)
                   + T_Algo::UpwardDy(Ex, coefs_y, n_coefs_y, i, j, k, PMLComp::xz) );
-                Hz(i, j, k, PMLComp::zx) -= 1._rt / mu_arrz * dt * (
+                Hz(i, j, k, PMLComp::zx) -= mu_inv * dt * (
                     T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k, PMLComp::yx)
                   + T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k, PMLComp::yy)
                   + T_Algo::UpwardDx(Ey, coefs_x, n_coefs_x, i, j, k, PMLComp::yz) );
