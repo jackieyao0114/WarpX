@@ -72,7 +72,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveHPMLCartesian (
 #ifdef _OPENMP
 #pragma omp parallel if (amrex::Gpu::notInLaunchRegion())
 #endif
-
     for ( MFIter mfi(*Hfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi ) {
 
         // Extract field data for this grid/tile
