@@ -188,7 +188,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
                             + beta * ( - T_Algo::DownwardDz(Hy, coefs_z, n_coefs_z, i, j, k,0)
                                        + T_Algo::DownwardDy(Hz, coefs_y, n_coefs_y, i, j, k,0)
                                      ) - beta * jx(i, j, k);
-                if (j == 0 || j == 4 || k == 1024){
+                if (j == 0 || j == 4 || k == 512){
                     Ex(i, j, k) = 0;
                 }
             },
@@ -205,7 +205,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
                             + beta * ( - T_Algo::DownwardDx(Hz, coefs_x, n_coefs_x, i, j, k,0)
                                        + T_Algo::DownwardDz(Hx, coefs_z, n_coefs_z, i, j, k,0)
                                      ) - beta * jy(i, j, k);
-                if (i == 0 || i == 512 || k == 1024){
+                if (i == 0 || i == 512 || k == 512){
                     Ey(i, j, k) = 0;
                 }
             },
