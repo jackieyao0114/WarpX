@@ -1923,7 +1923,7 @@ WarpX::PicsarVersion ()
 #endif
 }
 
-/* for output */
+/* for output 
 #ifdef WARPX_MAG_LLG
     void WarpX::MacroscopicfieldOutput (
         std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Mfield,
@@ -1932,7 +1932,7 @@ WarpX::PicsarVersion ()
         std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Bfield,
         amrex::Real const time)
     {
-        for (MFIter mfi(*Mfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi) /* remember to FIX */
+        for (MFIter mfi(*Mfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi) // remember to FIX 
         {
             // extract field data
             Array4<Real> const& M_xface = Mfield[0]->array(mfi); // note M_xface include x,y,z components at |_x faces
@@ -1948,7 +1948,7 @@ WarpX::PicsarVersion ()
             Array4<Real> const& By = Bfield[1]->array(mfi); // By is the y component at |_y faces
             Array4<Real> const& Bz = Bfield[2]->array(mfi); // Bz is the z component at |_z faces
             // extract tileboxes for which to loop
-            Box const& tbx = mfi.tilebox(Bfield[0]->ixType().toIntVect()); /* just define which grid type */
+            Box const& tbx = mfi.tilebox(Bfield[0]->ixType().toIntVect()); // just define which grid type 
             Box const& tby = mfi.tilebox(Bfield[1]->ixType().toIntVect());
             Box const& tbz = mfi.tilebox(Bfield[2]->ixType().toIntVect());
             // loop over cells and output fields
@@ -1996,3 +1996,4 @@ WarpX::PicsarVersion ()
         }
     }
 #endif
+*/

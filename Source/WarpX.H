@@ -492,7 +492,7 @@ public:
     void MacroscopicEvolveHM_2nd (int lev, PatchType patch_type, amrex::Real dt);
 #endif
 
-/* for output */
+/* for output 
 #ifdef WARPX_MAG_LLG
         void MacroscopicfieldOutput (
             std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Mfield,
@@ -501,7 +501,7 @@ public:
             std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Bfield,
             amrex::Real const time);
 #endif
-
+*/
     /** \brief apply QED correction on electric field
      * \param dt vector of time steps (for all levels)
      */

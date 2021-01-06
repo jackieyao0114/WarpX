@@ -434,11 +434,14 @@ WarpX::OneStep_nosub (Real cur_time)
         } // !PSATD
     } // !do_electrostatic
 
+/*
 #ifdef WARPX_MAG_LLG
     // output the field variables on level 0
     MacroscopicfieldOutput(Mfield_fp[0], Hfield_fp[0], Efield_fp[0], Bfield_fp[0], cur_time);
 #endif
+*/
 }
+
 
 /* /brief Perform one PIC iteration, with subcycling
 *  i.e. The fine patch uses a smaller timestep (and steps more often)
