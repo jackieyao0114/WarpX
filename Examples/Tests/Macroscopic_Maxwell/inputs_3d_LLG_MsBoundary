@@ -33,7 +33,7 @@ particles.nspecies = 0
 #################################
 ############ FIELDS #############
 #################################
-my_constants.mu_r = 1
+my_constants.mu_r = 4
 my_constants.epsilon_r = 1
 my_constants.pi = 3.14159265359
 my_constants.L = 141.4213562373095e-6
@@ -42,11 +42,11 @@ my_constants.wavelength = 64.e-6
 
 warpx.E_ext_grid_init_style = parse_E_ext_grid_function
 warpx.Ex_external_grid_function(x,y,z) = 0.
-warpx.Ey_external_grid_function(x,y,z) = "1.e5*exp(-z**2/L**2)*cos(2*pi*z/wavelength * sqrt(epsilon_r*mu_r))"
+warpx.Ey_external_grid_function(x,y,z) = "1.e7*exp(-z**2/L**2)*cos(2*pi*z/wavelength * sqrt(epsilon_r*mu_r))"
 warpx.Ez_external_grid_function(x,y,z) = 0.
 
 warpx.H_ext_grid_init_style = parse_H_ext_grid_function
-warpx.Hx_external_grid_function(x,y,z) = "-1.e5*exp(-z**2/L**2)*cos(2*pi*z/wavelength * sqrt(epsilon_r*mu_r)) / sqrt( mu_r*1.25663706212e-06 / (epsilon_r*8.8541878128e-12) )"
+warpx.Hx_external_grid_function(x,y,z) = "-1.e7*exp(-z**2/L**2)*cos(2*pi*z/wavelength * sqrt(epsilon_r*mu_r)) / sqrt( mu_r*1.25663706212e-06 / (epsilon_r*8.8541878128e-12) )"
 warpx.Hy_external_grid_function(x,y,z) = 0.
 warpx.Hz_external_grid_function(x,y,z) = 0.
 
