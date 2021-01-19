@@ -150,7 +150,8 @@ class FiniteDifferenceSolver
                       std::array< amrex::MultiFab*, 3 > const Efield,
                       amrex::Real const dt,
                       std::unique_ptr<MacroscopicProperties> const& macroscopic_properties,
-                      amrex::MultiFab* const mu_mf );
+                      amrex::MultiFab* const mu_mf,
+                      const bool dive_cleaning);
 #endif
 
     private:
@@ -309,7 +310,8 @@ class FiniteDifferenceSolver
             std::array< amrex::MultiFab*, 3 > const Efield,
             amrex::Real const dt,
             std::unique_ptr<MacroscopicProperties> const& macroscopic_properties,
-            amrex::MultiFab* const mu_mf );
+            amrex::MultiFab* const mu_mf,
+            const bool dive_cleaning);
 #endif
 
 #endif
